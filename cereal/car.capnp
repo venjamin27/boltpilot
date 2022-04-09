@@ -149,6 +149,7 @@ struct CarState {
   regenPressed @45 :Bool; #this is regen button only
   adaptiveCruise @46 :Bool;
   mainOn @47 :Bool;
+  lkasEnable @49 :Bool;
 
 
   # car speed
