@@ -17,6 +17,9 @@ LAST_RADAR_MSG = RADAR_HEADER_MSG + NUM_SLOTS
 
 def create_radar_can_parser(car_fingerprint):
   # if car_fingerprint not in (CAR.VOLT, CAR.MALIBU, CAR.HOLDEN_ASTRA, CAR.ACADIA, CAR.CADILLAC_ATS, CAR.ESCALADE_ESV):
+
+  return None
+
   if car_fingerprint in (CAR.BOLT_EV):
     return None
 
@@ -43,7 +46,8 @@ class RadarInterface(RadarInterfaceBase):
   def __init__(self, CP):
     super().__init__(CP)
 
-    self.rcp = create_radar_can_parser(CP.carFingerprint)
+    #self.rcp = create_radar_can_parser(CP.carFingerprint)
+    self.rcp = None
 
     self.trigger_msg = LAST_RADAR_MSG
     self.updated_messages = set()

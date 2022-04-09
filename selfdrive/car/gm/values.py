@@ -5,14 +5,9 @@ from selfdrive.car import dbc_dict
 Ecu = car.CarParams.Ecu
 
 class CarControllerParams():
-  STEER_MAX = 300  # Safety limit, not LKA max. Trucks use 600.
+
   STEER_STEP = 2  # control frames per command
-  STEER_DELTA_UP = 7
-  STEER_DELTA_DOWN = 17
   MIN_STEER_SPEED = 3.  # m/s
-  STEER_DRIVER_ALLOWANCE = 50
-  STEER_DRIVER_MULTIPLIER = 4
-  STEER_DRIVER_FACTOR = 100
   NEAR_STOP_BRAKE_PHASE = 0.5  # m/s
 
   # Heartbeat for dash "Service Adaptive Cruise" and "Service Front Camera"
@@ -39,6 +34,13 @@ class CarControllerParams():
   BRAKE_LOOKUP_BP = [ACCEL_MIN, -1]
   BRAKE_LOOKUP_V = [MAX_BRAKE, 0]
   ACCEL_HYST_GAP = 0.02
+  def __init__(self, CP):
+    self.STEER_MAX = 300   # 409 is the max, 255 is stock
+    self.STEER_DELTA_UP = 7
+    self.STEER_DELTA_DOWN = 17
+    self.STEER_DRIVER_ALLOWANCE = 50
+    self.STEER_DRIVER_MULTIPLIER = 4
+    self.STEER_DRIVER_FACTOR = 100
 
 STEER_THRESHOLD = 1.0
 

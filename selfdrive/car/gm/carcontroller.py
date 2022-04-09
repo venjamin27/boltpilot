@@ -35,12 +35,14 @@ class CarController():
   def __init__(self, dbc_name, CP, VM):
     self.start_time = 0.
     self.apply_steer_last = 0
+    self.apply_gas = 0
+    self.apply_brake = 0
     self.lka_steering_cmd_counter_last = -1
     self.lka_icon_status_last = (False, False)
     self.steer_rate_limited = False
     
     self.accel_steady = 0.    
-    self.params = CarControllerParams()
+    self.params = CarControllerParams(CP)
 
     self.packer_pt = CANPacker(DBC[CP.carFingerprint]['pt'])
     #self.packer_obj = CANPacker(DBC[CP.carFingerprint]['radar'])
@@ -54,9 +56,13 @@ class CarController():
     if enabled:
       accel = actuators.accel
       gas, brake = compute_gas_brake(actuators.accel, CS.out.vEgo)
+      self.apply_gas = gas
+      self.apply_brake = brake
     else:
       accel = 0.0
       gas, brake = 0.0, 0.0
+      self.apply_gas = gas
+      self.apply_brake = brake
 
     # Send CAN commands.
     can_sends = []
@@ -133,4 +139,9 @@ class CarController():
       can_sends.append(gmcan.create_lka_icon_command(CanBus.SW_GMLAN, lka_active, lka_critical, steer_alert))
       self.lka_icon_status_last = lka_icon_status
 
-    return can_sends
+    new_actuators = actuators.copy()
+    new_actuators.steer = self.apply_steer_last / P.STEER_MAX
+    new_actuators.gas = self.apply_gas
+    new_actuators.brake = self.apply_brake
+
+    return new_actuators, can_sends
