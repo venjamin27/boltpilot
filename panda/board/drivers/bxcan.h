@@ -9,12 +9,7 @@ bool can_set_speed(uint8_t can_number) {
   CAN_TypeDef *CAN = CANIF_FROM_CAN_NUM(can_number);
   uint8_t bus_number = BUS_NUM_FROM_CAN_NUM(can_number);
 
-  ret &= llcan_set_speed(
-    CAN,
-    bus_config[bus_number].can_speed,
-    can_loopback,
-    (unsigned int)(can_silent) & (1U << can_number)
-  );
+  ret &= llcan_set_speed(CAN, bus_config[bus_number].can_speed, can_loopback, (unsigned int)(can_silent) & (1U << can_number));
   return ret;
 }
 
@@ -196,13 +191,7 @@ void can_rx(uint8_t can_number) {
       to_send.bus = to_push.bus;
       to_send.data_len_code = to_push.data_len_code;
       (void)memcpy(to_send.data, to_push.data, dlc_to_len[to_push.data_len_code]);
-
-	  if (bus_fwd_num > 9) {
-        can_send(&to_send, (bus_fwd_num / 10), true);
-        can_send(&to_send, (bus_fwd_num % 10), true);
-      } else {
-        can_send(&to_send, bus_fwd_num, true);
-      }
+      can_send(&to_send, bus_fwd_num, true);
     }
 
     can_rx_errs += safety_rx_hook(&to_push) ? 0U : 1U;
