@@ -5,7 +5,7 @@
 /*#include "safety/safety_honda.h"
 #include "safety/safety_toyota.h"
 #include "safety/safety_tesla.h"
-#include "safety/safety_gm.h"
+include "safety/safety_gm.h"
 #include "safety/safety_ford.h"*/
 #include "safety/safety_hyundai.h"
 /*#include "safety/safety_chrysler.h"
