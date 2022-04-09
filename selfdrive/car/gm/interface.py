@@ -60,7 +60,7 @@ class CarInterface(CarInterfaceBase):
 
     # GM port is a community feature
     # TODO: make a port that uses a car harness and it only intercepts the camera
-    ret.communityFeature = True
+    # ret.communityFeature = True
 
     # Presence of a camera on the object bus is ok.
     # Have to go to read_only if ASCM is online (ACC-enabled cars),
@@ -112,9 +112,9 @@ class CarInterface(CarInterfaceBase):
     ret.longitudinalActuatorDelayLowerBound = 0.13
     ret.longitudinalActuatorDelayUpperBound = 0.15
     
-    ret.startAccel = -0.8
+    # ret.startAccel = -0.8 #### REMOVED
     ret.stopAccel = -2.0
-    ret.startingAccelRate = 5.0
+    # ret.startingAccelRate = 5.0 #### REMOVED
     ret.stoppingDecelRate = 4.0
     ret.vEgoStopping = 0.5
     ret.vEgoStarting = 0.5
