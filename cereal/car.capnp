@@ -144,6 +144,13 @@ struct CarEvent @0x9b1657f34caf3ad3 {
 struct CarState {
   events @13 :List(CarEvent);
 
+  #BOLT EV
+  vehicleSpeed @48 :Float32;
+  regenPressed @45 :Bool; #this is regen button only
+  adaptiveCruise @46 :Bool;
+  mainOn @47 :Bool;
+
+
   # car speed
   vEgo @1 :Float32;         # best estimate of speed
   aEgo @16 :Float32;        # best estimate of acceleration
@@ -151,6 +158,7 @@ struct CarState {
   yawRate @22 :Float32;     # best estimate of yaw rate
   standstill @18 :Bool;
   wheelSpeeds @2 :WheelSpeeds;
+
 
   # gas pedal, 0.0-1.0
   gas @3 :Float32;        # this is user pedal only
@@ -161,6 +169,7 @@ struct CarState {
   brakePressed @6 :Bool;  # this is user pedal only
   parkingBrake @39 :Bool;
   brakeHoldActive @38 :Bool;
+
 
   # steering wheel
   steeringAngleDeg @7 :Float32;
@@ -178,6 +187,7 @@ struct CarState {
 
   # cruise state
   cruiseState @10 :CruiseState;
+
 
   # gear
   gearShifter @14 :GearShifter;
