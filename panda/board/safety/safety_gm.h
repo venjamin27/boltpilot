@@ -119,8 +119,7 @@ static int gm_rx_hook(CANPacket_t *to_push) {
     generic_rx_checks(addr == MSG_TX_LKA);
   }
   return valid;
-/////////////////슐러는 189에 대해 조사하고있으나 기존 사용하던 판다펌에선 0x189(393) 이 리젠 으로 지정되어있음. 그러나 기존 어차피 gm_rx_hook 에서 패들 검사 안함
-/////////////////향후에 차차님에게 확인 필요
+
     // exit controls on regen paddle
 //    if (addr == 189) {
 //      bool regen = GET_BYTE(to_push, 0) & 0x20U;
