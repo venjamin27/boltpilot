@@ -5,7 +5,7 @@ from opendbc.can.parser import CANParser
 from selfdrive.car.interfaces import CarStateBase
 from selfdrive.car.gm.values import DBC, CAR, AccState, CanBus, \
                                     CruiseButtons, STEER_THRESHOLD
-from selfdrive.config import Conversions as CV
+from common.conversions import Conversions as CV
 
 class CarState(CarStateBase):
   def __init__(self, CP):
@@ -80,10 +80,10 @@ class CarState(CarStateBase):
 
     ret.brakePressed = ret.brake > 1e-5
     ret.regenPressed = False
-    if self.car_fingerprint == CAR.VOLT or self.car_fingerprint == CAR.BOLT:
+    if  self.car_fingerprint == CAR.BOLT_EV:
       ret.regenPressed = bool(pt_cp.vl["EBCMRegenPaddle"]["RegenPaddle"])
     brake_light_enable = False
-    if self.car_fingerprint == CAR.BOLT:
+    if self.car_fingerprint == CAR.BOLT_EV:
       if ret.aEgo < -1.3:
         brake_light_enable = True
     ret.brakeLights = ret.brakePressed or ret.regenPressed or brake_light_enable
@@ -128,7 +128,7 @@ class CarState(CarStateBase):
     ]
 
 
-    if CP.carFingerprint == CAR.VOLT or CP.carFingerprint == CAR.BOLT:
+    if CP.carFingerprint == CAR.BOLT_EV:
       signals += [
         ("RegenPaddle", "EBCMRegenPaddle", 0),
       ]

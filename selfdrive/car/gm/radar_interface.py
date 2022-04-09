@@ -4,7 +4,7 @@ import math
 from cereal import car
 from opendbc.can.parser import CANParser
 from selfdrive.car.gm.values import DBC, CAR, CanBus
-from selfdrive.config import Conversions as CV
+from common.conversions import Conversions as CV
 from selfdrive.car.interfaces import RadarInterfaceBase
 
 RADAR_HEADER_MSG = 1120
@@ -16,7 +16,8 @@ NUM_SLOTS = 20
 LAST_RADAR_MSG = RADAR_HEADER_MSG + NUM_SLOTS
 
 def create_radar_can_parser(car_fingerprint):
-  if car_fingerprint not in (CAR.VOLT, CAR.MALIBU, CAR.HOLDEN_ASTRA, CAR.ACADIA, CAR.CADILLAC_ATS, CAR.ESCALADE_ESV):
+  # if car_fingerprint not in (CAR.VOLT, CAR.MALIBU, CAR.HOLDEN_ASTRA, CAR.ACADIA, CAR.CADILLAC_ATS, CAR.ESCALADE_ESV):
+  if car_fingerprint not in (CAR.BOLT_EV):
     return None
 
   # C1A-ARS3-A by Continental

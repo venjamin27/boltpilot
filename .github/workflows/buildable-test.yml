@@ -1,0 +1,34 @@
+# This is a basic workflow to help you get started with Actions
+
+name: ubuntu build
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the 075-kegman-lqr branch
+on: push
+
+
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  python_linter:
+    name: build test
+    # The type of runner that the job will run on
+    runs-on: ubuntu-20.04
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - name: Get number of CPU cores
+        uses: SimenB/github-actions-cpu-cores@v1
+        id: cpu-cores
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+#libyuv-dev  cythonize 누락함
+      - name: apt-update
+        run : sudo apt update ;
+      - name: apt-install
+        run : sudo apt install -y   pip capnproto clang libcapnp-dev libzmq3-dev opencl-headers libeigen3-dev ocl-icd-opencl-dev gcc-arm-none-eabi binutils-arm-none-eabi libnewlib-arm-none-eabi libusb-1.0-0* qtchooser qt5ct sudo apt  qt5-qmake qt5-assistant qt5-qmake-bin qt5-gtk2-platformtheme qt5-qmltooling-plugins qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools libcurl4-openssl-dev libavcodec-dev openssl libavformat-dev sudo apt  libjpeg-dev libssl-dev libbz2-dev libsystemd-dev libswscale-dev unzip libqt5multimedia5 libqt5multimedia5-plugins qt5-qmltooling-plugins libqt5multimedia* libqt53dcore5 libqt53dcore5 sudo apt  libqt53dextras5 libqt53dinput5 qtbase5-private-dev qtmultimedia5-dev qtpositioning5-dev libqt5location5 libgsl-dev libqt5location5* ffmpeg libqt5widgets5 libqt5gui5 libqt5dbus5 sudo apt  libqt5network5 libqt5core5a qtlocation5-dev qtlocation5-dev qtpositioning5-dev qml-module-qtquick2 qml-module-qtpositioning qml-module-qtgraphicaleffects qml-module-qtquick-layouts sudo apt  qml-module-qtquick-controls libffmpeg-nvenc-dev cmake libomxil-bellagio0 libomxil-bellagio-dev autoconf automake build-essential libass-dev libfreetype6-dev libgpac-dev libsdl1.2-dev libtheora-dev libtool libva-dev libvdpau-dev libvorbis-dev libx11-dev libxext-dev libxfixes-dev pkg-config texi2html zlib1g-dev
+      - name: pip-install
+        run : pip install --upgrade sympy scons cython setuptools pip & pip install numpy pycapnp cffi zmq smbus2 casadi pycryptodome future-fstrings
+      - name: trigger-build
+        run : scons -j${{ steps.cpu-cores.outputs.count }}

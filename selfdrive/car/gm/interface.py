@@ -2,7 +2,7 @@
 from cereal import car
 from common.numpy_fast import interp
 from math import fabs
-from selfdrive.config import Conversions as CV
+from common.conversions import Conversions as CV
 from selfdrive.car.gm.values import CAR, CruiseButtons, AccState, CarControllerParams
 from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, gen_empty_fingerprint, get_safety_config
 from selfdrive.car.interfaces import CarInterfaceBase
@@ -12,6 +12,13 @@ ButtonType = car.CarState.ButtonEvent.Type
 EventName = car.CarEvent.EventName
 
 class CarInterface(CarInterfaceBase):
+  def __init__(self, CP, CarController, CarState):
+    super().__init__(CP, CarController, CarState)
+    self.flag_pcmEnable_initialSet = False
+    self.initial_pcmEnable_counter = 0
+    self.flag_pcmEnable_able = False
+
+
   @staticmethod
   def get_pid_accel_limits(CP, current_speed, cruise_speed):
     params = CarControllerParams()
@@ -31,20 +38,22 @@ class CarInterface(CarInterfaceBase):
     return 0.04689655 * sigmoid * (v_ego + 10.028217)
 
   def get_steer_feedforward_function(self):
-    if self.CP.carFingerprint == CAR.VOLT:
-      return self.get_steer_feedforward_volt
-    elif self.CP.carFingerprint == CAR.ACADIA:
-      return self.get_steer_feedforward_acadia
-    else:
-      return CarInterfaceBase.get_steer_feedforward_default
+    # if self.CP.carFingerprint == CAR.VOLT:
+    #   return self.get_steer_feedforward_volt
+    # elif self.CP.carFingerprint == CAR.ACADIA:
+    #   return self.get_steer_feedforward_acadia
+    # else:
+    #   return CarInterfaceBase.get_steer_feedforward_default
+    return CarInterfaceBase.get_steer_feedforward_default
+
     
   @staticmethod
   def compute_gb(accel, speed):
     return float(accel) / 4.0
 
   @staticmethod
-  def get_params(candidate, fingerprint=gen_empty_fingerprint(), has_relay=False, car_fw=None):
-    ret = CarInterfaceBase.get_std_params(candidate, fingerprint, has_relay)
+  def get_params(candidate, fingerprint=gen_empty_fingerprint(), car_fw=None, disable_radar=False):
+    ret = CarInterfaceBase.get_std_params(candidate, fingerprint)
     ret.carName = "gm"
     ret.safetyConfigs = [get_safety_config(car.CarParams.SafetyModel.gm)]
     ret.pcmCruise = False  # stock cruise control is kept off
@@ -73,7 +82,7 @@ class CarInterface(CarInterfaceBase):
     ret.centerToFront = ret.wheelbase * 0.49 # wild guess
     ret.lateralTuning.init('lqr')
 
-    ret.lateralTuning.lqr.scale = 1975.0
+    ret.lateralTuning.lqr.scale = 1950.0
     ret.lateralTuning.lqr.ki = 0.032
     ret.lateralTuning.lqr.a = [0., 1., -0.22619643, 1.21822268]
     ret.lateralTuning.lqr.b = [-1.92006585e-04, 3.95603032e-05]
@@ -232,7 +241,8 @@ class CarInterface(CarInterfaceBase):
 
     return self.CS.out
 
-  def apply(self, c):
+  def apply(self, c, controls):
+    # return self.CC.update(c, self.CS, controls)
     hud_v_cruise = c.hudControl.setSpeed
     if hud_v_cruise > 70:
       hud_v_cruise = 0
