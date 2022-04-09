@@ -2,14 +2,14 @@
 const int TOYOTA_MAX_TORQUE = 1500;       // max torque cmd allowed ever
 
 // rate based torque limit + stay within actually applied
-// packet is sent at 100hz, so this limit is 1000/sec
-const int TOYOTA_MAX_RATE_UP = 10;        // ramp up slow
+// packet is sent at 100hz, so this limit is 1500/sec
+const int TOYOTA_MAX_RATE_UP = 15;        // ramp up slow
 const int TOYOTA_MAX_RATE_DOWN = 25;      // ramp down fast
 const int TOYOTA_MAX_TORQUE_ERROR = 350;  // max torque cmd in excess of torque motor
 
 // real time torque limit to prevent controls spamming
-// the real time limit is 1500/sec
-const int TOYOTA_MAX_RT_DELTA = 375;      // max delta torque allowed for real time checks
+// the real time limit is 1800/sec, a 20% buffer
+const int TOYOTA_MAX_RT_DELTA = 450;      // max delta torque allowed for real time checks
 const uint32_t TOYOTA_RT_INTERVAL = 250000;    // 250ms between real time checks
 
 // longitudinal limits
@@ -168,6 +168,15 @@ static int toyota_tx_hook(CANPacket_t *to_send) {
       bool violation = max_limit_check(desired_accel, TOYOTA_MAX_ACCEL, TOYOTA_MIN_ACCEL);
 
       if (violation) {
+        tx = 0;
+      }
+    }
+
+    // AEB: block all actuation. only used when DSU is unplugged
+    if (addr == 0x283) {
+      // only allow the checksum, which is the last byte
+      bool block = (GET_BYTES_04(to_send) != 0U) || (GET_BYTE(to_send, 4) != 0U) || (GET_BYTE(to_send, 5) != 0U);
+      if (block) {
         tx = 0;
       }
     }
