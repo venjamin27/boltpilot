@@ -9,8 +9,10 @@
 
 #include <QTimer>
 #include <QMap>
-#include "selfdrive/ui/qt/screenrecorder/screenrecorder.h"
 
+#ifdef QCOM2
+#include "selfdrive/ui/qt/screenrecorder/screenrecorder.h"
+#endif
 
 // ***** onroad widgets *****
 
@@ -111,7 +113,9 @@ private:
 
   // neokii
 private:
+#ifdef QCOM2
   ScreenRecoder* recorder;
+#endif
   std::shared_ptr<QTimer> record_timer;
   QPoint startPos;
 

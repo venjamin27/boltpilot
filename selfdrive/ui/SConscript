@@ -64,7 +64,16 @@ qt_src = ["main.cc", "ui.cc", "qt/sidebar.cc", "qt/onroad.cc", "qt/body.cc",
 
 ui_libs = ['OmxCore', 'gsl', 'CB', 'avformat', 'avcodec', 'swscale', 'avutil', 'yuv', 'pthread']
 
+
+if arch == "x86_64":
+  del ui_libs[ui_libs.index('OmxCore')]
+  del ui_libs[ui_libs.index('CB')]
+  del qt_src[qt_src.index('qt/screenrecorder/screenrecorder.cc')]
+  del qt_src[qt_src.index('qt/screenrecorder/omx_encoder.cc')]
 qt_env.Program("_ui", qt_src + [asset_obj], LIBS=qt_libs + ui_libs)
+
+
+
 
 
 # setup and factory resetter
