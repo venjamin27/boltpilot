@@ -32,7 +32,12 @@ class CarState(CarStateBase):
     ret.vEgoRaw = mean([ret.wheelSpeeds.fl, ret.wheelSpeeds.fr, ret.wheelSpeeds.rl, ret.wheelSpeeds.rr])
     ret.vEgo, ret.aEgo = self.update_speed_kf(ret.vEgoRaw)
     ret.standstill = ret.vEgoRaw < 0.01
-    ret.vEgo = pt_cp.vl["ECMVehicleSpeed"]["VehicleSpeed"] * CV.MPH_TO_MS
+    # ret.vEgo = pt_cp.vl["ECMVehicleSpeed"]["VehicleSpeed"] * CV.MPH_TO_MS
+
+    ###for neokii integration
+    ret.cluSpeedMs = pt_cp.vl["ECMVehicleSpeed"]["VehicleSpeed"] * CV.MPH_TO_MS
+    ret.vCluRatio = 1.0
+    ###for neokii integration ends
 
     ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(pt_cp.vl["ECMPRDNL"]["PRNDL"], None))
     ret.brake = pt_cp.vl["EBCMBrakePedalPosition"]["BrakePedalPosition"] / 0xd0
@@ -89,6 +94,11 @@ class CarState(CarStateBase):
     ret.brakeLights = ret.brakePressed or ret.regenPressed or brake_light_enable
 
     ret.cruiseState.enabled = self.main_on or ret.adaptiveCruise
+
+    ###for neokii integration
+    ret.cruiseState.enabledAcc = ret.cruiseState.enabled
+    ###for neokii integration ends
+
 
     return ret
 
