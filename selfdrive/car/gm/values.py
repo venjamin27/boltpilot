@@ -7,7 +7,7 @@ Ecu = car.CarParams.Ecu
 class CarControllerParams():
 
   STEER_STEP = 2  # control frames per command
-  # MIN_STEER_SPEED = 3.  # m/s
+  MIN_STEER_SPEED = 3.  # m/s
   NEAR_STOP_BRAKE_PHASE = 0.5  # m/s
 
   # Heartbeat for dash "Service Adaptive Cruise" and "Service Front Camera"
