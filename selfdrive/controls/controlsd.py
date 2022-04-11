@@ -216,9 +216,9 @@ class Controls:
       return
 
     # Disable on rising edge of gas or brake. Also disable on brake when speed > 0
-    if not self.mad_mode_enabled and ((CS.gasPressed and not self.CS_prev.gasPressed) or \
-      (CS.brakePressed and (not self.CS_prev.brakePressed or not CS.standstill))):
-      self.events.add(EventName.pedalPressed)
+    # if not self.mad_mode_enabled and ((CS.gasPressed and not self.CS_prev.gasPressed) or \
+    #   (CS.brakePressed and (not self.CS_prev.brakePressed or not CS.standstill))):
+    #   self.events.add(EventName.pedalPressed)
 
     self.events.add_from_msg(CS.events)
     self.events.add_from_msg(self.sm['driverMonitoringState'].events)

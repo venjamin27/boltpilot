@@ -62,6 +62,10 @@ class CarInterface(CarInterfaceBase):
     # TODO: make a port that uses a car harness and it only intercepts the camera
     # ret.communityFeature = True
 
+    #for neokii integration
+    ret.maxSteeringAngleDeg = 1000.
+    # for neokii integration end.
+
     # Presence of a camera on the object bus is ok.
     # Have to go to read_only if ASCM is online (ACC-enabled cars),
     # or camera is on powertrain bus (LKA cars without ACC).
