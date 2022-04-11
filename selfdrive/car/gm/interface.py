@@ -69,7 +69,8 @@ class CarInterface(CarInterfaceBase):
     # Presence of a camera on the object bus is ok.
     # Have to go to read_only if ASCM is online (ACC-enabled cars),
     # or camera is on powertrain bus (LKA cars without ACC).
-    ret.enableGasInterceptor = 0x201 in fingerprint[0]
+    # ret.enableGasInterceptor = 0x201 in fingerprint[0]
+    ret.enableGasInterceptor = Params().get_bool('CommaPedal')
     ret.openpilotLongitudinalControl = ret.enableGasInterceptor
 
     tire_stiffness_factor = 0.5
@@ -215,6 +216,10 @@ class CarInterface(CarInterfaceBase):
       if self.CS.main_on: #wihtout pedal case
         self.CS.adaptive_Cruise = False
         self.CS.enable_lkas = True
+        if ret.brakePressed :
+          self.CS.enable_lkas = False
+          events.add(EventName.pedalPressed)
+
       else:
         self.CS.adaptive_Cruise = False
         self.CS.enable_lkas = False

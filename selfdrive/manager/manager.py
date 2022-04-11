@@ -47,6 +47,7 @@ def manager_init() -> None:
     ("UseClusterSpeed", "0"),
     ("LongControlEnabled", "0"),
     ("MadModeEnabled", "1"),
+
     ("IsLdwsCar", "0"),
     ("LaneChangeEnabled", "0"),
     ("AutoLaneChangeEnabled", "0"),
@@ -59,6 +60,9 @@ def manager_init() -> None:
     ("DisableOpFcw", "0"),
     ("ShowDebugUI", "0"),
     ("NewRadarInterface", "0"),
+
+
+    ("CommaPedal", "0"),
   ]
   if not PC:
     default_params.append(("LastUpdateTime", datetime.datetime.utcnow().isoformat().encode('utf8')))
