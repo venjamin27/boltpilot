@@ -16,6 +16,7 @@ class CarState(CarStateBase):
     self.enable_lkas = False
     self.lka_steering_cmd_counter = 0
 
+
   def update(self, pt_cp, loopback_cp):
     ret = car.CarState.new_message()
     ret.adaptiveCruise = self.adaptive_Cruise
@@ -36,6 +37,7 @@ class CarState(CarStateBase):
 
     ###for neokii integration
     ret.cluSpeedMs = pt_cp.vl["ECMVehicleSpeed"]["VehicleSpeed"] * CV.MPH_TO_MS
+    self.ECMVehicleSpeed = pt_cp.vl["ECMVehicleSpeed"]
     ret.vCluRatio = 1.0
     ###for neokii integration ends
 

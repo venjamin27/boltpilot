@@ -194,8 +194,8 @@ class SccSmoother:
   def update(self, enabled, can_sends, packer, CC, CS, frame, controls):
 
     # mph or kph
-    clu11_speed = CS.clu11["CF_Clu_Vanz"]
-
+    # clu11_speed = CS.clu11["CF_Clu_Vanz"]
+    clu11_speed = CS.ECMVehicleSpeed * CV.MPH_TO_KPH
     road_limit_speed, left_dist, max_speed_log = self.cal_max_speed(frame, CC, CS, controls.sm, clu11_speed, controls)
 
     # kph
