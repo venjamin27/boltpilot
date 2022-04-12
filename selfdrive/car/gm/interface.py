@@ -200,7 +200,7 @@ class CarInterface(CarInterfaceBase):
           if (b.type == ButtonType.altButton3 and b.pressed) and not ret.cruiseState.enabled :
             self.CS.adaptive_Cruise = False
             self.CS.enable_lkas = True
-            events.add(EventName.buttonEnable)
+            # events.add(EventName.buttonEnable)
             break
       else :#lat engage
         # self.CS.adaptive_Cruise = False
