@@ -258,7 +258,7 @@ class CarInterface(CarInterfaceBase):
       hud_v_cruise = 0
 
     # For Openpilot, "enabled" includes pre-enable.
-    new_actuators, can_sends = self.CC.update(c, c.enabled, self.CS, self.frame,
+    new_actuators, can_sends = self.CC.update(c, c.enabled, self.CS, controls , self.frame,
                                c.actuators,
                                hud_v_cruise, c.hudControl.lanesVisible,
                                c.hudControl.leadVisible, c.hudControl.visualAlert)

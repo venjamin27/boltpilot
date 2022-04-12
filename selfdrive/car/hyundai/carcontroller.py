@@ -72,7 +72,7 @@ class CarController:
     self.keep_steering_turn_signals = param.get_bool('KeepSteeringTurnSignals')
     self.haptic_feedback_speed_camera = param.get_bool('HapticFeedbackWhenSpeedCamera')
 
-    self.scc_smoother = SccSmoother()
+    self.scc_smoother = SccSmoother.instance()
     self.last_blinker_frame = 0
     self.prev_active_cam = False
     self.active_cam_timer = 0

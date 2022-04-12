@@ -6,9 +6,10 @@ from selfdrive.car import apply_std_steer_torque_limits, create_gas_interceptor_
 from selfdrive.car.gm import gmcan
 from selfdrive.car.gm.values import DBC, CanBus, CarControllerParams
 from opendbc.can.packer import CANPacker
-
+from selfdrive.car.hyundai.scc_smoother import SccSmoother
+min_set_speed = 30 * CV.KPH_TO_MS
 VisualAlert = car.CarControl.HUDControl.VisualAlert
-
+LongCtrlState = car.CarControl.Actuators.LongControlState
 VEL = [13.889, 16.667, 25.]  # velocities
 MIN_PEDAL = [0.02, 0.05, 0.1]
 
@@ -48,7 +49,13 @@ class CarController():
     #self.packer_obj = CANPacker(DBC[CP.carFingerprint]['radar'])
     #self.packer_ch = CANPacker(DBC[CP.carFingerprint]['chassis'])
 
-  def update(self,c,  enabled, CS, frame, actuators,
+    self.scc_smoother = SccSmoother.instance()
+    self.frame = 0
+    self.longcontrol = CP.openpilotLongitudinalControl
+    self.packer = CANPacker(dbc_name)
+
+
+  def update(self,c,  enabled, CS, controls , frame, actuators,
              hud_v_cruise, hud_show_lanes, hud_show_car, hud_alert):
 
     P = self.params
@@ -144,4 +151,43 @@ class CarController():
     new_actuators.gas = self.apply_gas
     new_actuators.brake = self.apply_brake
 
+    self.update_scc(c, CS, actuators, controls, None, can_sends)
+    self.frame = frame
     return new_actuators, can_sends
+
+
+  def update_scc(self, CC, CS, actuators, controls, hud_control, can_sends):
+
+    # scc smoother
+    self.scc_smoother.update(CC.enabled, can_sends, self.packer, CC, CS, self.frame, controls)
+
+    # send scc to car if longcontrol enabled and SCC not on bus 0 or ont live
+    if self.longcontrol and CS.cruiseState_enabled :
+
+      if self.frame % 2 == 0:
+
+
+        stopping = controls.LoC.long_control_state == LongCtrlState.stopping
+        apply_accel = clip(actuators.accel if CC.longActive else 0,
+                           CarControllerParams.ACCEL_MIN, CarControllerParams.ACCEL_MAX)
+        apply_accel = self.scc_smoother.get_apply_accel(CS, controls.sm, apply_accel, stopping)
+
+        self.accel = apply_accel
+
+        controls.apply_accel = apply_accel
+        aReqValue = apply_accel
+        controls.aReqValue = aReqValue
+
+        if aReqValue < controls.aReqValueMin:
+          controls.aReqValueMin = controls.aReqValue
+
+        if aReqValue > controls.aReqValueMax:
+          controls.aReqValueMax = controls.aReqValue
+
+
+        controls.sccStockCamAct = 0
+        controls.sccStockCamStatus = 0
+        stock_cam = False
+
+
+

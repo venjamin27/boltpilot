@@ -7,6 +7,7 @@ import cereal.messaging as messaging
 from common.conversions import Conversions as CV
 from common.filter_simple import FirstOrderFilter
 from common.realtime import DT_MDL
+from selfdrive.car.hyundai.scc_smoother import SccSmoother
 from selfdrive.modeld.constants import T_IDXS
 from selfdrive.controls.lib.longcontrol import LongCtrlState
 from selfdrive.controls.lib.longitudinal_mpc_lib.long_mpc import LongitudinalMpc
@@ -70,12 +71,18 @@ class Planner:
     v_cruise_kph = min(v_cruise_kph, V_CRUISE_MAX)
     v_cruise = v_cruise_kph * CV.KPH_TO_MS
 
-    # neokii
-    if not self.use_cluster_speed:
-      vCluRatio = sm['carState'].vCluRatio
-      if vCluRatio > 0.5:
-        v_cruise *= vCluRatio
-        v_cruise = int(v_cruise * CV.MS_TO_KPH + 0.25) * CV.KPH_TO_MS
+    scc_smoother = SccSmoother.instance()
+
+
+    #
+    # road_speed_limiter = get_road_speed_limiter()
+    # apply_limit_speed, road_limit_speed, left_dist, first_started, max_speed_log = \
+    #   road_speed_limiter.get_max_speed(v_ego * CV.MS_TO_KPH, True)
+    #
+    if scc_smoother.max_speed_clu >= 30:
+      v_cruise = min(v_cruise, scc_smoother.max_speed_clu * CV.KPH_TO_MS)
+    #
+
 
     long_control_state = sm['controlsState'].longControlState
     force_slow_decel = sm['controlsState'].forceDecel

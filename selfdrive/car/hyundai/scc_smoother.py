@@ -35,7 +35,21 @@ ButtonPrev = ButtonType.unknown
 ButtonCnt = 0
 LongPressed = False
 
-class SccSmoother:
+class SingletonInstane:
+  __instance = None
+
+  @classmethod
+  def __getInstance(cls):
+    return cls.__instance
+
+  @classmethod
+  def instance(cls, *args, **kargs):
+    cls.__instance = cls(*args, **kargs)
+    cls.instance = cls.__getInstance
+    return cls.__instance
+
+
+class SccSmoother(SingletonInstane):
 
   @staticmethod
   def get_alive_count():
@@ -153,7 +167,7 @@ class SccSmoother:
 
     max_speed_log = ""
 
-    if apply_limit_speed >= self.kph_to_clu(10):
+    if apply_limit_speed >= self.kph_to_clu(30):
 
       if first_started:
         self.max_speed_clu = clu11_speed
@@ -223,33 +237,33 @@ class SccSmoother:
 
     CC.sccSmoother.logMessage = max_speed_log
 
-    if self.wait_timer > 0:
-      self.wait_timer -= 1
-    elif ascc_enabled and not CS.out.cruiseState.standstill:
-
-      if self.alive_timer == 0:
-        self.btn = self.get_button(CS.cruiseState_speed * self.speed_conv_to_clu)
-        self.alive_count = SccSmoother.get_alive_count()
-
-      if self.btn != Buttons.NONE:
-
-        can_sends.append(SccSmoother.create_clu11(packer, CS.scc_bus, CS.clu11, self.btn))
-
-        if self.alive_timer == 0:
-          self.started_frame = frame
-
-        self.alive_timer += 1
-
-        if self.alive_timer >= self.alive_count:
-          self.alive_timer = 0
-          self.wait_timer = SccSmoother.get_wait_count()
-          self.btn = Buttons.NONE
-      else:
-        if self.longcontrol and self.target_speed >= self.min_set_speed_clu:
-          self.target_speed = 0.
-    else:
-      if self.longcontrol:
-        self.target_speed = 0.
+    # if self.wait_timer > 0:
+    #   self.wait_timer -= 1
+    # elif ascc_enabled and not CS.out.cruiseState.standstill:
+    #
+    #   if self.alive_timer == 0:
+    #     self.btn = self.get_button(CS.cruiseState_speed * self.speed_conv_to_clu)
+    #     self.alive_count = SccSmoother.get_alive_count()
+    #
+    #   if self.btn != Buttons.NONE:
+    #
+    #     can_sends.append(SccSmoother.create_clu11(packer, CS.scc_bus, CS.clu11, self.btn))
+    #
+    #     if self.alive_timer == 0:
+    #       self.started_frame = frame
+    #
+    #     self.alive_timer += 1
+    #
+    #     if self.alive_timer >= self.alive_count:
+    #       self.alive_timer = 0
+    #       self.wait_timer = SccSmoother.get_wait_count()
+    #       self.btn = Buttons.NONE
+    #   else:
+    #     if self.longcontrol and self.target_speed >= self.min_set_speed_clu:
+    #       self.target_speed = 0.
+    # else:
+    #   if self.longcontrol:
+    #     self.target_speed = 0.
 
   def get_button(self, current_set_speed):
 
