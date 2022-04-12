@@ -209,7 +209,7 @@ class SccSmoother(SingletonInstane):
 
     # mph or kph
     # clu11_speed = CS.clu11["CF_Clu_Vanz"]
-    clu11_speed = CS.ECMVehicleSpeed * CV.MPH_TO_KPH
+    clu11_speed = CS.ECMVehicleSpeed["VehicleSpeed"] * CV.MPH_TO_KPH
     road_limit_speed, left_dist, max_speed_log = self.cal_max_speed(frame, CC, CS, controls.sm, clu11_speed, controls)
 
     # kph
