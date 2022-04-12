@@ -32,6 +32,11 @@ class CarInterfaceBase(ABC):
     self.steering_unpressed = 0
     self.low_speed_alert = False
     self.silent_steer_warning = True
+    ####added by jc01rho
+    self.flag_pcmEnable_able =True
+    self.flag_pcmEnable_initialSet = False
+
+    self.initial_pcmEnable_counter = 0
 
     if CarState is not None:
       self.CS = CarState(CP)
@@ -157,6 +162,8 @@ class CarInterfaceBase(ABC):
     if pcm_enable:
       if cs_out.cruiseState.enabled and not self.CS.out.cruiseState.enabled:
         events.add(EventName.pcmEnable)
+        if self.flag_pcmEnable_initialSet == False :
+          self.flag_pcmEnable_initialSet = True
       elif not cs_out.cruiseState.enabled:
         events.add(EventName.pcmDisable)
 

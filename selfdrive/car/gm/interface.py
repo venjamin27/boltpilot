@@ -14,9 +14,6 @@ EventName = car.CarEvent.EventName
 class CarInterface(CarInterfaceBase):
   def __init__(self, CP, CarController, CarState):
     super().__init__(CP, CarController, CarState)
-    self.flag_pcmEnable_initialSet = False
-    self.initial_pcmEnable_counter = 0
-    self.flag_pcmEnable_able = False
 
 
   @staticmethod
@@ -175,21 +172,22 @@ class CarInterface(CarInterfaceBase):
     #   events.add(car.CarEvent.EventName.belowSteerSpeed)
     if self.CP.enableGasInterceptor:
       if ret.cruiseState.enabled and ret.brakePressed:
-        self.CS.adaptive_Cruise = False
-        self.CS.enable_lkas = False
         events.add(EventName.pedalPressed)
+        self.CS.adaptive_Cruise = False
+        self.CS.enable_lkas = True
+
 
 
     # handle button presses
     if self.CP.enableGasInterceptor:
       if not self.CS.main_on : #lat dis-engage
         for b in ret.buttonEvents:
-          if (b.type == ButtonType.decelCruise and not b.pressed) and not self.CS.adaptive_Cruise:
+          if (b.type == ButtonType.decelCruise and not b.pressed) and not ret.cruiseState.enabled:
             self.CS.adaptive_Cruise = True
             self.CS.enable_lkas = True
             events.add(EventName.buttonEnable)
             break
-          if (b.type == ButtonType.accelCruise and not b.pressed) and not self.CS.adaptive_Cruise:
+          if (b.type == ButtonType.accelCruise and not b.pressed) and not ret.cruiseState.enabled:
             self.CS.adaptive_Cruise = True
             self.CS.enable_lkas = False
             events.add(EventName.buttonEnable)
@@ -199,9 +197,10 @@ class CarInterface(CarInterfaceBase):
             self.CS.enable_lkas = False
             events.add(EventName.buttonCancel)
             break
-          if (b.type == ButtonType.altButton3 and b.pressed) : #and self.CS.adaptive_Cruise
+          if (b.type == ButtonType.altButton3 and b.pressed) and not ret.cruiseState.enabled :
             self.CS.adaptive_Cruise = False
             self.CS.enable_lkas = True
+            events.add(EventName.buttonEnable)
             break
       else :#lat engage
         # self.CS.adaptive_Cruise = False
@@ -226,7 +225,8 @@ class CarInterface(CarInterfaceBase):
         self.CS.enable_lkas = False
 
     #Added by jc01rho inspired by JangPoo
-    if self.CS.main_on  and self.CS.enable_lkas and not self.CS.adaptive_Cruise and ret.cruiseState.enabled and ret.gearShifter == GearShifter.drive and ret.vEgo > 2.4 and not ret.brakePressed :
+    #some other logics in interfaces.py
+    if self.CS.main_on  and self.CS.enable_lkas and not self.CS.adaptive_Cruise and ret.cruiseState.enabled and ret.gearShifter == GearShifter.drive and ret.vEgo > 2.1 and not ret.brakePressed :
       if ret.cruiseState.available and not ret.seatbeltUnlatched and not ret.espDisabled and self.flag_pcmEnable_able :
 
         if self.flag_pcmEnable_initialSet == False :
