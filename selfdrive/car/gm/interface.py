@@ -174,10 +174,11 @@ class CarInterface(CarInterfaceBase):
     # if ret.vEgo < self.CP.minSteerSpeed:
     #   events.add(car.CarEvent.EventName.belowSteerSpeed)
     if self.CP.enableGasInterceptor:
-      if self.CS.adaptive_Cruise and ret.brakePressed:
-        events.add(EventName.pedalPressed)
+      if ret.cruiseState.enabled and ret.brakePressed:
         self.CS.adaptive_Cruise = False
         self.CS.enable_lkas = False
+        events.add(EventName.pedalPressed)
+
 
     # handle button presses
     if self.CP.enableGasInterceptor:
