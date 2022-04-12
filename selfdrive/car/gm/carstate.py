@@ -15,6 +15,14 @@ class CarState(CarStateBase):
     self.adaptive_Cruise = False
     self.enable_lkas = False
     self.lka_steering_cmd_counter = 0
+    self.cruiseState_speed = 0
+
+    self.acc_mode = False
+    self.cruise_gap = 1
+    self.brake_pressed = False
+    self.gas_pressed = False
+    self.standstill = False
+    self.cruiseState_enabled = False
 
 
   def update(self, pt_cp, loopback_cp):
