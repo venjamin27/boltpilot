@@ -141,12 +141,16 @@ static int gm_rx_hook(CANPacket_t *to_push) {
 
 static int gm_tx_hook(CANPacket_t *to_send, bool longitudinal_allowed) {
 
- auto boolValue =longitudinal_allowed;
+ bool boolValue =longitudinal_allowed;
+
   int tx = 1;
   int addr = GET_ADDR(to_send);
 
   if (!msg_allowed(to_send, GM_TX_MSGS, sizeof(GM_TX_MSGS)/sizeof(GM_TX_MSGS[0]))) {
     tx = 0;
+    if (boolValue) {
+       tx = 0 ;
+    }
   }
 
   // disallow actuator commands if gas or brake (with vehicle moving) are pressed
