@@ -238,7 +238,7 @@ class CarInterface(CarInterfaceBase):
             self.initial_pcmEnable_counter = 0
         else :
           self.flag_pcmEnable_able = False
-          events.add(EventName.buttonEnable)
+          events.add(EventName.pcmEnable)
           # self.flag_pcmEnable_initialSet = True
           # self.initial_pcmEnable_counter = 0
     else  :

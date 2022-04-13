@@ -88,6 +88,8 @@ static int gm_rx_hook(CANPacket_t *to_push) {
         case 3:  // set
         case 5:  // main on
           controls_allowed = 1;
+        case 6:  // cancel
+          controls_allowed = 0;
           break;
         default:
           break;  // any other button is irrelevant
@@ -156,7 +158,7 @@ static int gm_tx_hook(CANPacket_t *to_send, bool longitudinal_allowed) {
 
   // GAS: safety check (interceptor)
   if (addr == MSG_TX_PEDAL) {
-    if (!current_controls_allowed || !longitudinal_allowed) {
+    if (!current_controls_allowed ) {
       if (GET_BYTE(to_send, 0) || GET_BYTE(to_send, 1)) {
         tx = 0;
       }
@@ -230,7 +232,7 @@ static int gm_tx_hook(CANPacket_t *to_send, bool longitudinal_allowed) {
     int gas_regen = ((GET_BYTE(to_send, 2) & 0x7FU) << 5) + ((GET_BYTE(to_send, 3) & 0xF8U) >> 3);
     // Disabled message is !engaged with gas
     // value that corresponds to max regen.
-    if (!current_controls_allowed || !longitudinal_allowed) {
+    if (!current_controls_allowed ) {
       bool apply = GET_BYTE(to_send, 0) & 1U;
       if (apply || (gas_regen != GM_MAX_REGEN)) {
         tx = 0;
