@@ -167,7 +167,7 @@ class SccSmoother(SingletonInstane):
 
     max_speed_log = ""
 
-    if apply_limit_speed >= self.kph_to_clu(30):
+    if apply_limit_speed >= self.kph_to_clu(10):
 
       if first_started:
         self.max_speed_clu = clu11_speed
@@ -213,8 +213,12 @@ class SccSmoother(SingletonInstane):
     road_limit_speed, left_dist, max_speed_log = self.cal_max_speed(frame, CC, CS, controls.sm, clu11_speed, controls)
 
     # kph
-    controls.applyMaxSpeed = float(clip(CS.cruiseState_speed * CV.MS_TO_KPH, MIN_SET_SPEED_KPH,
-                                                self.max_speed_clu * self.speed_conv_to_ms * CV.MS_TO_KPH))
+    # controls.applyMaxSpeed = float(clip(CS.cruiseState_speed * CV.MS_TO_KPH, MIN_SET_SPEED_KPH,
+    #                                             self.max_speed_clu * self.speed_conv_to_ms * CV.MS_TO_KPH))
+    controls.applyMaxSpeed = float(clip(controls.v_cruise_kph * CV.MS_TO_KPH, MIN_SET_SPEED_KPH,
+                                        self.max_speed_clu * self.speed_conv_to_ms * CV.MS_TO_KPH))
+
+
     CC.sccSmoother.longControl = self.longcontrol
     CC.sccSmoother.applyMaxSpeed = controls.applyMaxSpeed
     CC.sccSmoother.cruiseMaxSpeed = controls.v_cruise_kph
@@ -225,7 +229,7 @@ class SccSmoother(SingletonInstane):
                   and  not CS.brake_pressed
 
     if not self.longcontrol:
-      if not ascc_enabled or CS.standstill or CS.cruise_buttons != Buttons.NONE:
+      if not ascc_enabled or CS.standstill:
         self.reset()
         self.wait_timer = max(ALIVE_COUNT) + max(WAIT_COUNT)
         return
