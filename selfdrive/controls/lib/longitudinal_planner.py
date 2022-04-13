@@ -63,7 +63,6 @@ class Planner:
 
     self.use_cluster_speed = Params().get_bool('UseClusterSpeed')
 
-
   def update(self, sm):
     v_ego = sm['carState'].vEgo
 
@@ -71,10 +70,16 @@ class Planner:
     v_cruise_kph = min(v_cruise_kph, V_CRUISE_MAX)
     v_cruise = v_cruise_kph * CV.KPH_TO_MS
 
+    # neokii
+    #if not self.use_cluster_speed:
+    #  vCluRatio = sm['carState'].vCluRatio
+    #  if vCluRatio > 0.5:
+    #    v_cruise *= vCluRatio
+    #    v_cruise = int(v_cruise * CV.MS_TO_KPH + 0.25) * CV.KPH_TO_MS
+
+
+    
     scc_smoother = SccSmoother.instance()
-
-
-    #
     # road_speed_limiter = get_road_speed_limiter()
     # apply_limit_speed, road_limit_speed, left_dist, first_started, max_speed_log = \
     #   road_speed_limiter.get_max_speed(v_ego * CV.MS_TO_KPH, True)
@@ -89,7 +94,6 @@ class Planner:
 
     # Reset current state when not engaged, or user is controlling the speed
     reset_state = long_control_state == LongCtrlState.off
-    reset_state = reset_state or sm['carState'].gasPressed
 
     # No change cost when user is controlling the speed, or when standstill
     prev_accel_constraint = not (reset_state or sm['carState'].standstill)
@@ -133,7 +137,7 @@ class Planner:
   def publish(self, sm, pm):
     plan_send = messaging.new_message('longitudinalPlan')
 
-    plan_send.valid = sm.all_alive_and_valid(service_list=['carState', 'controlsState'])
+    plan_send.valid = sm.all_checks(service_list=['carState', 'controlsState'])
 
     longitudinalPlan = plan_send.longitudinalPlan
     longitudinalPlan.modelMonoTime = sm.logMonoTime['modelV2']

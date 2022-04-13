@@ -8,7 +8,7 @@ from selfdrive.controls.lib.latcontrol import LatControl, MIN_STEER_SPEED
 from selfdrive.ntune import nTune
 
 TORQUE_SCALE_BP = [0., 30., 80., 100., 130.]
-TORQUE_SCALE_V = [0.2, 0.35, 0.65, 0.7, 0.75]
+TORQUE_SCALE_V = [0.2, 0.35, 0.63, 0.67, 0.7]
 
 class LatControlLQR(LatControl):
   def __init__(self, CP, CI):
@@ -34,7 +34,7 @@ class LatControlLQR(LatControl):
     super().reset()
     self.i_lqr = 0.0
 
-  def update(self, active, CS, CP, VM, params, last_actuators, desired_curvature, desired_curvature_rate):
+  def update(self, active, CS, CP, VM, params, last_actuators, desired_curvature, desired_curvature_rate, llk):
     self.tune.check()
     lqr_log = log.ControlsState.LateralLQRState.new_message()
 
