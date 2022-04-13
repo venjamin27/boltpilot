@@ -141,6 +141,7 @@ static int gm_rx_hook(CANPacket_t *to_push) {
 
 static int gm_tx_hook(CANPacket_t *to_send, bool longitudinal_allowed) {
 
+ auto boolValue =longitudinal_allowed;
   int tx = 1;
   int addr = GET_ADDR(to_send);
 
