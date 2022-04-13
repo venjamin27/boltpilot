@@ -149,7 +149,7 @@ struct CarState {
 
   #BOLT EV
   vehicleSpeed @48 :Float32;
-  regenPressed @45 :Bool; #this is regen button only
+  regenPressed @50 :Bool; #this is regen button only
   adaptiveCruise @46 :Bool;
   mainOn @47 :Bool;
   lkasEnable @49 :Bool;
