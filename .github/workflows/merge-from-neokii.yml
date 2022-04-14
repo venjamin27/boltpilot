@@ -16,6 +16,7 @@ jobs:
     name: Pull from Neokii
     # The type of runner that the job will run on
     runs-on: ubuntu-20.04
+    if: github.repository == 'jc01rho-openpilot-BoltEV2019-KoKr/boltpilot'
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - name: Get number of CPU cores
