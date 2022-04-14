@@ -119,8 +119,8 @@ class CarController():
 #      comma_pedal = clip(pedal_accel, minimumPedalOutputBySpeed, 1.)
 #      comma_pedal, self.accel_steady = accel_hysteresis(comma_pedal, self.accel_steady)
             
-      # if brake > 0.1:
-      #   can_sends.append(gmcan.create_regen_paddle_command(self.packer_pt, CanBus.POWERTRAIN))
+      if self.apply_brake > 0.15:
+        can_sends.append(gmcan.create_regen_paddle_command(self.packer_pt, CanBus.POWERTRAIN))
 
     if (self.frame % 4) == 0:
       idx = (self.frame // 4) % 4
