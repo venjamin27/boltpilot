@@ -19,6 +19,9 @@ jobs:
         uses: SimenB/github-actions-cpu-cores@v1
         id: cpu-cores
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Set outputs
+        id: vars
+        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
 
       - uses: actions/checkout@v2
 
