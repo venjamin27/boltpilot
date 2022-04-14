@@ -351,6 +351,8 @@ struct CarControl {
     cruiseMaxSpeed @2 :Float32;
     logMessage @3 :Text;
     autoTrGap @4 :UInt32;
+    slowByCurve @5 :Bool;
+    slowByCamera @6 :Bool;
   }
 
   struct Actuators {

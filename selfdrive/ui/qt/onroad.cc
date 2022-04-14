@@ -532,88 +532,89 @@ void NvgWindow::drawBottomIcons(QPainter &p) {
   auto scc_smoother = sm["carControl"].getCarControl().getSccSmoother();
 
   // tire pressure
-  {
-    const int w = 58;
-    const int h = 126;
-    const int x = 110;
-    const int y = height() - h - 85;
+//  {
+//    const int w = 58;
+//    const int h = 126;
+//    const int x = 110;
+//    const int y = height() - h - 85;
+//
+//    auto tpms = car_state.getTpms();
+//    const float fl = tpms.getFl();
+//    const float fr = tpms.getFr();
+//    const float rl = tpms.getRl();
+//    const float rr = tpms.getRr();
+//
+//    p.setOpacity(0.8);
+//    p.drawPixmap(x, y, w, h, ic_tire_pressure);
+//
+//    configFont(p, "Open Sans", 38, "Bold");
+//
+//    QFontMetrics fm(p.font());
+//    QRect rcFont = fm.boundingRect("9");
+//
+//    int center_x = x + 3;
+//    int center_y = y + h/2;
+//    const int marginX = (int)(rcFont.width() * 2.7f);
+//    const int marginY = (int)((h/2 - rcFont.height()) * 0.7f);
+//
+//    drawText2(p, center_x-marginX, center_y-marginY-rcFont.height(), Qt::AlignRight, get_tpms_text(fl), get_tpms_color(fl));
+//    drawText2(p, center_x+marginX, center_y-marginY-rcFont.height(), Qt::AlignLeft, get_tpms_text(fr), get_tpms_color(fr));
+//    drawText2(p, center_x-marginX, center_y+marginY, Qt::AlignRight, get_tpms_text(rl), get_tpms_color(rl));
+//    drawText2(p, center_x+marginX, center_y+marginY, Qt::AlignLeft, get_tpms_text(rr), get_tpms_color(rr));
+//  }
 
-    auto tpms = car_state.getTpms();
-    const float fl = tpms.getFl();
-    const float fr = tpms.getFr();
-    const float rl = tpms.getRl();
-    const float rr = tpms.getRr();
 
-    p.setOpacity(0.8);
-    p.drawPixmap(x, y, w, h, ic_tire_pressure);
-
-    configFont(p, "Open Sans", 38, "Bold");
-
-    QFontMetrics fm(p.font());
-    QRect rcFont = fm.boundingRect("9");
-
-    int center_x = x + 3;
-    int center_y = y + h/2;
-    const int marginX = (int)(rcFont.width() * 2.7f);
-    const int marginY = (int)((h/2 - rcFont.height()) * 0.7f);
-
-    drawText2(p, center_x-marginX, center_y-marginY-rcFont.height(), Qt::AlignRight, get_tpms_text(fl), get_tpms_color(fl));
-    drawText2(p, center_x+marginX, center_y-marginY-rcFont.height(), Qt::AlignLeft, get_tpms_text(fr), get_tpms_color(fr));
-    drawText2(p, center_x-marginX, center_y+marginY, Qt::AlignRight, get_tpms_text(rl), get_tpms_color(rl));
-    drawText2(p, center_x+marginX, center_y+marginY, Qt::AlignLeft, get_tpms_text(rr), get_tpms_color(rr));
-  }
-
-  int x = radius / 2 + (bdr_s * 2) + (radius + 50);
-  const int y = rect().bottom() - footer_h / 2 - 10;
 
   // cruise gap
-  int gap = car_state.getCruiseGap();
-  bool longControl = scc_smoother.getLongControl();
-  int autoTrGap = scc_smoother.getAutoTrGap();
-
-  p.setPen(Qt::NoPen);
-  p.setBrush(QBrush(QColor(0, 0, 0, 255 * .1f)));
-  p.drawEllipse(x - radius / 2, y - radius / 2, radius, radius);
-
-  QString str;
-  float textSize = 50.f;
-  QColor textColor = QColor(255, 255, 255, 200);
-
-  if(gap <= 0) {
-    str = "N/A";
-  }
-  else if(longControl && gap == autoTrGap) {
-    str = "AUTO";
-    textColor = QColor(120, 255, 120, 200);
-  }
-  else {
-    str.sprintf("%d", (int)gap);
-    textColor = QColor(120, 255, 120, 200);
-    textSize = 70.f;
-  }
-
-  configFont(p, "Open Sans", 35, "Bold");
-  drawText(p, x, y-20, "GAP", 200);
-
-  configFont(p, "Open Sans", textSize, "Bold");
-  drawTextWithColor(p, x, y+50, str, textColor);
+    int x = radius / 2 + (bdr_s * 2) + (radius + 50) * 0 ;
+    const int y = rect().bottom() - footer_h / 2 - 10;
+//  int gap = car_state.getCruiseGap();
+//  bool longControl = scc_smoother.getLongControl();
+//  int autoTrGap = scc_smoother.getAutoTrGap();
+//
+//  p.setPen(Qt::NoPen);
+//  p.setBrush(QBrush(QColor(0, 0, 0, 255 * .1f)));
+//  p.drawEllipse(x - radius / 2, y - radius / 2, radius, radius);
+//
+//  QString str;
+//  float textSize = 50.f;
+//  QColor textColor = QColor(255, 255, 255, 200);
+//
+//  if(gap <= 0) {
+//    str = "N/A";
+//  }
+//  else if(longControl && gap == autoTrGap) {
+//    str = "AUTO";
+//    textColor = QColor(120, 255, 120, 200);
+//  }
+//  else {
+//    str.sprintf("%d", (int)gap);
+//    textColor = QColor(120, 255, 120, 200);
+//    textSize = 70.f;
+//  }
+//
+//  configFont(p, "Open Sans", 35, "Bold");
+//  drawText(p, x, y-20, "GAP", 200);
+//
+//  configFont(p, "Open Sans", textSize, "Bold");
+//  drawTextWithColor(p, x, y+50, str, textColor);
 
   // brake
-  x = radius / 2 + (bdr_s * 2) + (radius + 50) * 2;
+  x = radius / 2 + (bdr_s * 2) + (radius + 50) * 0;
   bool brake_valid = car_state.getBrakeLights();
   float img_alpha = brake_valid ? 1.0f : 0.15f;
   float bg_alpha = brake_valid ? 0.3f : 0.1f;
   drawIcon(p, x, y, ic_brake, QColor(0, 0, 0, (255 * bg_alpha)), img_alpha);
 
   // auto hold
-  int autohold = car_state.getAutoHold();
-  if(autohold >= 0) {
-    x = radius / 2 + (bdr_s * 2) + (radius + 50) * 3;
-    img_alpha = autohold > 0 ? 1.0f : 0.15f;
-    bg_alpha = autohold > 0 ? 0.3f : 0.1f;
-    drawIcon(p, x, y, autohold > 1 ? ic_autohold_warning : ic_autohold_active,
-            QColor(0, 0, 0, (255 * bg_alpha)), img_alpha);
-  }
+//  int autohold = car_state.getAutoHold();
+//  if(autohold >= 0) {
+//    x = radius / 2 + (bdr_s * 2) + (radius + 50) * 2;
+//    img_alpha = autohold > 0 ? 1.0f : 0.15f;
+//    bg_alpha = autohold > 0 ? 0.3f : 0.1f;
+//    drawIcon(p, x, y, autohold > 1 ? ic_autohold_warning : ic_autohold_active,
+//            QColor(0, 0, 0, (255 * bg_alpha)), img_alpha);
+//  }
 
   p.setOpacity(1.);
 }
