@@ -10,7 +10,7 @@
 #include <QTimer>
 #include <QMap>
 
-#ifdef QCOM2
+#if  defined(QCOM2) || defined(QCOM)
 #include "selfdrive/ui/qt/screenrecorder/screenrecorder.h"
 #endif
 
@@ -115,7 +115,7 @@ private:
 
   // neokii
 private:
-#ifdef QCOM2
+#if  defined(QCOM2) || defined(QCOM)
   ScreenRecoder* recorder;
 #endif
   std::shared_ptr<QTimer> record_timer;

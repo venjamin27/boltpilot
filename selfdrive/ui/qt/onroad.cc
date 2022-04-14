@@ -45,7 +45,7 @@ OnroadWindow::OnroadWindow(QWidget *parent) : QWidget(parent) {
   QObject::connect(uiState(), &UIState::offroadTransition, this, &OnroadWindow::offroadTransition);
 
   // screen recoder - neokii
-  #ifdef QCOM2
+#if  defined(QCOM2) || defined(QCOM)
 
   record_timer = std::make_shared<QTimer>();
 	QObject::connect(record_timer.get(), &QTimer::timeout, [=]() {
@@ -64,7 +64,7 @@ OnroadWindow::OnroadWindow(QWidget *parent) : QWidget(parent) {
 
   stacked_layout->addWidget(recorder_widget);
   recorder_widget->raise();
-  #endif
+#endif
 
   alerts->raise();
 
@@ -115,7 +115,8 @@ void OnroadWindow::mouseReleaseEvent(QMouseEvent* e) {
     }
     else if(std::abs(dx) > std::abs(dy)) {
 
-      #ifdef QCOM2
+#if  defined(QCOM2) || defined(QCOM)
+
       if(dx < 0) { // right to left
         if(recorder)
           recorder->toggle();
@@ -124,7 +125,7 @@ void OnroadWindow::mouseReleaseEvent(QMouseEvent* e) {
         if(recorder)
           recorder->toggle();
       }
-      #endif
+#endif
     }
 
     return;
@@ -168,7 +169,8 @@ void OnroadWindow::offroadTransition(bool offroad) {
   bool wide_cam = Hardware::TICI() && Params().getBool("EnableWideCamera");
   nvg->setStreamType(wide_cam ? VISION_STREAM_RGB_WIDE_ROAD : VISION_STREAM_RGB_ROAD);
 
-#ifdef QCOM2
+#if  defined(QCOM2) || defined(QCOM)
+
   if(offroad && recorder) {
     recorder->stop(false);
   }
