@@ -45,10 +45,10 @@ jobs:
         with:
           path: |
             ~/.cache/apt/archives/**.deb
-            !/var/cache/apt/archives/partial
-            !/var/cache/apt/archives/lock
-            /var/lib/apt/lists
-            !/var/lib/apt/lists/lock
+#            !/var/cache/apt/archives/partial
+#            !/var/cache/apt/archives/lock
+#            !/var/lib/apt/lists
+#            !/var/lib/apt/lists/lock
           key: ${{ runner.os }}-apt-cache-${{ steps.vars.outputs.sha_short }}
           restore-keys: |
             ${{ runner.os }}-apt-cache
