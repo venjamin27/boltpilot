@@ -26,7 +26,7 @@ jobs:
 
       - uses: actions/checkout@v3 #checkout origin
         with:
-          ref: 'feature/integration'
+          ref: 'feature/0814'
 
     # Step 2: run this sync action - specify the upstream repo, upstream branch to sync with, and target sync branch
       - name: Pull (Fast-Forward) upstream changes
