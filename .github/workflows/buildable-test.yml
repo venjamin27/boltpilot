@@ -44,26 +44,26 @@ jobs:
             !/var/cache/apt/archives/lock
             /var/lib/apt/lists
             !/var/lib/apt/lists/lock
-          key: ${{ runner.os }}-apt-cache
+          key: ${{ runner.os }}-apt-cache-${{ steps.vars.outputs.sha_short }}
           restore-keys: |
-            ${{ runner.os }}-apt
+            ${{ runner.os }}-apt-cache
 
       - name: Cache scons binaries
         uses: actions/cache@v3
         with:
           path: |
             /tmp/scons_cache
-          key: ${{ runner.os }}-scons-cache
+          key: ${{ runner.os }}-scons-cache-${{ steps.vars.outputs.sha_short }}
           restore-keys: |
-            ${{ runner.os }}-scons
+            ${{ runner.os }}-scons-cache
 
       - uses: actions/cache@v3
         name: Cache pip binaries
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-cache
+          key: ${{ runner.os }}-pip-cache-${{ steps.vars.outputs.sha_short }}
           restore-keys: |
-            ${{ runner.os }}-pip-
+            ${{ runner.os }}-pip-cache
 
       - name: apt-update
         run : sudo apt update ;
