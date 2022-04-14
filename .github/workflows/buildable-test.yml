@@ -35,19 +35,27 @@ jobs:
           extra-pylint-options: --disable=C,R,E0401,W0612,W0101,W0611,W0613,W0511,W0311,W0954,W0703,W0621,W0201,W0109,W0235
           extra-flake8-options: --select=F21,F822,F823,F831,F811,F812,E999
 
-      - name: Cache binaries
+      - name: Cache apt binaries
         uses: actions/cache@v2
-        env:
-          cache-name: cache-outputs
+        with:
+          path: |
+            /var/cache/apt/archives/**.deb
+            !/var/cache/apt/archives/partial
+            !/var/cache/apt/archives/lock
+            /var/lib/apt/lists
+            !/var/lib/apt/lists/lock
+          key: ${{ runner.os }}-apt-cache
+          restore-keys: |
+            ${{ runner.os }}-apt
+
+      - name: Cache scons binaries
+        uses: actions/cache@v2
         with:
           path: |
             /tmp/scons_cache
-            /var/cache/apt
-            /var/lib/apt/lists
-          key: ${{ runner.os }}-build-${{ env.cache-name }}
+          key: ${{ runner.os }}-scons-cache
           restore-keys: |
-            ${{ runner.os }}-build
-
+            ${{ runner.os }}-scons
 
       - name: apt-update
         run : sudo apt update ;
