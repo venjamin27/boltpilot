@@ -108,16 +108,19 @@ class CarController():
     if not enabled or not CS.adaptive_Cruise or not CS.CP.enableGasInterceptor:
       comma_pedal = 0
     elif CS.adaptive_Cruise:
-      gas_mult = interp(CS.out.vEgo, [0., 5.], [0.65, 1.0])
-      comma_pedal = clip(gas_mult * (gas - brake), 0., 1.)
+      acc_mult = interp(CS.out.vEgo, [0., 5.], [0.17, 0.25])
+      comma_pedal = clip(actuators.accel*acc_mult, 0., 1.)
+
+      # gas_mult = interp(CS.out.vEgo, [0., 5.], [0.65, 1.0])
+      # comma_pedal = clip(gas_mult * (gas - brake), 0., 1.)
     
 #      minimumPedalOutputBySpeed = interp(CS.out.vEgo, VEL, MIN_PEDAL)
 #      pedal_accel = actuators.accel * 0.45
 #      comma_pedal = clip(pedal_accel, minimumPedalOutputBySpeed, 1.)
 #      comma_pedal, self.accel_steady = accel_hysteresis(comma_pedal, self.accel_steady)
             
-      if brake > 0.1:
-        can_sends.append(gmcan.create_regen_paddle_command(self.packer_pt, CanBus.POWERTRAIN))
+      # if brake > 0.1:
+      #   can_sends.append(gmcan.create_regen_paddle_command(self.packer_pt, CanBus.POWERTRAIN))
 
     if (self.frame % 4) == 0:
       idx = (self.frame // 4) % 4
@@ -187,7 +190,7 @@ class CarController():
 
         controls.sccStockCamAct = 0
         controls.sccStockCamStatus = 0
-        stock_cam = False
+
 
 
 
