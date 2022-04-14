@@ -15,7 +15,7 @@ jobs:
     name: build test
     # The type of runner that the job will run on
     runs-on: ubuntu-20.04
-
+#/var/lib/apt/lists/
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - name: Get number of CPU cores
@@ -24,6 +24,28 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 #libyuv-dev  cythonize 누락함
+      - name: Cache node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          # npm cache files are stored in `~/.npm` on Linux/macOS
+          path: /tmp/scons_cache
+          key: ${{ runner.os }}-build
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+      - name: Cache node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          # npm cache files are stored in `~/.npm` on Linux/macOS
+          path: /var/lib/apt/lists
+          key: apt
+          restore-keys: |
+            apt
       - name: apt-update
         run : sudo apt update ;
       - name: apt-install
