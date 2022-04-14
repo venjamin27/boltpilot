@@ -509,22 +509,22 @@ void NvgWindow::drawHud(QPainter &p) {
   drawBottomIcons(p);
 }
 
-static const QColor get_tpms_color(float tpms) {
-    if(tpms < 5 || tpms > 60) // N/A
-        return QColor(255, 255, 255, 220);
-    if(tpms < 31)
-        return QColor(255, 90, 90, 220);
-    return QColor(255, 255, 255, 220);
-}
-
-static const QString get_tpms_text(float tpms) {
-    if(tpms < 5 || tpms > 60)
-        return "";
-
-    char str[32];
-    snprintf(str, sizeof(str), "%.0f", round(tpms));
-    return QString(str);
-}
+//static const QColor get_tpms_color(float tpms) {
+//    if(tpms < 5 || tpms > 60) // N/A
+//        return QColor(255, 255, 255, 220);
+//    if(tpms < 31)
+//        return QColor(255, 90, 90, 220);
+//    return QColor(255, 255, 255, 220);
+//}
+//
+//static const QString get_tpms_text(float tpms) {
+//    if(tpms < 5 || tpms > 60)
+//        return "";
+//
+//    char str[32];
+//    snprintf(str, sizeof(str), "%.0f", round(tpms));
+//    return QString(str);
+//}
 
 void NvgWindow::drawBottomIcons(QPainter &p) {
   const SubMaster &sm = *(uiState()->sm);
