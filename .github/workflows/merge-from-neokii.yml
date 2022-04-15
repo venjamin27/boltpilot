@@ -6,7 +6,7 @@ name: CreatePullRequest from Neokii
 # events but only for the 075-kegman-lqr branch
 on:
   schedule:
-    - cron: '11 18 * * *'
+    - cron: '10 23 * * *'
   workflow_dispatch:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
