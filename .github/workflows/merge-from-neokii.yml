@@ -19,11 +19,6 @@ jobs:
     if: github.repository == 'jc01rho-openpilot-BoltEV2019-KoKr/boltpilot'
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      - name: Get number of CPU cores
-        uses: SimenB/github-actions-cpu-cores@v1
-        id: cpu-cores
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-
 
       - uses: actions/checkout@v3 #checkout origin
         with:
@@ -41,21 +36,27 @@ jobs:
           upstream_sync_repo: neokii/op4
 
 
-        # Step 3: Display a message if 'sync' step had new commits (simple test)
-      - name: Check for new commits
-        if: steps.sync.outputs.has_new_commits
-        run: echo "There were new commits."
-
       # Step 4: Print a helpful timestamp for your records (not required, just nice)
       - name: Timestamp
         run: date
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v4
+        id: cpr
         with:
           branch: patches-from-neokii-GHactions
           base: feature/0814
+          token: ${{ secrets.PAT }}
+          reviewers: jc01rho
+          assignees: jc01rho
 
+      - name: Enable Pull Request Automerge
+        if: steps.cpr.outputs.pull-request-operation == 'created'
+        uses: peter-evans/enable-pull-request-automerge@v2
+        with:
+          token: ${{ secrets.PAT }}
+          pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
+          merge-method: merge
 #      - name: set remote and merge
 #        run:  sh -c ' git remote add neokii https://github.com/neokii/op4.git &&  git fetch --progress --recurse-submodules=no neokii +refs/heads/hkg_dev:refs/remotes/neokii/hkg_dev && git merge -X theirs --no-commit neokii/hkg_dev '
 
