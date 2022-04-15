@@ -94,6 +94,7 @@ class CarState(CarStateBase):
     ret.cruiseState.standstill = False
 
     ret.brakePressed = ret.brake > 1e-5
+    self.brake_pressed = ret.brakePressed
     ret.regenPressed = False
     if  self.car_fingerprint == CAR.BOLT_EV:
       ret.regenPressed = bool(pt_cp.vl["EBCMRegenPaddle"]["RegenPaddle"])
@@ -104,7 +105,7 @@ class CarState(CarStateBase):
     ret.brakeLights = ret.brakePressed or ret.regenPressed or brake_light_enable
 
     ret.cruiseState.enabled = self.main_on or ret.adaptiveCruise
-
+    self.cruiseState_enabled = ret.cruiseState.enabled
     ###for neokii integration
     ret.cruiseState.enabledAcc = ret.cruiseState.enabled
     ###for neokii integration ends
