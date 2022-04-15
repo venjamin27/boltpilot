@@ -25,7 +25,7 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
 
 
-      - uses: actions/checkout@v3 #checkout origin
+      - uses: actions/checkout@v2 #checkout origin
         with:
           ref: 'feature/0814'
 
@@ -39,6 +39,7 @@ jobs:
           target_repo_token: ${{ secrets.GITHUB_TOKEN }}
           upstream_sync_branch: hkg_dev
           upstream_sync_repo: neokii/op4
+          test_mode: true
 
         # Step 3: Display a message if 'sync' step had new commits (simple test)
       - name: Check for new commits
