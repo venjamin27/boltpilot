@@ -25,9 +25,7 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
 
 
-      - uses: actions/checkout@v2 #checkout origin
-        with:
-          ref: 'feature/0814'
+      - uses: actions/checkout@v3 #checkout origin
 
     # Step 2: run this sync action - specify the upstream repo, upstream branch to sync with, and target sync branch
       - name: Pull (Fast-Forward) upstream changes
