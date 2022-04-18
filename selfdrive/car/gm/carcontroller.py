@@ -53,6 +53,7 @@ class CarController():
     self.frame = 0
     self.longcontrol = CP.openpilotLongitudinalControl
     self.packer = CANPacker(dbc_name)
+    self.comma_pedal = 0.
 
 
 
@@ -86,7 +87,6 @@ class CarController():
       can_sends.append(gmcan.create_steering_control(self.packer_pt, CanBus.POWERTRAIN, apply_steer, idx, lkas_enabled))
 
     # Pedal/Regen
-    comma_pedal =0  #for supress linter error.
 #    accelMultiplier = 0.475 #default initializer.
 #    if CS.out.vEgo * CV.MS_TO_KPH < 10 :
 #      accelMultiplier = 0.400
@@ -96,10 +96,11 @@ class CarController():
 #      accelMultiplier = 0.425
 
     if not enabled or not CS.adaptive_Cruise or not CS.CP.enableGasInterceptor:
-      comma_pedal = 0
+      pass
     elif CS.adaptive_Cruise:
       acc_mult = interp(CS.out.vEgo, [0., 5.], [0.17, 0.25])
-      comma_pedal = clip(actuators.accel*acc_mult, 0., 1.)
+      self.comma_pedal = clip(actuators.accel*acc_mult, 0., 1.)
+      actuators.commaPedal = self.comma_pedal
             
       if actuators.accel < 0.10 :
         can_sends.append(gmcan.create_regen_paddle_command(self.packer_pt, CanBus.POWERTRAIN))
@@ -111,8 +112,7 @@ class CarController():
 
     if (self.frame % 4) == 0:
       idx = (self.frame // 4) % 4
-      actuators.commaPedal = comma_pedal
-      can_sends.append(create_gas_interceptor_command(self.packer_pt, comma_pedal, idx))
+      can_sends.append(create_gas_interceptor_command(self.packer_pt, self.comma_pedal, idx))
       
     # Send dashboard UI commands (ACC status), 25hz
     #if (frame % 4) == 0:
