@@ -87,7 +87,6 @@ class CarController():
       can_sends.append(gmcan.create_steering_control(self.packer_pt, CanBus.POWERTRAIN, apply_steer, idx, lkas_enabled))
 
     # Pedal/Regen
-    self.comma_pedal = 0.0
 #    accelMultiplier = 0.475 #default initializer.
 #    if CS.out.vEgo * CV.MS_TO_KPH < 10 :
 #      accelMultiplier = 0.400
@@ -96,19 +95,25 @@ class CarController():
 #    else : # above 40 km/h
 #      accelMultiplier = 0.425
 
+    actuators.regenPaddle = False #for icon
     if not enabled or not CS.adaptive_Cruise or not CS.CP.enableGasInterceptor:
-      self.comma_pedal = 0.0
+      self.comma_pedal = 0.0 # Must be setted by zero, or cannot re-acceling when stopped. - jc01rho.
+
     elif CS.adaptive_Cruise:
       acc_mult = interp(CS.out.vEgo, [0., 5.], [0.17, 0.25])
       self.comma_pedal = clip(actuators.accel*acc_mult, 0., 1.)
-      actuators.commaPedal = self.comma_pedal
+      actuators.commaPedal = self.comma_pedal #for debug value
             
-      if actuators.accel < 0.10 :
+      if actuators.accel < 0.125 :
         can_sends.append(gmcan.create_regen_paddle_command(self.packer_pt, CanBus.POWERTRAIN))
+        actuators.regenPaddle = True #for icon
 
 
       elif controls.LoC.pid.f < - 0.725 :
         can_sends.append(gmcan.create_regen_paddle_command(self.packer_pt, CanBus.POWERTRAIN))
+        actuators.regenPaddle = True #for icon
+    else:
+      self.comma_pedal = 0.0  # Must be setted by zero, or cannot re-acceling when stopped. - jc01rho.
 
 
     if (self.frame % 4) == 0:

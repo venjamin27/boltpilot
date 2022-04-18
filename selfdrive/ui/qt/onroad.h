@@ -73,7 +73,8 @@ protected:
   QPixmap ic_turn_signal_l;
   QPixmap ic_turn_signal_r;
   QPixmap ic_satellite;
-  QPixmap lat_icon_img;
+  QPixmap ic_latMainOn;
+  Qpixmap ic_regenPaddle;
 
   QMap<QString, QPixmap> ic_oil_com;
 

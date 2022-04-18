@@ -215,6 +215,8 @@ class Controls:
     self.rk = Ratekeeper(100, print_delay_threshold=None)
     self.prof = Profiler(False)  # off by default
 
+    self.regenPressed = False
+
   def update_events(self, CS):
     """Compute carEvents from carState"""
 
@@ -473,6 +475,9 @@ class Controls:
       self.v_cruise_kph = update_v_cruise(self.v_cruise_kph, CS.buttonEvents, self.button_timers, self.enabled, self.is_metric)
       if CS.regenPressed:
         self.v_cruise_kph = update_v_cruise_regen(CS.vEgo, self.v_cruise_kph, CS.regenPressed, self.enabled)
+        self.regenPressed = True
+      else :
+        self.regenPressed = False
     elif not CS.adaptiveCruise and CS.cruiseState.enabled:
       self.v_cruise_kph = 40
 
@@ -591,6 +596,7 @@ class Controls:
 
     actuators = CC.actuators
     actuators.longControlState = self.LoC.long_control_state
+    actuators.regenPaddle = self.regenPressed
 
     if CS.leftBlinker or CS.rightBlinker:
       self.last_blinker_frame = self.sm.frame

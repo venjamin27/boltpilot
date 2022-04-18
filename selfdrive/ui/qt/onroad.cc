@@ -270,7 +270,9 @@ void NvgWindow::initializeGL() {
   ic_turn_signal_l = QPixmap("../assets/images/turn_signal_l.png");
   ic_turn_signal_r = QPixmap("../assets/images/turn_signal_r.png");
   ic_satellite = QPixmap("../assets/images/satellite.png");
-  lat_icon_img =  QPixmap("../assets/images/img_lat_icon.png").scaled(img_size, img_size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+  ic_latMainOn =  QPixmap("../assets/images/img_lat_icon.png").scaled(img_size, img_size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+  ic_regenPaddle =  QPixmap("../assets/images/img_regen.png").scaled(img_size, img_size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+
 }
 
 void NvgWindow::updateFrameMat(int w, int h) {
@@ -536,6 +538,7 @@ void NvgWindow::drawHud(QPainter &p) {
 void NvgWindow::drawBottomIcons(QPainter &p) {
   const SubMaster &sm = *(uiState()->sm);
   auto car_state = sm["carState"].getCarState();
+  auto car_control = sm["carControl"].getCarControl();
 //  auto scc_smoother = sm["carControl"].getCarControl().getSccSmoother();
 
   // tire pressure
@@ -612,6 +615,13 @@ void NvgWindow::drawBottomIcons(QPainter &p) {
   float img_alpha = brake_valid ? 1.0f : 0.15f;
   float bg_alpha = brake_valid ? 0.3f : 0.1f;
   drawIcon(p, x, y, ic_brake, QColor(0, 0, 0, (255 * bg_alpha)), img_alpha);
+
+
+  x = radius / 2 + (bdr_s * 2) + (radius + 50) * 1;
+  bool regen_valid = car_control.getActuators().getRegenPaddle();
+  float img_alpha = regen_valid ? 1.0f : 0.15f;
+  float bg_alpha = regen_valid ? 0.3f : 0.1f;
+  drawIcon(p, x, y, ic_regenPaddle, QColor(0, 0, 0, (255 * bg_alpha)), img_alpha);
 
   // auto hold
 //  int autohold = car_state.getAutoHold();
@@ -1103,11 +1113,7 @@ void NvgWindow::drawLkasIcon(QPainter &p) {
 //  bool adaptiveCruiseLocal = car_state.getAdaptiveCruise();
 
   if ( mainOnLocal ) {
-//    drawIcon(p, rect().center().x() - radius / 2 - bdr_s * 2 - 48, radius / 2 + int(bdr_s * 1.5),
-//             lat_icon_img, QColor(0, 0, 0, 70), 1.0);
-    p.drawPixmap(rect().center().x() - radius / 2 - bdr_s * 2 - (48*3), radius / 2 + int(bdr_s * 1.5), lat_icon_img);
-
-//             p.drawPixmap(x - img_size / 2, y - img_size / 2, img_size, img_size, img);
+    p.drawPixmap(rect().center().x() - radius / 2 - bdr_s * 2 - (48*3), radius / 2 + int(bdr_s * 1.5), ic_latMainOn);
   }
 
 
