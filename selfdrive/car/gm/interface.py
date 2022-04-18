@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from typing import List
 from cereal import car
 from common.numpy_fast import interp
 from math import fabs
@@ -14,6 +15,10 @@ EventName = car.CarEvent.EventName
 class CarInterface(CarInterfaceBase):
   def __init__(self, CP, CarController, CarState):
     super().__init__(CP, CarController, CarState)
+
+
+  def _update(self, c: car.CarControl) -> car.CarState:
+    pass
 
 
   @staticmethod
@@ -128,7 +133,7 @@ class CarInterface(CarInterfaceBase):
     return ret
 
   # returns a car.CarState
-  def update(self, c, can_strings):
+  def update(self, c: car.CarControl, can_strings: List[bytes]) -> car.CarState:
     self.cp.update_strings(can_strings)
     self.cp_loopback.update_strings(can_strings)
 
@@ -136,6 +141,7 @@ class CarInterface(CarInterfaceBase):
 
     ret.cruiseState.enabled = self.CS.main_on or self.CS.adaptive_Cruise
     ret.canValid = self.cp.can_valid and self.cp_loopback.can_valid
+    ret.canTimeout = any(cp.bus_timeout for cp in self.can_parsers if cp is not None)
     ret.steeringRateLimited = self.CC.steer_rate_limited if self.CC is not None else False
 
     buttonEvents = []
