@@ -53,24 +53,14 @@ class CarController():
     self.frame = 0
     self.longcontrol = CP.openpilotLongitudinalControl
     self.packer = CANPacker(dbc_name)
+    self.regenPaddleApplied = False
 
 
   def update(self,c,  enabled, CS, controls ,  actuators,
              hud_v_cruise, hud_show_lanes, hud_show_car, hud_alert):
 
     P = self.params
-    
-    if enabled:
-      accel = actuators.accel
-      gas, brake = compute_gas_brake(actuators.accel, CS.out.vEgo)
-      self.apply_gas = gas
-      self.apply_brake = brake
-    else:
-      accel = 0.0
-      gas, brake = 0.0, 0.0
-      self.apply_gas = gas
-      self.apply_brake = brake
-
+    self.regenPaddleApplied = False
     # Send CAN commands.
     can_sends = []
 
@@ -110,17 +100,14 @@ class CarController():
     elif CS.adaptive_Cruise:
       acc_mult = interp(CS.out.vEgo, [0., 5.], [0.17, 0.25])
       comma_pedal = clip(actuators.accel*acc_mult, 0., 1.)
-
-      # gas_mult = interp(CS.out.vEgo, [0., 5.], [0.65, 1.0])
-      # comma_pedal = clip(gas_mult * (gas - brake), 0., 1.)
-    
-#      minimumPedalOutputBySpeed = interp(CS.out.vEgo, VEL, MIN_PEDAL)
-#      pedal_accel = actuators.accel * 0.45
-#      comma_pedal = clip(pedal_accel, minimumPedalOutputBySpeed, 1.)
-#      comma_pedal, self.accel_steady = accel_hysteresis(comma_pedal, self.accel_steady)
             
-      if self.apply_brake > 0.15:
+      if actuators.accel < 0.10 and not self.regenPaddleApplied:
         can_sends.append(gmcan.create_regen_paddle_command(self.packer_pt, CanBus.POWERTRAIN))
+        self.regenPaddleApplied = True
+
+      if controls.LoC.pid.f < - 0.35  and not self.regenPaddleApplied:
+        can_sends.append(gmcan.create_regen_paddle_command(self.packer_pt, CanBus.POWERTRAIN))
+        self.regenPaddleApplied = True
 
     if (self.frame % 4) == 0:
       idx = (self.frame // 4) % 4
