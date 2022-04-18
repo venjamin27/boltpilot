@@ -35,6 +35,7 @@ jobs:
           target_repo_token: ${{ secrets.GITHUB_TOKEN }}
           upstream_sync_branch: hkg_dev
           upstream_sync_repo: neokii/op4
+          test_mode: true
 
 
       # Step 4: Print a helpful timestamp for your records (not required, just nice)
