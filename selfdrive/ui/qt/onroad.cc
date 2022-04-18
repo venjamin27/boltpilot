@@ -1026,6 +1026,7 @@ void NvgWindow::drawDebugText(QPainter &p) {
   float uiAccelCmd = controls_state.getUiAccelCmd();
   float ufAccelCmd = controls_state.getUfAccelCmd();
   float accel = car_control.getActuators().getAccel();
+  float commaPedal = car_control.getActuators().getCommaPedal();
 
   const char* long_state[] = {"off", "pid", "stopping", "starting"};
 
@@ -1058,6 +1059,10 @@ void NvgWindow::drawDebugText(QPainter &p) {
 
   y += height;
   str.sprintf("Accel: %.3f\n", accel);
+  p.drawText(text_x, y, str);
+
+  y += height;
+  str.sprintf("CommaPedal: %.3f\n", commaPedal);
   p.drawText(text_x, y, str);
 
   y += height;
