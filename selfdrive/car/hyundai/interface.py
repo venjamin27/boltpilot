@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from typing import List
 
 from cereal import car
 from common.numpy_fast import interp
@@ -49,10 +50,11 @@ class CarInterface(CarInterfaceBase):
     if lateral_control == 'TORQUE':
       ret.lateralTuning.init('torque')
       ret.lateralTuning.torque.useSteeringAngle = True
-
-      MAX_TORQUE = 2.5
-      ret.lateralTuning.torque.kp = 3.5 / MAX_TORQUE
-      ret.lateralTuning.torque.kf = 0.75 / MAX_TORQUE
+      ret.lateralTuning.torque.kp = 2.0
+      ret.lateralTuning.torque.kf = 0.05
+      ret.lateralTuning.torque.friction = 0.01
+      ret.lateralTuning.torque.ki = 0.05
+      ret.lateralTuning.torque.kd = 0.7
       ret.lateralTuning.torque.friction = 0.06
     elif lateral_control == 'INDI':
       ret.lateralTuning.init('indi')
@@ -86,16 +88,16 @@ class CarInterface(CarInterfaceBase):
     ret.steerLimitTimer = 2.5
 
     # longitudinal
-    ret.longitudinalTuning.kpBP = [0., 5.*CV.KPH_TO_MS, 10.*CV.KPH_TO_MS, 20.*CV.KPH_TO_MS, 130.*CV.KPH_TO_MS]
+    ret.longitudinalTuning.kpBP = [0., 5.*CV.KPH_TO_MS, 10.*CV.KPH_TO_MS, 30.*CV.KPH_TO_MS, 130.*CV.KPH_TO_MS]
     ret.longitudinalTuning.kpV = [1.25, 1.1, 1.0, 0.85, 0.48]
     ret.longitudinalTuning.kiBP = [0., 130. * CV.KPH_TO_MS]
-    ret.longitudinalTuning.kiV = [0.08, 0.03]
-    ret.longitudinalActuatorDelayLowerBound = 0.5
-    ret.longitudinalActuatorDelayUpperBound = 0.5
+    ret.longitudinalTuning.kiV = [0.1, 0.05]
+    ret.longitudinalActuatorDelayLowerBound = 0.3
+    ret.longitudinalActuatorDelayUpperBound = 0.3
 
     ret.stopAccel = -2.0
-    ret.stoppingDecelRate = 0.5  # brake_travel/s while trying to stop
-    ret.vEgoStopping = 0.5
+    ret.stoppingDecelRate = 0.6  # brake_travel/s while trying to stop
+    ret.vEgoStopping = 0.6
     ret.vEgoStarting = 0.5
 
     # genesis
@@ -331,13 +333,17 @@ class CarInterface(CarInterfaceBase):
       ret.safetyConfigs = [get_safety_config(car.CarParams.SafetyModel.hyundaiCommunity, 0)]
     return ret
 
-  def update(self, c, can_strings):
+  def _update(self, c: car.CarControl) -> car.CarState:
+    pass
+
+  def update(self, c: car.CarControl, can_strings: List[bytes]) -> car.CarState:
     self.cp.update_strings(can_strings)
     self.cp2.update_strings(can_strings)
     self.cp_cam.update_strings(can_strings)
 
     ret = self.CS.update(self.cp, self.cp2, self.cp_cam)
     ret.canValid = self.cp.can_valid and self.cp2.can_valid and self.cp_cam.can_valid
+    ret.canTimeout = any(cp.bus_timeout for cp in self.can_parsers if cp is not None)
 
     if self.CP.pcmCruise and not self.CC.scc_live:
       self.CP.pcmCruise = False

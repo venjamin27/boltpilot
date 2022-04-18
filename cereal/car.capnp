@@ -150,9 +150,13 @@ struct CarState {
   #BOLT EV
   vehicleSpeed @48 :Float32;
   regenPressed @50 :Bool; #this is regen button only
-  adaptiveCruise @46 :Bool;
+  adaptiveCruise @51 :Bool;
   mainOn @47 :Bool;
   lkasEnable @49 :Bool;
+
+  # CAN health
+  canValid @26 :Bool;       # invalid counter/checksums
+  canTimeout @40 :Bool;     # CAN bus dropped out
 
 
   # car speed
@@ -205,7 +209,6 @@ struct CarState {
   # lock info
   doorOpen @24 :Bool;
   seatbeltUnlatched @25 :Bool;
-  canValid @26 :Bool;
 
   # clutch (manual transmission only)
   clutchPressed @28 :Bool;
@@ -217,12 +220,12 @@ struct CarState {
   leftBlindspot @33 :Bool; # Is there something blocking the left lane change
   rightBlindspot @34 :Bool; # Is there something blocking the right lane change
 
-  cluSpeedMs @40 :Float32;
-  cruiseGap @41 : Int32;
-  autoHold @42 : Int32;
-  tpms @43 : Tpms;
-  vCluRatio @44 :Float32;
-  aBasis @45 :Float32;
+  cluSpeedMs @41 :Float32;
+  cruiseGap @42 : Int32;
+  autoHold @43 : Int32;
+  tpms @44 : Tpms;
+  vCluRatio @45 :Float32;
+  aBasis @46 :Float32;
 
   struct Tpms {
     fl @0 :Float32;
