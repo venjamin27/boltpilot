@@ -53,7 +53,7 @@ class CarController():
     self.frame = 0
     self.longcontrol = CP.openpilotLongitudinalControl
     self.packer = CANPacker(dbc_name)
-    self.regenPaddleApplied = False
+
 
 
   def update(self,c,  enabled, CS, controls ,  actuators,
@@ -101,13 +101,13 @@ class CarController():
       acc_mult = interp(CS.out.vEgo, [0., 5.], [0.17, 0.25])
       comma_pedal = clip(actuators.accel*acc_mult, 0., 1.)
             
-      if actuators.accel < 0.10 and not self.regenPaddleApplied:
+      if actuators.accel < 0.10 :
         can_sends.append(gmcan.create_regen_paddle_command(self.packer_pt, CanBus.POWERTRAIN))
-        self.regenPaddleApplied = True
 
-      if controls.LoC.pid.f < - 0.75  and not self.regenPaddleApplied:
+
+      elif controls.LoC.pid.f < - 0.75 :
         can_sends.append(gmcan.create_regen_paddle_command(self.packer_pt, CanBus.POWERTRAIN))
-        self.regenPaddleApplied = True
+
 
     if (self.frame % 4) == 0:
       idx = (self.frame // 4) % 4
