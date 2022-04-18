@@ -1102,10 +1102,10 @@ void NvgWindow::drawLkasIcon(QPainter &p) {
   bool lkasEnabledLocal = car_state.getLkasEnable();
   bool adaptiveCruiseLocal = car_state.getAdaptiveCruise();
 
-  if ( (adaptiveCruiseLocal && lkasEnabledLocal) || mainOnLocal ) {
+  if ( mainOnLocal ) {
 //    drawIcon(p, rect().center().x() - radius / 2 - bdr_s * 2 - 48, radius / 2 + int(bdr_s * 1.5),
 //             lat_icon_img, QColor(0, 0, 0, 70), 1.0);
-    p.drawPixmap(rect().center().x() - radius / 2 - bdr_s * 2 - 48, radius / 2 + int(bdr_s * 1.5), lat_icon_img);
+    p.drawPixmap(rect().center().x() - radius / 2 - bdr_s * 2 - (48*3), radius / 2 + int(bdr_s * 1.5), lat_icon_img);
 
 //             p.drawPixmap(x - img_size / 2, y - img_size / 2, img_size, img_size, img);
   }
