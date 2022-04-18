@@ -96,7 +96,7 @@ class CarController():
 #      accelMultiplier = 0.425
 
     if not enabled or not CS.adaptive_Cruise or not CS.CP.enableGasInterceptor:
-      pass
+      self.comma_pedal = 0.0
     elif CS.adaptive_Cruise:
       acc_mult = interp(CS.out.vEgo, [0., 5.], [0.17, 0.25])
       self.comma_pedal = clip(actuators.accel*acc_mult, 0., 1.)
