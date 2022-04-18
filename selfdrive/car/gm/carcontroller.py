@@ -87,6 +87,7 @@ class CarController():
       can_sends.append(gmcan.create_steering_control(self.packer_pt, CanBus.POWERTRAIN, apply_steer, idx, lkas_enabled))
 
     # Pedal/Regen
+    self.comma_pedal = 0.0
 #    accelMultiplier = 0.475 #default initializer.
 #    if CS.out.vEgo * CV.MS_TO_KPH < 10 :
 #      accelMultiplier = 0.400
