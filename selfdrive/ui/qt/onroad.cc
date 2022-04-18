@@ -619,8 +619,8 @@ void NvgWindow::drawBottomIcons(QPainter &p) {
 
   x = radius / 2 + (bdr_s * 2) + (radius + 50) * 1;
   bool regen_valid = car_control.getActuators().getRegenPaddle();
-  float img_alpha = regen_valid ? 1.0f : 0.15f;
-  float bg_alpha = regen_valid ? 0.3f : 0.1f;
+  img_alpha = regen_valid ? 1.0f : 0.15f;
+  bg_alpha = regen_valid ? 0.3f : 0.1f;
   drawIcon(p, x, y, ic_regenPaddle, QColor(0, 0, 0, (255 * bg_alpha)), img_alpha);
 
   // auto hold
