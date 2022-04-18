@@ -105,7 +105,7 @@ class CarController():
         can_sends.append(gmcan.create_regen_paddle_command(self.packer_pt, CanBus.POWERTRAIN))
         self.regenPaddleApplied = True
 
-      if controls.LoC.pid.f < - 0.35  and not self.regenPaddleApplied:
+      if controls.LoC.pid.f < - 0.75  and not self.regenPaddleApplied:
         can_sends.append(gmcan.create_regen_paddle_command(self.packer_pt, CanBus.POWERTRAIN))
         self.regenPaddleApplied = True
 
