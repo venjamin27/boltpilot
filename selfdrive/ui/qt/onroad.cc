@@ -270,6 +270,7 @@ void NvgWindow::initializeGL() {
   ic_turn_signal_l = QPixmap("../assets/images/turn_signal_l.png");
   ic_turn_signal_r = QPixmap("../assets/images/turn_signal_r.png");
   ic_satellite = QPixmap("../assets/images/satellite.png");
+  lat_icon_img =  QPixmap("../assets/img_lat_icon.png").scaled(img_size, img_size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 }
 
 void NvgWindow::updateFrameMat(int w, int h) {
@@ -468,6 +469,7 @@ void NvgWindow::drawHud(QPainter &p) {
   drawRestArea(p);
   drawTurnSignals(p);
   drawGpsStatus(p);
+  drawLkasIcon(p);
 
   if(s->show_debug && width() > 1200)
     drawDebugText(p);
@@ -1076,4 +1078,30 @@ void NvgWindow::drawDebugText(QPainter &p) {
   y += height;
   str.sprintf("Lead: %.1f/%.1f/%.1f\n", radar_dist, vision_dist, (radar_dist - vision_dist));
   p.drawText(text_x, y, str);
+}
+
+
+
+void NvgWindow::drawLkasIcon(QPainter &p) {
+
+  UIState *s = uiState();
+  const SubMaster &sm = *(s->sm);
+//  float cur_speed = std::max(0.0, sm["carState"].getCarState().getCluSpeedMs() * (s->scene.is_metric ? MS_TO_KPH : MS_TO_MPH));
+  auto car_state = sm["carState"].getCarState();
+//  float accel = car_state.getAEgo();
+
+  bool mainOnLocal = car_state.getMainOn();
+  bool lkasEnabledLocal = car_state.getLkasEnable();
+  bool adaptiveCruiseLocal = car_state.getAdaptiveCruise();
+
+  if ( (adaptiveCruiseLocal && lkasEnabledLocal) || mainOnLocal ) {
+//    drawIcon(p, rect().center().x() - radius / 2 - bdr_s * 2 - 48, radius / 2 + int(bdr_s * 1.5),
+//             lat_icon_img, QColor(0, 0, 0, 70), 1.0);
+    p.drawPixmap(rect().center().x() - radius / 2 - bdr_s * 2 - 48, radius / 2 + int(bdr_s * 1.5), lat_icon_img);
+
+//             p.drawPixmap(x - img_size / 2, y - img_size / 2, img_size, img_size, img);
+  }
+
+
+
 }

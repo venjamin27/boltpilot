@@ -85,6 +85,7 @@ protected:
   void drawGpsStatus(QPainter &p);
   void drawDebugText(QPainter &p);
   void drawHud(QPainter &p);
+  void drawLkasIcon(QPainter &p);
 
 private:
   QPixmap get_icon_iol_com(const char* key);
