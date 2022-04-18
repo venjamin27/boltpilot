@@ -1099,8 +1099,8 @@ void NvgWindow::drawLkasIcon(QPainter &p) {
 //  float accel = car_state.getAEgo();
 
   bool mainOnLocal = car_state.getMainOn();
-  bool lkasEnabledLocal = car_state.getLkasEnable();
-  bool adaptiveCruiseLocal = car_state.getAdaptiveCruise();
+//  bool lkasEnabledLocal = car_state.getLkasEnable();
+//  bool adaptiveCruiseLocal = car_state.getAdaptiveCruise();
 
   if ( mainOnLocal ) {
 //    drawIcon(p, rect().center().x() - radius / 2 - bdr_s * 2 - 48, radius / 2 + int(bdr_s * 1.5),
