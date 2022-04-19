@@ -35,7 +35,6 @@ class CarInterfaceBase(ABC):
     ####added by jc01rho
     self.flag_pcmEnable_able =True
     self.flag_pcmEnable_initialSet = False
-
     self.initial_pcmEnable_counter = 0
 
     self.CS = None
