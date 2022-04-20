@@ -15,15 +15,17 @@ TORQUE_SCALE_V = [0.2, 0.35, 0.63, 0.67, 0.7]
 class LatControlHybrid(LatControl):
   def __init__(self, CP, CI):
     super().__init__(CP, CI)
-    self.scale = 1600.
-    self.ki = 0.01
-    self.dc_gain = 0.0027
+    self.scale = 1950.
+    self.ki = 0.032
+    self.dc_gain = 0.002237852961363602
 
     self.A = np.array([0., 1., -0.22619643, 1.21822268]).reshape((2, 2))
     self.B = np.array([-1.92006585e-04, 3.95603032e-05]).reshape((2, 1))
     self.C = np.array([1., 0.]).reshape((1, 2))
-    self.K = np.array([-110., 451.]).reshape((1, 2))
-    self.L = np.array([0.33, 0.318]).reshape((2, 1))
+    self.K = np.array([-110.73572306, 451.22718255]).reshape((1, 2))
+    self.L = np.array([0.3233671, 0.3185757]).reshape((2, 1))
+
+
 
     self.x_hat = np.array([[0], [0]])
     self.i_unwind_rate = 0.3 * DT_CTRL
