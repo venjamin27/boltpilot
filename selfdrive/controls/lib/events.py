@@ -612,6 +612,19 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
     ET.NO_ENTRY: NoEntryAlert("Speaker not found"),
   },
 
+  EventName.soundsUnavailableOnce: {
+    # ET.PERMANENT: Alert("Sound Unavailable", "", AlertStatus.normal, AlertSize.small,
+    #                     Priority.MID, VisualAlert.none, AudibleAlert.none, .1),
+
+    ET.WARNING: Alert(
+      "Sound Unavailable",
+      "",
+      AlertStatus.normal, AlertSize.small,
+      Priority.LOW, VisualAlert.none, AudibleAlert.none, .1),
+
+  },
+
+
   EventName.tooDistracted: {
     ET.NO_ENTRY: NoEntryAlert("Distraction Level Too High"),
   },

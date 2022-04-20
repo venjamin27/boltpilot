@@ -102,7 +102,7 @@ class CarState(CarStateBase):
     if self.car_fingerprint == CAR.BOLT_EV:
       if ret.aEgo < -1.3:
         brake_light_enable = True
-    ret.brakeLights = ret.brakePressed or ret.regenPressed or brake_light_enable
+    ret.brakeLights = ret.brakePressed or brake_light_enable
 
     ret.cruiseState.enabled = self.main_on or ret.adaptiveCruise
     self.cruiseState_enabled = ret.cruiseState.enabled
@@ -149,10 +149,10 @@ class CarState(CarStateBase):
     ]
 
 
-    if CP.carFingerprint == CAR.BOLT_EV:
-      signals += [
-        ("RegenPaddle", "EBCMRegenPaddle", 0),
-      ]
+    # if CP.carFingerprint == CAR.BOLT_EV:
+    signals += [
+      ("RegenPaddle", "EBCMRegenPaddle", 0),
+    ]
 
 
     if CP.enableGasInterceptor:

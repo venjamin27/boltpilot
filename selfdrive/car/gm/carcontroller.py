@@ -97,7 +97,7 @@ class CarController():
 
     actuators.regenPaddle = False #for icon
     if not enabled or not CS.adaptive_Cruise or not CS.CP.enableGasInterceptor:
-      self.comma_pedal = 0.0 # Must be setted by zero, or cannot re-acceling when stopped. - jc01rho.
+      self.comma_pedal = 0.0 # Must be set by zero, or cannot re-acceling when stopped. - jc01rho.
 
     elif CS.adaptive_Cruise:
       acc_mult = interp(CS.out.vEgo, [0., 5.], [0.17, 0.25])
@@ -113,7 +113,7 @@ class CarController():
         can_sends.append(gmcan.create_regen_paddle_command(self.packer_pt, CanBus.POWERTRAIN))
         actuators.regenPaddle = True #for icon
     else:
-      self.comma_pedal = 0.0  # Must be setted by zero, or cannot re-acceling when stopped. - jc01rho.
+      self.comma_pedal = 0.0  # Must be set by zero, or cannot re-acceling when stopped. - jc01rho.
 
 
     if (self.frame % 4) == 0:
