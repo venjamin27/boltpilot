@@ -1,5 +1,7 @@
 Version 0.8.14 (2022-0X-XX)
 ========================
+ * feature브랜치로서 실험적인 내용이 많이 들어갑니다.
+ * 조금 안정적인 버전을 원하신다면 develop브랜치로 교체하세요.
  * bigmodel!
  * comma body support
  * Hyundai Tucson Diesel 2019 support thanks to sunnyhaibin!
