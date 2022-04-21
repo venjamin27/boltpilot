@@ -62,8 +62,8 @@ T_IDXS = np.array(T_IDXS_LST)
 T_DIFFS = np.diff(T_IDXS, prepend=[0.])
 vMIN_ACCEL = -3.5
 COMFORT_BRAKE = 2.5
-T_FOLLOW = 1.35 # 1.45
-STOP_DISTANCE = 7.5  #6.5
+T_FOLLOW = 1.375 # 1.45
+STOP_DISTANCE = 7.75  # 6.5
 
 def get_stopped_equivalence_factor(v_lead):
   return (v_lead**2) / (2 * COMFORT_BRAKE)
