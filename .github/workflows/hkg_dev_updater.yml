@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: CreatePullRequest from Neokii
+name: Pull (Fast-Forward) upstream changes
 
 # Controls when the action will run. Triggers the workflow on push or pull request
 # events but only for the 075-kegman-lqr branch
@@ -34,34 +34,4 @@ jobs:
           # REQUIRED 'target_repo_token' exactly like this!
           target_repo_token: ${{ secrets.GITHUB_TOKEN }}
           upstream_sync_branch: hkg_dev
-          upstream_sync_repo: neokii/op4
-          test_mode: true
-
-
-      # Step 4: Print a helpful timestamp for your records (not required, just nice)
-      - name: Timestamp
-        run: date
-
-      - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v4
-        id: cpr
-        with:
-          branch: patches-from-neokii-GHactions
-          base: feature/0814
-          token: ${{ secrets.PAT }}
-          reviewers: jc01rho
-          assignees: jc01rho
-
-      - name: Enable Pull Request Automerge
-        if: steps.cpr.outputs.pull-request-operation == 'created'
-        uses: peter-evans/enable-pull-request-automerge@v2
-        with:
-          token: ${{ secrets.PAT }}
-          pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
-          merge-method: merge
-#      - name: set remote and merge
-#        run:  sh -c ' git remote add neokii https://github.com/neokii/op4.git &&  git fetch --progress --recurse-submodules=no neokii +refs/heads/hkg_dev:refs/remotes/neokii/hkg_dev && git merge -X theirs --no-commit neokii/hkg_dev '
-
-
-
-
+          upstream_sync_repo: neokii/npilot
