@@ -4,6 +4,7 @@ Version 0.8.14 (2022-0X-XX)
  * 조금 안정적인 버전을 원하신다면 develop브랜치로 교체하세요.
  * bigmodel!
  * comma body support
+ * Hyundai Ioniq Plug-in Hybrid 2019 support thanks to sunnyhaibin!
  * Hyundai Tucson Diesel 2019 support thanks to sunnyhaibin!
  * Toyota Alphard Hybrid 2021 support
  * Toyota Avalon Hybrid 2022 support
