@@ -126,12 +126,12 @@ class CarController():
 
       actuators.commaPedal = self.comma_pedal #for debug value
             
-      if actuators.accel < 0.55 :
+      if actuators.accel < 0.75 :
         can_sends.append(gmcan.create_regen_paddle_command(self.packer_pt, CanBus.POWERTRAIN))
         actuators.regenPaddle = True #for icon
 
 
-      elif controls.LoC.pid.f < - 0.775 :
+      elif controls.LoC.pid.f < - 0.7 :
         can_sends.append(gmcan.create_regen_paddle_command(self.packer_pt, CanBus.POWERTRAIN))
         actuators.regenPaddle = True #for icon
     else:
