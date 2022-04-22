@@ -372,6 +372,12 @@ struct CarControl {
     speed @6: Float32; # m/s
     commaPedal @7: Float32;
     regenPaddle @8: Bool;
+    commaPedalOrigin @9: Float32;
+    pedalStartingAdder @10: Float32;
+    pedalDistanceAdder @11: Float32;
+    pedalAdderFinal @12: Float32;
+
+
 
     enum LongControlState @0xe40f3a917d908282{
       off @0;

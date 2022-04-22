@@ -19,6 +19,7 @@ LongPressed = False
 # kph
 V_CRUISE_MAX = 145
 V_CRUISE_MIN = 30
+V_CRUISE_PADDLE_MIN = 15
 V_CRUISE_DELTA_MI = 5 * CV.MPH_TO_KPH
 V_CRUISE_DELTA_KM = 10
 V_CRUISE_ENABLE_MIN = 30
@@ -59,7 +60,7 @@ def update_v_cruise_regen(v_ego, v_cruise_kph, regen, enabled):
     if (v_cruise_kph - v_ego * CV.MS_TO_KPH) < REGEN_THRESHOLD:
       v_cruise_kph -= REGEN_THRESHOLD - -v_cruise_kph % 5
 
-  v_cruise_kph = clip(v_cruise_kph, V_CRUISE_MIN, V_CRUISE_MAX)
+  v_cruise_kph = clip(v_cruise_kph, V_CRUISE_PADDLE_MIN, V_CRUISE_MAX)
 
   return v_cruise_kph
 

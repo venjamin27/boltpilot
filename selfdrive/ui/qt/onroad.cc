@@ -1051,8 +1051,6 @@ void NvgWindow::drawDebugText(QPainter &p) {
   auto car_control = sm["carControl"].getCarControl();
   auto car_state = sm["carState"].getCarState();
 
-  float applyAccel = controls_state.getApplyAccel();
-
   float aReqValue = controls_state.getAReqValue();
   float aReqValueMin = controls_state.getAReqValueMin();
   float aReqValueMax = controls_state.getAReqValueMax();
@@ -1069,6 +1067,11 @@ void NvgWindow::drawDebugText(QPainter &p) {
   float ufAccelCmd = controls_state.getUfAccelCmd();
   float accel = car_control.getActuators().getAccel();
   float commaPedal = car_control.getActuators().getCommaPedal();
+  float commaPedalOrigin = car_control.getActuators().getCommaPedalOrigin();
+  float startAdder = car_control.getActuators().getPedalStartingAdder();
+  float distAdder = car_control.getActuators().getPedalDistanceAdder();
+  float finalAdder = car_control.getActuators().getPedalAdderFinal();
+
 
   const char* long_state[] = {"off", "pid", "stopping", "starting"};
 
@@ -1088,28 +1091,45 @@ void NvgWindow::drawDebugText(QPainter &p) {
   p.drawText(text_x, y, str);
 
   y += height;
-  str.sprintf("P: %.3f\n", upAccelCmd);
+  str.sprintf("P: %.3f  I: %.3f F: %.3f\n", upAccelCmd, uiAccelCmd,ufAccelCmd);
   p.drawText(text_x, y, str);
 
-  y += height;
-  str.sprintf("I: %.3f\n", uiAccelCmd);
-  p.drawText(text_x, y, str);
+//  y += height;
+//  str.sprintf("I: %.3f\n", uiAccelCmd);
+//  p.drawText(text_x, y, str);
 
-  y += height;
-  str.sprintf("F: %.3f\n", ufAccelCmd);
-  p.drawText(text_x, y, str);
+//  y += height;
+//  str.sprintf("F: %.3f\n", ufAccelCmd);
+//  p.drawText(text_x, y, str);
 
   y += height;
   str.sprintf("Accel: %.3f\n", accel);
   p.drawText(text_x, y, str);
 
   y += height;
-  str.sprintf("CommaPedal: %.3f\n", commaPedal);
+  str.sprintf("CommaPedalOrig: %.3f\n", commaPedalOrigin);
   p.drawText(text_x, y, str);
 
   y += height;
-  str.sprintf("Apply: %.3f, Stock: %.3f\n", applyAccel, aReqValue);
+  str.sprintf("CommaPedal: %.3f\n", commaPedal);
   p.drawText(text_x, y, str);
+
+
+  y += height;
+  str.sprintf("startAdder: %.3f\n", startAdder);
+  p.drawText(text_x, y, str);
+
+  y += height;
+  str.sprintf("distAdder: %.3f\n", distAdder);
+  p.drawText(text_x, y, str);
+
+  y += height;
+  str.sprintf("FinalAdder: %.3f\n", finalAdder);
+  p.drawText(text_x, y, str);
+
+//  y += height;
+//  str.sprintf("Apply: %.3f, Stock: %.3f\n", applyAccel, aReqValue);
+//  p.drawText(text_x, y, str);
 
   y += height;
   str.sprintf("%.3f (%.3f/%.3f)\n", aReqValue, aReqValueMin, aReqValueMax);
@@ -1119,14 +1139,12 @@ void NvgWindow::drawDebugText(QPainter &p) {
   str.sprintf("aEgo: %.3f, %.3f\n", car_state.getAEgo(), car_state.getABasis());
   p.drawText(text_x, y, str);
 
-  auto lead_radar = sm["radarState"].getRadarState().getLeadOne();
   auto lead_one = sm["modelV2"].getModelV2().getLeadsV3()[0];
 
-  float radar_dist = lead_radar.getStatus() && lead_radar.getRadar() ? lead_radar.getDRel() : 0;
   float vision_dist = lead_one.getProb() > .5 ? (lead_one.getX()[0] - 1.5) : 0;
 
   y += height;
-  str.sprintf("Lead: %.1f/%.1f/%.1f\n", radar_dist, vision_dist, (radar_dist - vision_dist));
+  str.sprintf("Lead: %.1f\n", vision_dist);
   p.drawText(text_x, y, str);
 }
 

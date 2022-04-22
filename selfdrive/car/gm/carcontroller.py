@@ -34,6 +34,11 @@ class CarController():
     self.longcontrol = CP.openpilotLongitudinalControl
     self.packer = CANPacker(dbc_name)
     self.comma_pedal = 0.
+    self.currentStoppingState = False
+    self.beforeStoppingState = False
+    self.stoppingStateWindowsActive = False
+    self.stoppingStateWindowsActiveCounter = 0
+
 
 
 
@@ -73,20 +78,64 @@ class CarController():
       self.comma_pedal = 0.0 # Must be set by zero, or cannot re-acceling when stopped. - jc01rho.
 
     elif CS.adaptive_Cruise:
+
       acc_mult = interp(CS.out.vEgo, [0., 5.], [0.17, 0.24])
-      self.comma_pedal = clip(actuators.accel*acc_mult, 0., 1.)
+      self.comma_pedal = clip(actuators.accel * acc_mult, 0., 1.)
+      actuators.commaPedalOrigin = self.comma_pedal
+
+      ###발차시점, 처음 0~6초까지 , 1.5-6초간만 페달에 0.1775를 더한다.
+
+      d = 0
+      lead = self.scc_smoother.get_lead(controls.sm)
+      if lead is not None:
+        d = lead.dRel
+
+      frameDivider = 25  # , 상태변화 해상도를 염려하여, 틱당 0.25초 기준으로한다.
+      stoppingStateWindowsActiveCounterLimitstoMS = 1250
+      if not self.stoppingStateWindowsActive :
+        actuators.pedalStartingAdder = 0
+        actuators.pedalDistanceAdder = 0
+        if (self.frame % frameDivider) == 0:
+          self.beforeStoppingState = self.currentStoppingState
+          self.currentStoppingState = (controls.LoC.long_control_state == LongCtrlState.stopping)
+
+      if self.beforeStoppingState and not self.currentStoppingState and not self.stoppingStateWindowsActive :
+        self.stoppingStateWindowsActive = True
+
+      if self.stoppingStateWindowsActive :
+        self.stoppingStateWindowsActiveCounter += 1
+        if self.stoppingStateWindowsActiveCounter > (5) :
+          actuators.pedalStartingAdder = interp(CS.out.vEgo, [0.0, 6 * CV.KPH_TO_MS , 18.0 * CV.KPH_TO_MS], [0.1850, 0.2150, 0.0050])
+          if d > 0:
+            actuators.pedalDistanceAdder = interp(d, [1, 10, 25, 40], [-0.0250 ,  -0.0075 ,0.0075,0.0550])
+
+        if self.stoppingStateWindowsActiveCounter > (stoppingStateWindowsActiveCounterLimitstoMS)  or (controls.LoC.long_control_state == LongCtrlState.stopping) or  CS.out.vEgo > 30*CV.KPH_TO_MS :
+          self.stoppingStateWindowsActive = False
+          self.stoppingStateWindowsActiveCounter = 0
+          self.beforeStoppingState = False
+          self.currentStoppingState = False
+          actuators.pedalStartingAdder = 0
+          actuators.pedalDistanceAdder = 0
+
+        actuators.pedalAdderFinal = (actuators.pedalStartingAdder + actuators.pedalDistanceAdder)
+        self.comma_pedal += interp(self.stoppingStateWindowsActiveCounter, [0 , stoppingStateWindowsActiveCounterLimitstoMS], [actuators.pedalAdderFinal , 0])
+
+          # 발차 .. ? frame 1 당 0.01초
+
+
+
       actuators.commaPedal = self.comma_pedal #for debug value
             
-      if actuators.accel < 0.125 :
+      if actuators.accel < 0.55 :
         can_sends.append(gmcan.create_regen_paddle_command(self.packer_pt, CanBus.POWERTRAIN))
         actuators.regenPaddle = True #for icon
 
 
-      elif controls.LoC.pid.f < - 0.725 :
+      elif controls.LoC.pid.f < - 0.775 :
         can_sends.append(gmcan.create_regen_paddle_command(self.packer_pt, CanBus.POWERTRAIN))
         actuators.regenPaddle = True #for icon
     else:
-      self.comma_pedal = 0.0  # Must be set by zero, or cannot re-acceling when stopped. - jc01rho.
+      self.comma_pedal = 0.0  # Must be set by zero, otherwise cannot re-acceling when stopped. - jc01rho.
 
 
     if (self.frame % 4) == 0:
