@@ -104,8 +104,8 @@ class CarController():
 
       if self.stoppingStateWindowsActive :
         self.stoppingStateWindowsActiveCounter += 1
-        if self.stoppingStateWindowsActiveCounter > (5) :
-          actuators.pedalStartingAdder = interp(CS.out.vEgo, [0.0, 6 * CV.KPH_TO_MS , 18.0 * CV.KPH_TO_MS], [0.1850, 0.2150, 0.0050])
+        if self.stoppingStateWindowsActiveCounter > (0) :
+          actuators.pedalStartingAdder = interp(CS.out.vEgo, [0.0, 9 * CV.KPH_TO_MS , 18.0 * CV.KPH_TO_MS], [0.1875, 0.2075, 0.0050])
           if d > 0:
             actuators.pedalDistanceAdder = interp(d, [1, 10, 25, 40], [-0.0250 ,  -0.0075 ,0.0075,0.0550])
 
@@ -126,12 +126,12 @@ class CarController():
 
       actuators.commaPedal = self.comma_pedal #for debug value
             
-      if actuators.accel < 0.075 :
+      if actuators.accel < 0.105 :
         can_sends.append(gmcan.create_regen_paddle_command(self.packer_pt, CanBus.POWERTRAIN))
         actuators.regenPaddle = True #for icon
 
 
-      elif controls.LoC.pid.f < - 0.65 :
+      elif controls.LoC.pid.f < - 0.625 :
         can_sends.append(gmcan.create_regen_paddle_command(self.packer_pt, CanBus.POWERTRAIN))
         actuators.regenPaddle = True #for icon
     else:
