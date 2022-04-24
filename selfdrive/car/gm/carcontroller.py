@@ -121,14 +121,14 @@ class CarController():
         if self.stoppingStateTimeWindowsActiveCounter > (stoppingStateWindowsActiveCounterLimits)  \
                 or (controls.LoC.long_control_state == LongCtrlState.stopping) \
                 or  CS.out.vEgo > 30*CV.KPH_TO_MS \
-                or (self.stoppingStateDistanceActive and d > 0  and d <  forceStoppingStaceDistance ) \
-                or ( not self.stoppingStateDistanceActive and d > 0 and d < STOP_DISTANCE):
+                or controls.LoC.pid.f < -0.65 :
           self.stoppingStateTimeWindowsActive = False
           self.stoppingStateTimeWindowsActiveCounter = 0
           self.beforeStoppingState = False
           self.currentStoppingState = False
           actuators.pedalStartingAdder = 0
           actuators.pedalDistanceAdder = 0
+          self.stoppingStateDistanceActive = False
 
         actuators.pedalAdderFinal = (actuators.pedalStartingAdder + actuators.pedalDistanceAdder)
         self.comma_pedal += interp(self.stoppingStateTimeWindowsActiveCounter, [0 , stoppingStateWindowsActiveCounterLimits], [actuators.pedalAdderFinal , 0])
