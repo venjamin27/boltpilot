@@ -4,7 +4,22 @@ name: Lint and Build
 
 # Controls when the action will run. Triggers the workflow on push or pull request
 # events but only for the 075-kegman-lqr branch
-on: [push, pull_request]
+on:
+  push:
+    branches:
+    - develop  # Support wildcard matching
+    - feature/*  # Support wildcard matching
+    - release
+  pull_request:
+    types:
+      - labeled
+      - unlabeled
+      - synchronize
+      - opened
+      - edited
+      - ready_for_review
+      - reopened
+      - unlocked
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
