@@ -260,7 +260,7 @@ static int gm_tx_hook(CANPacket_t *to_send, bool longitudinal_allowed) {
   return tx;
 }
 
-<<<<<<< HEAD
+
 static int gm_fwd_hook(int bus_num, CANPacket_t *to_fwd) {
 
 //  int bus_fwd = -1;
