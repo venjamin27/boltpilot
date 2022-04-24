@@ -7,6 +7,8 @@ from selfdrive.car.gm import gmcan
 from selfdrive.car.gm.values import DBC, CanBus, CarControllerParams
 from opendbc.can.packer import CANPacker
 from selfdrive.car.hyundai.scc_smoother import SccSmoother
+from selfdrive.controls.lib.longitudinal_mpc_lib.long_mpc import STOP_DISTANCE
+
 min_set_speed = 30 * CV.KPH_TO_MS
 VisualAlert = car.CarControl.HUDControl.VisualAlert
 LongCtrlState = car.CarControl.Actuators.LongControlState
@@ -36,8 +38,9 @@ class CarController():
     self.comma_pedal = 0.
     self.currentStoppingState = False
     self.beforeStoppingState = False
-    self.stoppingStateWindowsActive = False
-    self.stoppingStateWindowsActiveCounter = 0
+    self.stoppingStateTimeWindowsActive = False
+    self.stoppingStateTimeWindowsActiveCounter = 0
+    self.stoppingStateDistanceActive = False
 
 
 
@@ -83,42 +86,52 @@ class CarController():
       self.comma_pedal = clip(actuators.accel * acc_mult, 0., 1.)
       actuators.commaPedalOrigin = self.comma_pedal
 
-      ###발차시점, 처음 0~6초까지 , 1.5-6초간만 페달에 0.1775를 더한다.
-
       d = 0
       lead = self.scc_smoother.get_lead(controls.sm)
       if lead is not None:
         d = lead.dRel
 
-      frameDivider = 25  # , 상태변화 해상도를 염려하여, 틱당 0.25초 기준으로한다.
-      stoppingStateWindowsActiveCounterLimitstoMS = 1250
-      if not self.stoppingStateWindowsActive :
+      frameDivider = 50  # , 상태변화 해상도를 염려하여, 틱당 0.50초로 설정
+      forceStoppingStaceDistance = 8.5
+      stoppingStateWindowsActiveCounterLimits = 1250 # per 0.01s, thus 12.5 secs.
+      if not self.stoppingStateTimeWindowsActive :
         actuators.pedalStartingAdder = 0
         actuators.pedalDistanceAdder = 0
         if (self.frame % frameDivider) == 0:
           self.beforeStoppingState = self.currentStoppingState
           self.currentStoppingState = (controls.LoC.long_control_state == LongCtrlState.stopping)
 
-      if self.beforeStoppingState and not self.currentStoppingState and not self.stoppingStateWindowsActive :
-        self.stoppingStateWindowsActive = True
+      if self.beforeStoppingState and not self.currentStoppingState and not self.stoppingStateTimeWindowsActive :
+        self.stoppingStateTimeWindowsActive = True
 
-      if self.stoppingStateWindowsActive :
-        self.stoppingStateWindowsActiveCounter += 1
-        if self.stoppingStateWindowsActiveCounter > (0) :
-          actuators.pedalStartingAdder = interp(CS.out.vEgo, [0.0, 9 * CV.KPH_TO_MS , 18.0 * CV.KPH_TO_MS], [0.1875, 0.2075, 0.0050])
+
+
+
+      if self.stoppingStateTimeWindowsActive :
+
+        if d > min (forceStoppingStaceDistance*1.25 , STOP_DISTANCE *1.25) :
+          self.stoppingStateDistanceActive = True
+
+        self.stoppingStateTimeWindowsActiveCounter += 1
+        if self.stoppingStateTimeWindowsActiveCounter > (1) :
+          actuators.pedalStartingAdder = interp(CS.out.vEgo, [0.0, 5.0 * CV.KPH_TO_MS ,12.5 * CV.KPH_TO_MS , 20.0 * CV.KPH_TO_MS], [0.1950,0.2175, 0.1750, 0.0175])
           if d > 0:
-            actuators.pedalDistanceAdder = interp(d, [1, 10, 25, 40], [-0.0250 ,  -0.0075 ,0.0075,0.0550])
+            actuators.pedalDistanceAdder = interp(d, [1, 10, 15, 30], [-0.0250 ,  -0.0075 ,0.0075,0.0550])
 
-        if self.stoppingStateWindowsActiveCounter > (stoppingStateWindowsActiveCounterLimitstoMS)  or (controls.LoC.long_control_state == LongCtrlState.stopping) or  CS.out.vEgo > 30*CV.KPH_TO_MS :
-          self.stoppingStateWindowsActive = False
-          self.stoppingStateWindowsActiveCounter = 0
+        if self.stoppingStateTimeWindowsActiveCounter > (stoppingStateWindowsActiveCounterLimits)  \
+                or (controls.LoC.long_control_state == LongCtrlState.stopping) \
+                or  CS.out.vEgo > 30*CV.KPH_TO_MS \
+                or (self.stoppingStateDistanceActive and d > 0  and d <  forceStoppingStaceDistance ) \
+                or ( not self.stoppingStateDistanceActive and d > 0 and d < STOP_DISTANCE):
+          self.stoppingStateTimeWindowsActive = False
+          self.stoppingStateTimeWindowsActiveCounter = 0
           self.beforeStoppingState = False
           self.currentStoppingState = False
           actuators.pedalStartingAdder = 0
           actuators.pedalDistanceAdder = 0
 
         actuators.pedalAdderFinal = (actuators.pedalStartingAdder + actuators.pedalDistanceAdder)
-        self.comma_pedal += interp(self.stoppingStateWindowsActiveCounter, [0 , stoppingStateWindowsActiveCounterLimitstoMS], [actuators.pedalAdderFinal , 0])
+        self.comma_pedal += interp(self.stoppingStateTimeWindowsActiveCounter, [0 , stoppingStateWindowsActiveCounterLimits], [actuators.pedalAdderFinal , 0])
 
           # 발차 .. ? frame 1 당 0.01초
 
