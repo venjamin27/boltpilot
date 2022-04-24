@@ -260,6 +260,7 @@ static int gm_tx_hook(CANPacket_t *to_send, bool longitudinal_allowed) {
   return tx;
 }
 
+<<<<<<< HEAD
 static int gm_fwd_hook(int bus_num, CANPacket_t *to_fwd) {
 
 //  int bus_fwd = -1;
@@ -333,7 +334,7 @@ static int gm_fwd_hook(int bus_num, CANPacket_t *to_fwd) {
 }
 
 
-static const addr_checks* gm_init(int16_t param) {
+static const addr_checks* gm_init(uint32_t param) {
   UNUSED(param);
   controls_allowed = false;
   relay_malfunction_reset();

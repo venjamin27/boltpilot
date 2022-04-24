@@ -527,7 +527,8 @@ struct CarParams {
 
   struct SafetyConfig {
     safetyModel @0 :SafetyModel;
-    safetyParam @1 :Int16;
+    safetyParam @2 :UInt32;
+    safetyParamDEPRECATED @1 :Int16;
   }
   
   mdpsBus @68: Int8;
