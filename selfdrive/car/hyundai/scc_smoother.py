@@ -135,9 +135,11 @@ class SccSmoother:
     apply_limit_speed, road_limit_speed, left_dist, first_started, max_speed_log = \
       road_speed_limiter.get_max_speed(clu11_speed, self.is_metric)
 
+    curv_limit = 0
     self.cal_curve_speed(sm, CS.out.vEgo, frame)
     if self.slow_on_curves and self.curve_speed_ms >= MIN_CURVE_SPEED:
       max_speed_clu = min(controls.v_cruise_kph * CV.KPH_TO_MS, self.curve_speed_ms) * self.speed_conv_to_clu
+      curv_limit = int(max_speed_clu)
     else:
       max_speed_clu = self.kph_to_clu(controls.v_cruise_kph)
 
@@ -190,7 +192,8 @@ class SccSmoother:
     else:
       self.limited_lead = False
 
-    self.update_max_speed(int(max_speed_clu + 0.5))
+    self.update_max_speed(int(max_speed_clu + 0.5),
+                          curv_limit != 0 and curv_limit == int(max_speed_clu))
 
     return road_limit_speed, left_dist, max_speed_log
 
@@ -329,12 +332,12 @@ class SccSmoother:
           set_speed = clip(clu11_speed + SYNC_MARGIN, self.min_set_speed_clu, self.max_set_speed_clu)
           self.target_speed = set_speed
 
-  def update_max_speed(self, max_speed):
+  def update_max_speed(self, max_speed, limited_curv):
 
     if not self.longcontrol or self.max_speed_clu <= 0:
       self.max_speed_clu = max_speed
     else:
-      kp = 0.01
+      kp = 0.02 if limited_curv else 0.01
       error = max_speed - self.max_speed_clu
       self.max_speed_clu = self.max_speed_clu + error * kp
 
