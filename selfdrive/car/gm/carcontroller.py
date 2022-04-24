@@ -82,7 +82,7 @@ class CarController():
 
     elif CS.adaptive_Cruise:
 
-      acc_mult = interp(CS.out.vEgo, [0., 5.], [0.17, 0.24])
+      acc_mult = interp(CS.out.vEgo, [0., 18.0 * CV.KPH_TO_MS, 25* CV.KPH_TO_MS, 42.5* CV.KPH_TO_MS ], [0.17, 0.24, 0.265, 0.24])
       self.comma_pedal = clip(actuators.accel * acc_mult, 0., 1.)
       actuators.commaPedalOrigin = self.comma_pedal
 
@@ -137,7 +137,7 @@ class CarController():
 
 
 
-      actuators.commaPedal = self.comma_pedal #for debug value
+      #for debug value
             
       if actuators.accel < 0.105 :
         can_sends.append(gmcan.create_regen_paddle_command(self.packer_pt, CanBus.POWERTRAIN))
@@ -147,6 +147,11 @@ class CarController():
       elif controls.LoC.pid.f < - 0.625 :
         can_sends.append(gmcan.create_regen_paddle_command(self.packer_pt, CanBus.POWERTRAIN))
         actuators.regenPaddle = True #for icon
+
+      if controls.LoC.pid.f < -0.775 :
+        self.comma_pedal *= interp(controls.LoC.pid.f,
+                                   [-1.625 , -0.80], [0.175,1])
+      actuators.commaPedal = self.comma_pedal
     else:
       self.comma_pedal = 0.0  # Must be set by zero, otherwise cannot re-acceling when stopped. - jc01rho.
 
