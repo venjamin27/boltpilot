@@ -142,15 +142,15 @@ class CarController():
       if actuators.accel < 0.105 :
         can_sends.append(gmcan.create_regen_paddle_command(self.packer_pt, CanBus.POWERTRAIN))
         actuators.regenPaddle = True #for icon
-
-
       elif controls.LoC.pid.f < - 0.625 :
         can_sends.append(gmcan.create_regen_paddle_command(self.packer_pt, CanBus.POWERTRAIN))
         actuators.regenPaddle = True #for icon
 
-      if controls.LoC.pid.f < -0.775 :
-        self.comma_pedal *= interp(controls.LoC.pid.f,
-                                   [-1.625 , -0.80], [0.175,1])
+      if controls.LoC.pid.f < -0.9 :
+        minMultipiler = interp(CS.out.vEgo, [20 * CV.KPH_TO_MS ,  30 * CV.KPH_TO_MS , 60 * CV.KPH_TO_MS ,120 * CV.KPH_TO_MS ], [0.95, 0.90, 0.75, 0.15])
+
+        # self.comma_pedal *= interp(controls.LoC.pid.f, [-1.625 , -0.85], [0.8,1])
+        self.comma_pedal *= interp(controls.LoC.pid.f, [-1.625, -0.925], [minMultipiler, 1])
       actuators.commaPedal = self.comma_pedal
     else:
       self.comma_pedal = 0.0  # Must be set by zero, otherwise cannot re-acceling when stopped. - jc01rho.
