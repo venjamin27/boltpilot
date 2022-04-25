@@ -191,8 +191,6 @@ class CarController():
     if self.longcontrol and CS.cruiseState_enabled :
 
       if self.frame % 2 == 0:
-
-
         stopping = controls.LoC.long_control_state == LongCtrlState.stopping
         apply_accel = clip(actuators.accel if CC.longActive else 0,
                            CarControllerParams.ACCEL_MIN, CarControllerParams.ACCEL_MAX)
@@ -209,7 +207,6 @@ class CarController():
 
         if aReqValue > controls.aReqValueMax:
           controls.aReqValueMax = controls.aReqValue
-
 
         controls.sccStockCamAct = 0
         controls.sccStockCamStatus = 0
