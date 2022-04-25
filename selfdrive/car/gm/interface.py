@@ -112,7 +112,6 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.lqr.k = [-110.73572306, 451.22718255]
       ret.lateralTuning.lqr.l = [0.3233671, 0.3185757]
 
-
     else:
       ret.lateralTuning.init('torque')
       ret.lateralTuning.torque.useSteeringAngle = True
@@ -121,12 +120,6 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.torque.kf = 1.0 / max_lat_accel
       ret.lateralTuning.torque.friction = 0.6
       ret.lateralTuning.torque.ki = 0.5 / max_lat_accel
-
-
-
-
-
-
 
 
     # TODO: get actual value, for now starting with reasonable value for
@@ -139,8 +132,8 @@ class CarInterface(CarInterfaceBase):
                                                                          tire_stiffness_factor=tire_stiffness_factor)
 
     # longitudinal
-    ret.longitudinalTuning.kpBP = [0., 25.*CV.KPH_TO_MS, 40.*CV.KPH_TO_MS, 80.*CV.KPH_TO_MS, 100.*CV.KPH_TO_MS]
-    ret.longitudinalTuning.kpV = [1.35, 1.20, 0.85, 0.73, 0.65]
+    ret.longitudinalTuning.kpBP = [0., 25.*CV.KPH_TO_MS, 100.*CV.KPH_TO_MS]
+    ret.longitudinalTuning.kpV = [1.35, 1.20, 0.65]
   
     ret.longitudinalTuning.kiBP = [0., 130. * CV.KPH_TO_MS]
     ret.longitudinalTuning.kiV = [0.18, 0.12]
@@ -212,8 +205,6 @@ class CarInterface(CarInterfaceBase):
         events.add(EventName.pedalPressed)
         self.CS.adaptive_Cruise = False
         self.CS.enable_lkas = True
-
-
 
     # handle button presses
     if self.CP.enableGasInterceptor:
