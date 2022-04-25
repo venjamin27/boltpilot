@@ -46,7 +46,7 @@ CRUISE_GAP_BP = [1., 2., 3., 4.]
 CRUISE_GAP_V = [1.1, 1.3, 1.58, 2.10]
 
 AUTO_TR_BP = [0., 30.*CV.KPH_TO_MS, 70.*CV.KPH_TO_MS, 110.*CV.KPH_TO_MS]
-AUTO_TR_V = [1.1, 1.2, 1.33, 1.45]
+AUTO_TR_V = [1.095, 1.175, 1.30, 1.425]
 
 AUTO_TR_CRUISE_GAP = 4
 DIFF_RADAR_VISION = 1.5
@@ -332,11 +332,11 @@ class LongitudinalMpc:
     self.params[:,1] = self.cruise_max_a
 
     # neokii
-    cruise_gap = int(clip(carstate.cruiseGap, 1., 4.))
-    if cruise_gap == AUTO_TR_CRUISE_GAP:
-      tr = interp(carstate.vEgo, AUTO_TR_BP, AUTO_TR_V)
-    else:
-      tr = interp(float(cruise_gap), CRUISE_GAP_BP, CRUISE_GAP_V)
+    # cruise_gap = int(clip(carstate.cruiseGap, 1., 4.))
+    # if cruise_gap == AUTO_TR_CRUISE_GAP:
+    tr = interp(carstate.vEgo, AUTO_TR_BP, AUTO_TR_V)
+    # else:
+    #   tr = interp(float(cruise_gap), CRUISE_GAP_BP, CRUISE_GAP_V)
 
     self.param_tr = tr
 
