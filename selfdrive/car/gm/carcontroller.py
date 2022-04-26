@@ -111,13 +111,13 @@ class CarController():
 
         self.stoppingStateTimeWindowsActiveCounter += 1
         if self.stoppingStateTimeWindowsActiveCounter > (1) :
-          actuators.pedalStartingAdder = interp(CS.out.vEgo, [0.0, 5.0 * CV.KPH_TO_MS ,12.5 * CV.KPH_TO_MS , 20.0 * CV.KPH_TO_MS], [0.1950,0.2175, 0.1750, 0.0175])
+          actuators.pedalStartingAdder = interp(CS.out.vEgo, [0.0, 5.0 * CV.KPH_TO_MS ,12.5 * CV.KPH_TO_MS , 25.0 * CV.KPH_TO_MS], [0.1850,0.2275, 0.1750, 0.025])
           if d > 0:
-            actuators.pedalDistanceAdder = interp(d, [1, 10, 15, 30], [-0.0250 ,  -0.0075 ,0.0075,0.0550])
+            actuators.pedalDistanceAdder = interp(d, [1, 10, 15, 30], [-0.0250 ,  -0.0075 ,0.0075,0.0750])
 
         if self.stoppingStateTimeWindowsActiveCounter > (stoppingStateWindowsActiveCounterLimits)  \
                 or (controls.LoC.long_control_state == LongCtrlState.stopping) \
-                or  CS.out.vEgo > 30*CV.KPH_TO_MS \
+                or  CS.out.vEgo > 35*CV.KPH_TO_MS \
                 or controls.LoC.pid.f < -0.65 :
           self.stoppingStateTimeWindowsActive = False
           self.stoppingStateTimeWindowsActiveCounter = 0
@@ -127,7 +127,8 @@ class CarController():
           actuators.pedalDistanceAdder = 0
 
         actuators.pedalAdderFinal = (actuators.pedalStartingAdder + actuators.pedalDistanceAdder)
-        self.comma_pedal += interp(self.stoppingStateTimeWindowsActiveCounter, [0 , stoppingStateWindowsActiveCounterLimits], [actuators.pedalAdderFinal , 0])
+        # self.comma_pedal += interp(self.stoppingStateTimeWindowsActiveCounter, [0 , stoppingStateWindowsActiveCounterLimits], [actuators.pedalAdderFinal , 0])
+        self.comma_pedal += actuators.pedalAdderFinal
 
 
       if actuators.accel < 0.105 :
@@ -136,9 +137,9 @@ class CarController():
       elif controls.LoC.pid.f < - 0.625 :
         can_sends.append(gmcan.create_regen_paddle_command(self.packer_pt, CanBus.POWERTRAIN))
         actuators.regenPaddle = True #for icon
-        minMultipiler = interp(CS.out.vEgo, [20 * CV.KPH_TO_MS ,  30 * CV.KPH_TO_MS , 60 * CV.KPH_TO_MS ,120 * CV.KPH_TO_MS ], [0.9, 0.825, 0.7, 0.15])
+        minMultipiler = interp(CS.out.vEgo, [20 * CV.KPH_TO_MS ,  30 * CV.KPH_TO_MS , 60 * CV.KPH_TO_MS ,120 * CV.KPH_TO_MS ], [0.85, 0.75, 0.625, 0.125])
         # self.comma_pedal *= interp(controls.LoC.pid.f, [-1.625 , -0.85], [0.8,1])
-        self.comma_pedal *= interp(controls.LoC.pid.f, [-1.5, -0.675], [minMultipiler, 0.95])
+        self.comma_pedal *= interp(controls.LoC.pid.f, [-2.0 , -1.5, -0.675], [0.05, minMultipiler, 0.925])
       actuators.commaPedal = self.comma_pedal
     else:
       self.comma_pedal = 0.0  # Must be set by zero, otherwise cannot re-acceling when stopped. - jc01rho.
