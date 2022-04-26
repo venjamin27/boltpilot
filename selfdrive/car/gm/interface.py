@@ -66,6 +66,7 @@ class CarInterface(CarInterfaceBase):
 
     #for neokii integration
     ret.maxSteeringAngleDeg = 1000.
+    ret.disableLateralLiveTuning = False
     # for neokii integration end.
 
     # Presence of a camera on the object bus is ok.
@@ -79,7 +80,7 @@ class CarInterface(CarInterfaceBase):
 
     ret.minSteerSpeed = 11 * CV.KPH_TO_MS
     ret.steerRateCost = 0.3625 # def : 2.0
-    ret.steerActuatorDelay = 0.1925  # def: 0.2 Default delay, not measured yet
+    ret.steerActuatorDelay = 0.2075  # def: 0.2 Default delay, not measured yet
 
     ret.minEnableSpeed = -1
     ret.mass = 1625. + STD_CARGO_KG
@@ -115,11 +116,14 @@ class CarInterface(CarInterfaceBase):
     else:
       ret.lateralTuning.init('torque')
       ret.lateralTuning.torque.useSteeringAngle = True
-      max_lat_accel = 2.5
+      max_lat_accel = 3.25
       ret.lateralTuning.torque.kp = 2.0 / max_lat_accel
       ret.lateralTuning.torque.kf = 1.0 / max_lat_accel
       ret.lateralTuning.torque.friction = 0.6
       ret.lateralTuning.torque.ki = 0.5 / max_lat_accel
+      ret.lateralTuning.torque.deadzoneBP = [0.]
+      ret.lateralTuning.torque.deadzoneV = [0.]
+
 
 
     # TODO: get actual value, for now starting with reasonable value for
