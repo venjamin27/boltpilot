@@ -472,7 +472,7 @@ void NvgWindow::drawHud(QPainter &p) {
   drawSpeedLimit(p);
   drawSteer(p);
   drawRestArea(p);
-  drawTurnSignals(p);
+//  drawTurnSignals(p);
   drawGpsStatus(p);
   drawLkasIcon(p);
 
