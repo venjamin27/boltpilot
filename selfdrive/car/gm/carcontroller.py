@@ -90,7 +90,7 @@ class CarController():
       self.comma_pedal = clip(actuators.accel * acc_mult, 0., 1.)
       actuators.commaPedalOrigin = self.comma_pedal
 
-      if CS.CP.forceAccelWhenLeadsCar :
+      if CS.CP.restartForceAccel :
         d = 0
         lead = self.scc_smoother.get_lead(controls.sm)
         if lead is not None:
