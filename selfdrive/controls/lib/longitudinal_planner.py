@@ -61,7 +61,7 @@ class Planner:
     self.j_desired_trajectory = np.zeros(CONTROL_N)
     self.solverExecutionTime = 0.0
 
-    self.use_cluster_speed = Params().get_bool('UseClusterSpeed')
+    self.use_cluster_speed = False
 
   def update(self, sm):
     v_ego = sm['carState'].vEgo

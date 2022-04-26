@@ -74,7 +74,10 @@ class CarInterface(CarInterfaceBase):
     # or camera is on powertrain bus (LKA cars without ACC).
     # ret.enableGasInterceptor = 0x201 in fingerprint[0]
     ret.enableGasInterceptor = Params().get_bool('CommaPedal')
+
     ret.openpilotLongitudinalControl = ret.enableGasInterceptor
+
+    ret.forceAccelWhenLeadsCar = Params().get_bool('RestartForceAccel')
 
     tire_stiffness_factor = 0.5
 

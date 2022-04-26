@@ -69,12 +69,12 @@ TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
       "In this mode openpilot will ignore lanelines and just drive how it thinks a human would.",
       "../assets/offroad/icon_road.png",
     },
-    {
-      "DisengageOnAccelerator",
-      "Disengage On Accelerator Pedal",
-      "When enabled, pressing the accelerator pedal will disengage openpilot.",
-      "../assets/offroad/icon_disengage_on_accelerator.svg",
-    },
+//    {
+//      "DisengageOnAccelerator",
+//      "Disengage On Accelerator Pedal",
+//      "When enabled, pressing the accelerator pedal will disengage openpilot.",
+//      "../assets/offroad/icon_disengage_on_accelerator.svg",
+//    },
 #ifdef ENABLE_MAPS
     {
       "NavSettingTime24h",
@@ -580,15 +580,21 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
 
   QList<ParamControl*> toggles;
 
-  toggles.append(new ParamControl("UseClusterSpeed",
-                                            "Use Cluster Speed",
-                                            "Use cluster speed instead of wheel speed.",
-                                            "../assets/offroad/icon_road.png",
-                                            this));
+//  toggles.append(new ParamControl("UseClusterSpeed",
+//                                            "Use Cluster Speed",
+//                                            "Use cluster speed instead of wheel speed.",
+//                                            "../assets/offroad/icon_road.png",
+//                                            this));
 
   toggles.append(new ParamControl("CommaPedal",
                                             "Use Comma Pedal",
                                             "warnings: it is beta, be careful!! Openpilot will control the speed of your car",
+                                            "../assets/offroad/icon_road.png",
+                                            this));
+
+  toggles.append(new ParamControl("RestartForceAccel",
+                                            "Use Restart Force Accel",
+                                            "warnings: it is beta, be careful!! Force Accelereation when Re-starts with leading car",
                                             "../assets/offroad/icon_road.png",
                                             this));
 
@@ -640,11 +646,11 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
 //                                            "../assets/offroad/icon_road.png",
 //                                            this));
 
-  toggles.append(new ParamControl("KeepSteeringTurnSignals",
-                                            "Keep steering while turn signals",
-                                            "",
-                                            "../assets/offroad/icon_openpilot.png",
-                                            this));
+//  toggles.append(new ParamControl("KeepSteeringTurnSignals",
+//                                            "Keep steering while turn signals",
+//                                            "",
+//                                            "../assets/offroad/icon_openpilot.png",
+//                                            this));
 //  toggles.append(new ParamControl("HapticFeedbackWhenSpeedCamera",
 //                                            "Haptic feedback (speed-cam alert)",
 //                                            "Haptic feedback when a speed camera is detected",

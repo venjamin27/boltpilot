@@ -1070,6 +1070,7 @@ void NvgWindow::drawDebugText(QPainter &p) {
   float startAdder = car_control.getActuators().getPedalStartingAdder();
   float distAdder = car_control.getActuators().getPedalDistanceAdder();
   float finalAdder = car_control.getActuators().getPedalAdderFinal();
+  int counter = car_control.getActuators().getStoppingStateTimeWindowsActiveCounter();
 
 
   const char* long_state[] = {"off", "pid", "stopping", "starting"};
@@ -1115,16 +1116,16 @@ void NvgWindow::drawDebugText(QPainter &p) {
 
 
   y += height;
-  str.sprintf("startAdder: %.3f\n", startAdder);
+  str.sprintf("start/dist/final: %.3f %.3f %.3f\n", startAdder,distAdder,finalAdder);
   p.drawText(text_x, y, str);
 
   y += height;
-  str.sprintf("distAdder: %.3f\n", distAdder);
+  str.sprintf("counter: %d\n", counter);
   p.drawText(text_x, y, str);
-
-  y += height;
-  str.sprintf("FinalAdder: %.3f\n", finalAdder);
-  p.drawText(text_x, y, str);
+//
+//  y += height;
+//  str.sprintf("FinalAdder: %.3f\n", finalAdder);
+//  p.drawText(text_x, y, str);
 
 //  y += height;
 //  str.sprintf("Apply: %.3f, Stock: %.3f\n", applyAccel, aReqValue);

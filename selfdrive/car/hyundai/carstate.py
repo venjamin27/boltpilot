@@ -47,7 +47,7 @@ class CarState(CarStateBase):
     self.cruiseState_enabled = False
     self.cruiseState_speed = 0
 
-    self.use_cluster_speed = Params().get_bool('UseClusterSpeed')
+    self.use_cluster_speed = False
     self.long_control_enabled = Params().get_bool('LongControlEnabled')
 
   def update(self, cp, cp2, cp_cam):
