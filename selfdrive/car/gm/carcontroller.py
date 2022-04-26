@@ -40,6 +40,9 @@ class CarController():
     self.beforeStoppingState = False
     self.stoppingStateTimeWindowsActive = False
     self.stoppingStateTimeWindowsActiveCounter = 0
+    self.stoppingStateTimeWindowsClosingAdder = 0
+    self.stoppingStateTimeWindowsClosing = False
+    self.stoppingStateTimeWindowsClosingCounter = 0
 
 
 
@@ -125,8 +128,21 @@ class CarController():
           self.currentStoppingState = False
           actuators.pedalStartingAdder = 0
           actuators.pedalDistanceAdder = 0
+          self.stoppingStateTimeWindowsClosing = True
 
-        actuators.pedalAdderFinal = (actuators.pedalStartingAdder + actuators.pedalDistanceAdder)
+        if self.stoppingStateTimeWindowsClosing :
+          if self.stoppingStateTimeWindowsClosingAdder == 0 :
+            self.stoppingStateTimeWindowsClosingAdder =  actuators.pedalAdderFinal
+          self.stoppingStateTimeWindowsClosingCounter +=1
+          if self.stoppingStateTimeWindowsClosingCounter % 10 == 0 :
+            actuators.pedalAdderFinal =  interp(self.stoppingStateTimeWindowsClosingCounter, [0,(stoppingStateWindowsActiveCounterLimits / 5)], [self.stoppingStateTimeWindowsClosingAdder  , 0])
+
+          if self.stoppingStateTimeWindowsClosingCounter > (stoppingStateWindowsActiveCounterLimits / 5) :
+            self.stoppingStateTimeWindowsClosing = False
+            self.stoppingStateTimeWindowsClosingCounter = 0
+            self.stoppingStateTimeWindowsClosingAdder = 0
+        else :
+          actuators.pedalAdderFinal = (actuators.pedalStartingAdder + actuators.pedalDistanceAdder)
         # self.comma_pedal += interp(self.stoppingStateTimeWindowsActiveCounter, [0 , stoppingStateWindowsActiveCounterLimits], [actuators.pedalAdderFinal , 0])
         self.comma_pedal += actuators.pedalAdderFinal
 
@@ -139,7 +155,7 @@ class CarController():
         actuators.regenPaddle = True #for icon
         minMultipiler = interp(CS.out.vEgo, [20 * CV.KPH_TO_MS ,  30 * CV.KPH_TO_MS , 60 * CV.KPH_TO_MS ,120 * CV.KPH_TO_MS ], [0.85, 0.75, 0.625, 0.125])
         # self.comma_pedal *= interp(controls.LoC.pid.f, [-1.625 , -0.85], [0.8,1])
-        self.comma_pedal *= interp(controls.LoC.pid.f, [-2.0 , -1.5, -0.675], [0.05, minMultipiler, 0.925])
+        self.comma_pedal *= interp(controls.LoC.pid.f, [-2.25 ,-2.0 , -1.5, -0.675], [0, 0.05, minMultipiler, 0.925])
       actuators.commaPedal = self.comma_pedal
     else:
       self.comma_pedal = 0.0  # Must be set by zero, otherwise cannot re-acceling when stopped. - jc01rho.
