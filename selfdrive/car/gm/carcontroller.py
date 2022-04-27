@@ -98,7 +98,7 @@ class CarController():
 
         frameDivider = 50  # , 상태변화 해상도를 염려하여, 틱당 0.50초로 설정
 
-        stoppingStateWindowsActiveCounterLimits = 1250 # per 0.01s, thus 12.5 secs.
+        stoppingStateWindowsActiveCounterLimits = 1500 # per 0.01s, thus 12.5 secs.
         if not self.stoppingStateTimeWindowsActive :
           actuators.pedalStartingAdder = 0
           actuators.pedalDistanceAdder = 0
@@ -121,6 +121,10 @@ class CarController():
                   or (controls.LoC.long_control_state == LongCtrlState.stopping) \
                   or  CS.out.vEgo > 35*CV.KPH_TO_MS \
                   or controls.LoC.pid.f < -0.65 :
+            if controls.LoC.pid.f < -0.65  :
+              self.stoppingStateTimeWindowsClosingAdder = 0
+            else :
+              self.stoppingStateTimeWindowsClosingAdder = (actuators.pedalStartingAdder + actuators.pedalDistanceAdder)
             self.stoppingStateTimeWindowsActive = False
             self.stoppingStateTimeWindowsActiveCounter = 0
             self.beforeStoppingState = False
@@ -130,33 +134,30 @@ class CarController():
             self.stoppingStateTimeWindowsClosing = True
 
           if self.stoppingStateTimeWindowsClosing :
-            if self.stoppingStateTimeWindowsClosingAdder == 0 :
-              self.stoppingStateTimeWindowsClosingAdder =  self.pedalAdderClosing
             self.stoppingStateTimeWindowsClosingCounter +=1
-            # if self.stoppingStateTimeWindowsClosingCounter % 10 == 0 :
-            actuators.pedalAdderFinal =  interp(self.stoppingStateTimeWindowsClosingCounter, [0,(stoppingStateWindowsActiveCounterLimits / 5)], [self.stoppingStateTimeWindowsClosingAdder  , 0])
+            actuators.pedalAdderFinal =  interp(self.stoppingStateTimeWindowsClosingCounter, [0,(stoppingStateWindowsActiveCounterLimits / 2.5)], [self.stoppingStateTimeWindowsClosingAdder  , 0])
 
-            if self.stoppingStateTimeWindowsClosingCounter > (stoppingStateWindowsActiveCounterLimits / 5) :
+            if  self.stoppingStateTimeWindowsClosingAdder == 0 or self.stoppingStateTimeWindowsClosingCounter > (stoppingStateWindowsActiveCounterLimits / 2.5) :
               self.stoppingStateTimeWindowsClosing = False
               self.stoppingStateTimeWindowsClosingCounter = 0
               self.stoppingStateTimeWindowsClosingAdder = 0
-              self.pedalAdderClosing = 0
+
           else :
             actuators.pedalAdderFinal = (actuators.pedalStartingAdder + actuators.pedalDistanceAdder)
-            self.pedalAdderClosing = actuators.pedalAdderFinal
 
           self.comma_pedal += actuators.pedalAdderFinal
           self.comma_pedal = min(self.comma_pedal, 0.29)
 
       #braking logic
-      if actuators.accel < 0.105 :
+      if actuators.accel < 0.12 :
         can_sends.append(gmcan.create_regen_paddle_command(self.packer_pt, CanBus.POWERTRAIN))
         actuators.regenPaddle = True #for icon
-      elif controls.LoC.pid.f < - 0.625 :
+        self.comma_pedal *= 0.95
+      elif controls.LoC.pid.f < - 0.60 :
         can_sends.append(gmcan.create_regen_paddle_command(self.packer_pt, CanBus.POWERTRAIN))
         actuators.regenPaddle = True #for icon
-        minMultipiler = interp(CS.out.vEgo, [20 * CV.KPH_TO_MS ,  30 * CV.KPH_TO_MS , 60 * CV.KPH_TO_MS ,120 * CV.KPH_TO_MS ], [0.85, 0.75, 0.625, 0.125])
-        self.comma_pedal *= interp(controls.LoC.pid.f, [-2.25 ,-2.0 , -1.5, -0.675], [0, 0.05, minMultipiler, 0.925])
+        minMultipiler = interp(CS.out.vEgo, [20 * CV.KPH_TO_MS ,  30 * CV.KPH_TO_MS , 60 * CV.KPH_TO_MS ,120 * CV.KPH_TO_MS ], [0.825, 0.725, 0.600, 0.100])
+        self.comma_pedal *= interp(controls.LoC.pid.f, [-2.25 ,-2.0 , -1.5, -0.625], [0, 0.020, minMultipiler, 0.875])
       actuators.commaPedal = self.comma_pedal
     else:
       self.comma_pedal = 0.0  # Must be set by zero, otherwise cannot re-acceling when stopped. - jc01rho.
