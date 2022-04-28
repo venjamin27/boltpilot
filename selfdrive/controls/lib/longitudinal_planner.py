@@ -61,7 +61,7 @@ class Planner:
     self.j_desired_trajectory = np.zeros(CONTROL_N)
     self.solverExecutionTime = 0.0
 
-    self.use_cluster_speed = False
+    self.use_cluster_speed = Params().get_bool('UseClusterSpeed')
 
   def update(self, sm):
     v_ego = sm['carState'].vEgo
@@ -71,11 +71,11 @@ class Planner:
     v_cruise = v_cruise_kph * CV.KPH_TO_MS
 
     # neokii
-    #if not self.use_cluster_speed:
-    #  vCluRatio = sm['carState'].vCluRatio
-    #  if vCluRatio > 0.5:
-    #    v_cruise *= vCluRatio
-    #    v_cruise = int(v_cruise * CV.MS_TO_KPH + 0.25) * CV.KPH_TO_MS
+    if not self.use_cluster_speed:
+     vCluRatio = sm['carState'].vCluRatio
+     if vCluRatio > 0.5:
+       v_cruise *= vCluRatio
+       v_cruise = int(v_cruise * CV.MS_TO_KPH + 0.25) * CV.KPH_TO_MS
 
 
     

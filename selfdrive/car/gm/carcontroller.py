@@ -96,15 +96,14 @@ class CarController():
         if lead is not None:
           d = lead.dRel
 
-        frameDivider = 50  # , 상태변화 해상도를 염려하여, 틱당 0.50초로 설정
+
 
         stoppingStateWindowsActiveCounterLimits = 1500 # per 0.01s, thus 12.5 secs.
         if not self.stoppingStateTimeWindowsActive :
           actuators.pedalStartingAdder = 0
           actuators.pedalDistanceAdder = 0
-          if (self.frame % frameDivider) == 0:
-            self.beforeStoppingState = self.currentStoppingState
-            self.currentStoppingState = (controls.LoC.long_control_state == LongCtrlState.stopping)
+          self.beforeStoppingState = self.currentStoppingState
+          self.currentStoppingState = (controls.LoC.long_control_state == LongCtrlState.stopping)
 
         if self.beforeStoppingState and not self.currentStoppingState and not self.stoppingStateTimeWindowsActive :
           self.stoppingStateTimeWindowsActive = True

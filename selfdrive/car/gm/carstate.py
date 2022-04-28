@@ -6,6 +6,7 @@ from selfdrive.car.interfaces import CarStateBase
 from selfdrive.car.gm.values import DBC, CAR, AccState, CanBus, \
                                     CruiseButtons, STEER_THRESHOLD
 from common.conversions import Conversions as CV
+from common.params import Params
 
 class CarState(CarStateBase):
   def __init__(self, CP):
@@ -23,7 +24,7 @@ class CarState(CarStateBase):
     self.gas_pressed = False
     self.standstill = False
     self.cruiseState_enabled = False
-
+    self.use_cluster_speed = Params().get_bool('UseClusterSpeed')
 
   def update(self, pt_cp, loopback_cp):
     ret = car.CarState.new_message()
@@ -38,16 +39,31 @@ class CarState(CarStateBase):
       pt_cp.vl["EBCMWheelSpdRear"]["RLWheelSpd"],
       pt_cp.vl["EBCMWheelSpdRear"]["RRWheelSpd"],
     )
-    ret.vEgoRaw = mean([ret.wheelSpeeds.fl, ret.wheelSpeeds.fr, ret.wheelSpeeds.rl, ret.wheelSpeeds.rr])
-    ret.vEgo, ret.aEgo = self.update_speed_kf(ret.vEgoRaw)
-    ret.standstill = ret.vEgoRaw < 0.01
-    # ret.vEgo = pt_cp.vl["ECMVehicleSpeed"]["VehicleSpeed"] * CV.MPH_TO_MS
+
+    vEgoRawClu = (pt_cp.vl["ECMVehicleSpeed"]["VehicleSpeed"] * CV.MPH_TO_MS)
+    vEgoClu, aEgoClu = self.update_clu_speed_kf(vEgoRawClu)
+
+    vEgoRawWheel = mean([ret.wheelSpeeds.fl, ret.wheelSpeeds.fr, ret.wheelSpeeds.rl, ret.wheelSpeeds.rr])
+    vEgoWheel, aEgoWheel = self.update_speed_kf(vEgoRawWheel)
+
+    if self.use_cluster_speed:
+      ret.vEgoRaw = vEgoRawClu
+      ret.vEgo = vEgoClu
+      ret.aEgo = aEgoClu
+    else:
+      ret.vEgoRaw = vEgoRawWheel
+      ret.vEgo = vEgoWheel
+      ret.aEgo = aEgoWheel
+
+
 
     ###for neokii integration
-    ret.cluSpeedMs = pt_cp.vl["ECMVehicleSpeed"]["VehicleSpeed"] * CV.MPH_TO_MS
+    ret.cluSpeedMs = vEgoRawClu
     self.ECMVehicleSpeed = pt_cp.vl["ECMVehicleSpeed"]
-    ret.vCluRatio = 1.0
+    ret.vCluRatio = (vEgoWheel / vEgoClu) if (vEgoClu > 3. and vEgoWheel > 3.) else 1.0
     ###for neokii integration ends
+
+    ret.standstill = ret.vEgoRaw < 0.01
 
     ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(pt_cp.vl["ECMPRDNL"]["PRNDL"], None))
     ret.brake = pt_cp.vl["EBCMBrakePedalPosition"]["BrakePedalPosition"] / 0xd0
