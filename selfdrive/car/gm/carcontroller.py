@@ -109,40 +109,40 @@ class CarController():
           self.stoppingStateTimeWindowsActive = True
 
         if self.stoppingStateTimeWindowsActive :
-          self.stoppingStateTimeWindowsActiveCounter += 1
-          actuators.stoppingStateTimeWindowsActiveCounter = self.stoppingStateTimeWindowsActiveCounter
-          if self.stoppingStateTimeWindowsActiveCounter > 0 :
-            actuators.pedalStartingAdder = interp(CS.out.vEgo, [0.0, 5.0 * CV.KPH_TO_MS ,12.5 * CV.KPH_TO_MS , 25.0 * CV.KPH_TO_MS], [0.1850,0.2275, 0.1750, 0.025])
-            if d > 0:
-              actuators.pedalDistanceAdder = interp(d, [1, 10, 15, 30], [-0.0250 ,  -0.0075 ,0.0175,0.1000])
+          if not self.stoppingStateTimeWindowsClosing:
+            self.stoppingStateTimeWindowsActiveCounter += 1
+            actuators.stoppingStateTimeWindowsActiveCounter = self.stoppingStateTimeWindowsActiveCounter
+            if self.stoppingStateTimeWindowsActiveCounter > 0 :
+              actuators.pedalStartingAdder = interp(CS.out.vEgo, [0.0, 5.0 * CV.KPH_TO_MS ,12.5 * CV.KPH_TO_MS , 25.0 * CV.KPH_TO_MS], [0.1850,0.2275, 0.1750, 0.025])
+              if d > 0:
+                actuators.pedalDistanceAdder = interp(d, [1, 10, 15, 30], [-0.0250 ,  -0.0075 ,0.0175,0.1000])
+              actuators.pedalAdderFinal = (actuators.pedalStartingAdder + actuators.pedalDistanceAdder)
 
-          if self.stoppingStateTimeWindowsActiveCounter > (stoppingStateWindowsActiveCounterLimits)  \
-                  or (controls.LoC.long_control_state == LongCtrlState.stopping) \
-                  or  CS.out.vEgo > 35*CV.KPH_TO_MS \
-                  or controls.LoC.pid.f < -0.65 :
-            if controls.LoC.pid.f < -0.65  :
-              self.stoppingStateTimeWindowsClosingAdder = 0
-            else :
-              self.stoppingStateTimeWindowsClosingAdder = (actuators.pedalStartingAdder + actuators.pedalDistanceAdder)
-            self.stoppingStateTimeWindowsActive = False
-            self.stoppingStateTimeWindowsActiveCounter = 0
-            self.beforeStoppingState = False
-            self.currentStoppingState = False
-            actuators.pedalStartingAdder = 0
-            actuators.pedalDistanceAdder = 0
-            self.stoppingStateTimeWindowsClosing = True
+            if self.stoppingStateTimeWindowsActiveCounter > (stoppingStateWindowsActiveCounterLimits)  \
+                    or (controls.LoC.long_control_state == LongCtrlState.stopping) \
+                    or  CS.out.vEgo > 35*CV.KPH_TO_MS \
+                    or controls.LoC.pid.f < -0.65 :
+              self.stoppingStateTimeWindowsActiveCounter = 0
+              self.beforeStoppingState = False
+              self.currentStoppingState = False
+              actuators.pedalStartingAdder = 0
+              actuators.pedalDistanceAdder = 0
+              actuators.pedalAdderFinal = 0
+              self.stoppingStateTimeWindowsClosing = True
+              if controls.LoC.pid.f < -0.625  :
+                self.stoppingStateTimeWindowsClosingAdder = 0
+              else :
+                self.stoppingStateTimeWindowsClosingAdder = actuators.pedalAdderFinal
 
-          if self.stoppingStateTimeWindowsClosing :
+          else: #if self.stoppingStateTimeWindowsClosing :
             self.stoppingStateTimeWindowsClosingCounter +=1
-            actuators.pedalAdderFinal =  interp(self.stoppingStateTimeWindowsClosingCounter, [0,(stoppingStateWindowsActiveCounterLimits / 2.5)], [self.stoppingStateTimeWindowsClosingAdder  , 0])
+            actuators.pedalAdderFinal =  interp(self.stoppingStateTimeWindowsClosingCounter, [0, (stoppingStateWindowsActiveCounterLimits / 3)], [self.stoppingStateTimeWindowsClosingAdder  , 0])
 
-            if  self.stoppingStateTimeWindowsClosingAdder == 0 or self.stoppingStateTimeWindowsClosingCounter > (stoppingStateWindowsActiveCounterLimits / 2.5) :
+            if  self.stoppingStateTimeWindowsClosingAdder == 0 or (self.stoppingStateTimeWindowsClosingCounter > (stoppingStateWindowsActiveCounterLimits / 3)):
               self.stoppingStateTimeWindowsClosing = False
               self.stoppingStateTimeWindowsClosingCounter = 0
               self.stoppingStateTimeWindowsClosingAdder = 0
-
-          else :
-            actuators.pedalAdderFinal = (actuators.pedalStartingAdder + actuators.pedalDistanceAdder)
+              self.stoppingStateTimeWindowsActive =False
 
           self.comma_pedal += actuators.pedalAdderFinal
           self.comma_pedal = min(self.comma_pedal, 0.29)
