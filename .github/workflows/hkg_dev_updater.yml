@@ -6,7 +6,7 @@ name: Pull (Fast-Forward) upstream changes
 # events but only for the 075-kegman-lqr branch
 on:
   schedule:
-    - cron: '49 15 * * *'
+    - cron: '49 */6 * * *'
   workflow_dispatch:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
@@ -35,3 +35,8 @@ jobs:
           target_repo_token: ${{ secrets.GITHUB_TOKEN }}
           upstream_sync_branch: hkg_dev
           upstream_sync_repo: neokii/npilot
+
+      - name: New commits found
+        if: steps.sync.outputs.has_new_commits == 'true'
+        uses: ./.github/workflows/pr-from-hkg-dev.yml
+
