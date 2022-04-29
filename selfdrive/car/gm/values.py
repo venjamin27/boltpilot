@@ -25,7 +25,7 @@ class CarControllerParams():
   # Our controller should still keep the 2 second average above
   # -3.5 m/s^2 as per planner limits
   ACCEL_MAX = 2.0
-  ACCEL_MIN = -4.0
+  ACCEL_MIN = -3.0
   ACCEL_SCALE = 4.0  # max(ACCEL_MAX, -ACCEL_MIN)
 
   MAX_ACC_REGEN = 1404  # ACC Regen braking is slightly less powerful than max regen paddle
