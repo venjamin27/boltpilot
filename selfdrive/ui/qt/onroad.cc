@@ -1150,7 +1150,7 @@ void NvgWindow::drawDebugText(QPainter &p) {
 
 
 
-void OnroadHud::drawLkasIcon(QPainter &p) {
+void NvgWindow::drawLkasIcon(QPainter &p) {
 
   UIState *s = uiState();
   const SubMaster &sm = *(s->sm);
