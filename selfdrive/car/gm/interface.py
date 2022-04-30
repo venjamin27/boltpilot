@@ -27,7 +27,7 @@ class CarInterface(CarInterfaceBase):
     v_current_kph = current_speed * CV.MS_TO_KPH
     # return params.ACCEL_MIN, params.ACCEL_MAX
     accel_max_bp = [10., 20., 50.]
-    accel_max_v = [1.5, 1.45, 1.375]
+    accel_max_v = [1.45, 1.425, 1.35]
 
     return params.ACCEL_MIN, interp(v_current_kph, accel_max_bp, accel_max_v)
 
@@ -79,10 +79,10 @@ class CarInterface(CarInterfaceBase):
     # or camera is on powertrain bus (LKA cars without ACC).
     # ret.enableGasInterceptor = 0x201 in fingerprint[0]
     ret.enableGasInterceptor = Params().get_bool('CommaPedal')
-
+    ret.restartForceAccel = Params().get_bool('RestartForceAccel')
     ret.openpilotLongitudinalControl = ret.enableGasInterceptor
 
-    ret.restartForceAccel = Params().get_bool('RestartForceAccel')
+
 
     tire_stiffness_factor = 0.5
 
