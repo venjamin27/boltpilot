@@ -26,6 +26,7 @@ class CarState(CarStateBase):
     self.cruiseState_enabled = False
     self.use_cluster_speed = Params().get_bool('UseClusterSpeed')
 
+
   def update(self, pt_cp, loopback_cp):
     ret = car.CarState.new_message()
     ret.adaptiveCruise = self.adaptive_Cruise

@@ -36,6 +36,7 @@ class CarController():
     self.longcontrol = CP.openpilotLongitudinalControl
     self.packer = CANPacker(dbc_name)
     self.comma_pedal = 0.
+    self.comma_pedal_last = 0.
     self.currentStoppingState = False
     self.beforeStoppingState = False
     self.stoppingStateTimeWindowsActive = False
@@ -87,8 +88,28 @@ class CarController():
     elif CS.adaptive_Cruise:
 
       acc_mult = interp(CS.out.vEgo, [0., 18.0 * CV.KPH_TO_MS, 32.5* CV.KPH_TO_MS, 45* CV.KPH_TO_MS ], [0.17, 0.24, 0.265, 0.24])
-      self.comma_pedal = clip(actuators.accel * acc_mult, 0., 1.)
+
+      if CS.out.vEgo < 40 * CV.KPH_TO_MS :
+        self.comma_pedal = clip(actuators.accel * acc_mult, 0., 1.)
+        self.comma_pedal_last = self.comma_pedal
+      elif CS.out.vEgo > 50 * CV.KPH_TO_MS:
+        #가속감속 구분
+        self.comma_pedal = clip ( interp(actuators.accel, [-0.075,0,0.075], [0.1,0.2,0.225]) + (actuators.accel/10), 0.,1.)
+        self.comma_pedal_last = self.comma_pedal
+        # if actuators.accel > 0.2 :
+        #   self.comma_pedal = clip ( 0.225 + (actuators.accel/10), 0.,1.)
+        #   self.comma_pedal_last = self.comma_pedal
+        # else :
+        #   self.comma_pedal = clip(actuators.accel * acc_mult, 0., 1.)
+        #   self.comma_pedal_last = self.comma_pedal
+      else :
+        lastPedal = self.comma_pedal_last
+        gapInterP = interp(CS.out.vEgo, [40, 50], [1, 0])
+        self.comma_pedal =  gapInterP * lastPedal  +  ((1-gapInterP) * (clip(interp(actuators.accel, [0.2, 0.7], [0, 0.225]) + (actuators.accel / 10), 0., 1.)))
+
+
       actuators.commaPedalOrigin = self.comma_pedal
+
 
       if CS.CP.restartForceAccel :
         d = 0
@@ -148,7 +169,7 @@ class CarController():
           self.comma_pedal = min(self.comma_pedal, 0.29)
 
       #braking logic
-      if actuators.accel < 0.12 :
+      if actuators.accel < 0.11 :
         can_sends.append(gmcan.create_regen_paddle_command(self.packer_pt, CanBus.POWERTRAIN))
         actuators.regenPaddle = True #for icon
         self.comma_pedal *= 0.95
