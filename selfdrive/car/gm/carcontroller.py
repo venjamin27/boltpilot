@@ -87,11 +87,11 @@ class CarController():
 
     elif CS.adaptive_Cruise:
 
-      acc_mult = interp(CS.out.vEgo, [0., 18.0 * CV.KPH_TO_MS, 32.5* CV.KPH_TO_MS, 45* CV.KPH_TO_MS ], [0.17, 0.24, 0.265, 0.24])
+      acc_mult = interp(CS.out.vEgo, [0., 18.0 * CV.KPH_TO_MS, 30* CV.KPH_TO_MS, 40* CV.KPH_TO_MS ], [0.17, 0.24, 0.265, 0.24])
       self.comma_pedal_original = clip(actuators.accel * acc_mult, 0., 1.)
       self.comma_pedal_new = clip (interp(actuators.accel, [-1.0 , 0.0, 0.2], [0.0, 0.22, 0.222]) + (actuators.accel / 10), 0., 1.)
 
-      gapInterP = interp(CS.out.vEgo, [22 * CV.KPH_TO_MS, 45*CV.KPH_TO_MS], [1, 0])
+      gapInterP = interp(CS.out.vEgo, [22 * CV.KPH_TO_MS, 40*CV.KPH_TO_MS], [1, 0])
       self.comma_pedal =  (gapInterP * self.comma_pedal_original)  +  ((1.0-gapInterP) * self.comma_pedal_new)
 
 
@@ -130,6 +130,10 @@ class CarController():
                     or (controls.LoC.long_control_state == LongCtrlState.stopping) \
                     or  CS.out.vEgo > 35*CV.KPH_TO_MS \
                     or controls.LoC.pid.f < -0.65 :
+              if controls.LoC.pid.f < -0.625  :
+                self.stoppingStateTimeWindowsClosingAdder = 0
+              else :
+                self.stoppingStateTimeWindowsClosingAdder = actuators.pedalAdderFinal
               self.stoppingStateTimeWindowsActiveCounter = 0
               self.beforeStoppingState = False
               self.currentStoppingState = False
@@ -137,10 +141,7 @@ class CarController():
               actuators.pedalDistanceAdder = 0
               actuators.pedalAdderFinal = 0
               self.stoppingStateTimeWindowsClosing = True
-              if controls.LoC.pid.f < -0.625  :
-                self.stoppingStateTimeWindowsClosingAdder = 0
-              else :
-                self.stoppingStateTimeWindowsClosingAdder = actuators.pedalAdderFinal
+
 
           else: #if self.stoppingStateTimeWindowsClosing :
             self.stoppingStateTimeWindowsClosingCounter +=1
@@ -153,7 +154,7 @@ class CarController():
               self.stoppingStateTimeWindowsActive =False
 
           self.comma_pedal += actuators.pedalAdderFinal
-          self.comma_pedal = min(self.comma_pedal, 0.2925)
+          self.comma_pedal = min(self.comma_pedal, 0.2975)
 
       #braking logic
       if actuators.accel < 0.11 :
