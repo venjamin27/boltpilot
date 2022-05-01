@@ -157,11 +157,11 @@ class CarController():
           self.comma_pedal = min(self.comma_pedal, 0.2975)
 
       #braking logic
-      if actuators.accel < 0.11 :
+      if actuators.accel < -0.125 :
         can_sends.append(gmcan.create_regen_paddle_command(self.packer_pt, CanBus.POWERTRAIN))
         actuators.regenPaddle = True #for icon
         self.comma_pedal *= 0.95
-      elif controls.LoC.pid.f < - 0.60 :
+      elif controls.LoC.pid.f < - 0.625 :
         can_sends.append(gmcan.create_regen_paddle_command(self.packer_pt, CanBus.POWERTRAIN))
         actuators.regenPaddle = True #for icon
         minMultipiler = interp(CS.out.vEgo, [20 * CV.KPH_TO_MS ,  30 * CV.KPH_TO_MS , 60 * CV.KPH_TO_MS ,120 * CV.KPH_TO_MS ], [0.825, 0.725, 0.600, 0.100])
