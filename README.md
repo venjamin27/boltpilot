@@ -7,7 +7,7 @@
 
 
 
-- hanabi95(@hanabi95) 님의 작업에서 safety 밑 can 관련 내용을 기본으로 하고 있습니다. 항상 감사드립니다.
+- hanabi95(@hanabi95) 님의 작업에서 safety 및 can 관련 내용을 기본으로 하고 있습니다. 항상 감사드립니다.
 - lat_icon_image, thanks to @Hammie K 
 - screenrecorder, thanks to neokii
 
