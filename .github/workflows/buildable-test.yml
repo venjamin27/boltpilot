@@ -33,7 +33,10 @@ jobs:
         id: cpu-cores
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
 
-
+      - name: Get current date
+        id: date
+        run: echo "::set-output name=date::$(expr $(date +'%d') % 3  )"
+        
       - uses: actions/checkout@v3
 
       - name: Set outputs
@@ -98,5 +101,10 @@ jobs:
       - name: pip-install
         run : pip install --upgrade  setuptools pip & pip install scons sympy cython numpy pycapnp cffi zmq smbus2 casadi pycryptodome future-fstrings setproctitle
 
+      - name: scons-cache-clean
+        if: steps.date.outputs.date == '0'
+        run : scons -c
+      
+      
       - name: scons-build
         run : scons -j${{ steps.cpu-cores.outputs.count }}
