@@ -634,11 +634,11 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
                                             "../assets/offroad/icon_road.png",
                                             this));
 
-  toggles.append(new ParamControl("SccSmootherSyncGasPressed",
-                                            "Sync set speed on gas pressed",
-                                            "",
-                                            "../assets/offroad/icon_road.png",
-                                            this));
+//  toggles.append(new ParamControl("SccSmootherSyncGasPressed",
+//                                            "Sync set speed on gas pressed",
+//                                            "",
+//                                            "../assets/offroad/icon_road.png",
+//                                            this));
 
 //  toggles.append(new ParamControl("StockNaviDecelEnabled",
 //                                            "Stock Navi based deceleration",
