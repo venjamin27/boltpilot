@@ -13,6 +13,8 @@
 #include "selfdrive/ui/qt/screenrecorder/screenrecorder.h"
 #endif
 
+#include "selfdrive/common/params.h"
+
 // ***** onroad widgets *****
 
 class OnroadAlerts : public QWidget {
@@ -75,6 +77,8 @@ protected:
   QPixmap ic_latMainOn;
   QPixmap ic_regenPaddle;
 
+  QString gitCommit;
+
   QMap<QString, QPixmap> ic_oil_com;
 
   void drawMaxSpeed(QPainter &p);
@@ -93,6 +97,9 @@ private:
   QPixmap get_icon_iol_com(const char* key);
   void drawRestAreaItem(QPainter &p, int yPos, capnp::Text::Reader image, capnp::Text::Reader title,
                         capnp::Text::Reader oilPrice, capnp::Text::Reader distance, bool lastItem);
+
+  Params params;
+
 };
 
 // container for all onroad widgets
