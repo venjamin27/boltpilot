@@ -20,7 +20,7 @@ rkjnice@gmail.com
 ### if you're using comma2 or Eon(Lepro, .. ), please use  comma2_Eon-final branch.
 ### if you're unfamilier with git manifulation, do use "develop" or "release" branch. it will be get updated as stable as. (maybe .. )
 ### from 0.8.14, many codes from Hyundai-kia fork from @neokii, thx for @neokii
-### ir you want using CommaPedal with this fork, you have to use "metric unit system" and turn on "CommaPedal" in toggles.
+### ir you want using CommaPedal with this fork, you have to use "metric unit system" and turn on "CommaPedal" in toggles. AND  you must drive in "L" gear at BOLT.
 
 any issues are welcomes.
 
