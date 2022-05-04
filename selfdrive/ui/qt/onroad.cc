@@ -245,6 +245,9 @@ void OnroadAlerts::paintEvent(QPaintEvent *event) {
 // NvgWindow
 
 NvgWindow::NvgWindow(VisionStreamType type, QWidget* parent) : last_update_params(0), fps_filter(UI_FREQ, 3, 1. / UI_FREQ), CameraViewWidget("camerad", type, true, parent) {
+
+    this->gitCommit = QString::fromStdString(params.get("GitCommit")).left(10);
+
 }
 
 void NvgWindow::initializeGL() {
@@ -1146,6 +1149,12 @@ void NvgWindow::drawDebugText(QPainter &p) {
   y += height;
   str.sprintf("Lead: %.1f\n", vision_dist);
   p.drawText(text_x, y, str);
+
+  y += height;
+//  str.sprintf("Commit: %s\n", vision_dist);
+  p.drawText(text_x, y, this->gitCommit);
+
+  ////
 }
 
 
