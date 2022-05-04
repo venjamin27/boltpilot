@@ -37,6 +37,6 @@ jobs:
           upstream_sync_repo: neokii/npilot
 
       - name: New commits found
-        if: steps.sync.outputs.has_new_commits == 'true'
-        uses: ./.github/workflows/pr-from-hkg-dev.yml
+#        if: steps.sync.outputs.has_new_commits == 'true'
+        uses: ./.github/workflows/pr-from-hkg-dev
 
