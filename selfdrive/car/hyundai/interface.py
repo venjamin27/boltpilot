@@ -74,13 +74,14 @@ class CarInterface(CarInterfaceBase):
     else:
       ret.lateralTuning.init('torque')
       ret.lateralTuning.torque.useSteeringAngle = True
-      max_lat_accel = 2.5
-      ret.lateralTuning.torque.kp = 2.0 / max_lat_accel
+      max_lat_accel = 1.8
+      ret.lateralTuning.torque.kp = 1.0 / max_lat_accel
       ret.lateralTuning.torque.kf = 1.0 / max_lat_accel
+      ret.lateralTuning.torque.ki = 0.25 / max_lat_accel
       ret.lateralTuning.torque.friction = 0.01
-      ret.lateralTuning.torque.ki = 0.5 / max_lat_accel
-      ret.lateralTuning.torque.deadzoneBP = [0.]
-      ret.lateralTuning.torque.deadzoneV = [0.01]
+
+      ret.lateralTuning.torque.kd = 0.0
+      ret.lateralTuning.torque.deadzone = 0.0
 
 
     ret.steerRatio = 16.5
@@ -98,7 +99,7 @@ class CarInterface(CarInterfaceBase):
     ret.longitudinalActuatorDelayUpperBound = 0.3
 
     ret.stopAccel = -2.0
-    ret.stoppingDecelRate = 0.5  # brake_travel/s while trying to stop
+    ret.stoppingDecelRate = 0.4  # brake_travel/s while trying to stop
     ret.vEgoStopping = 0.5
     ret.vEgoStarting = 0.5
 
@@ -129,11 +130,12 @@ class CarInterface(CarInterfaceBase):
 
       if ret.lateralTuning.which() == 'torque':
         ret.lateralTuning.torque.useSteeringAngle = True
-        max_lat_accel = 3.2
-        ret.lateralTuning.torque.kp = 2.0 / max_lat_accel
+        max_lat_accel = 2.2
+        ret.lateralTuning.torque.kp = 1.0 / max_lat_accel
         ret.lateralTuning.torque.kf = 1.0 / max_lat_accel
-        ret.lateralTuning.torque.friction = 0.005
-        ret.lateralTuning.torque.ki = 0.05 / max_lat_accel
+        ret.lateralTuning.torque.ki = 0.25 / max_lat_accel
+        ret.lateralTuning.torque.friction = 0.01
+        ret.lateralTuning.torque.kd = 0.0
 
     elif candidate == CAR.GENESIS_EQ900_L:
       ret.mass = 2290
@@ -178,11 +180,12 @@ class CarInterface(CarInterfaceBase):
 
       if ret.lateralTuning.which() == 'torque':
         ret.lateralTuning.torque.useSteeringAngle = True
-        max_lat_accel = 3.5
-        ret.lateralTuning.torque.kp = 2.0 / max_lat_accel
+        max_lat_accel = 2.3
+        ret.lateralTuning.torque.kp = 1.0 / max_lat_accel
         ret.lateralTuning.torque.kf = 1.0 / max_lat_accel
+        ret.lateralTuning.torque.ki = 0.25 / max_lat_accel
         ret.lateralTuning.torque.friction = 0.0
-        ret.lateralTuning.torque.ki = 0.5 / max_lat_accel
+        ret.lateralTuning.torque.kd = 0.1
 
     elif candidate in [CAR.ELANTRA, CAR.ELANTRA_GT_I30]:
       ret.mass = 1275. + STD_CARGO_KG
@@ -304,7 +307,21 @@ class CarInterface(CarInterfaceBase):
       tire_stiffness_factor = 0.8
 
       ret.steerRatio = 14.5
+      ret.steerRateCost = 0.4
 
+      if ret.lateralTuning.which() == 'torque':
+        #ret.disableLateralLiveTuning = True
+        #ret.lateralTuning.torque.kp = 0.63
+        #ret.lateralTuning.torque.ki = 0.15
+        #ret.lateralTuning.torque.kf = 0.31
+
+        ret.lateralTuning.torque.useSteeringAngle = True
+        max_lat_accel = 2.2
+        ret.lateralTuning.torque.kp = 1.0 / max_lat_accel
+        ret.lateralTuning.torque.kf = 1.0 / max_lat_accel
+        ret.lateralTuning.torque.ki = 0.25 / max_lat_accel
+        ret.lateralTuning.torque.friction = 0.01
+        ret.lateralTuning.torque.kd = 0.0
 
 
     ret.radarTimeStep = 0.05
