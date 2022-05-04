@@ -21,29 +21,14 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
+  lint:
   # This workflow contains a single job called "build"
-  build:
-    name: Lint and Build
-    # The type of runner that the job will run on
+    name : Lint
+    if: github.repository == 'jc01rho-openpilot-BoltEV2019-KoKr/boltpilot'
     runs-on: ubuntu-20.04
     if: github.repository == 'jc01rho-openpilot-BoltEV2019-KoKr/boltpilot'
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      - name: Get number of CPU cores
-        uses: SimenB/github-actions-cpu-cores@v1
-        id: cpu-cores
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-
-      - name: Get current date
-        id: date
-        run: echo "::set-output name=date::$(expr $(date +'%d') % 5  )"
-        
-      - uses: actions/checkout@v3
-
-      - name: Set outputs
-        id: vars
-        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
-
       - name: Python Linter
         uses: ricardochaves/python-lint@v1.4.0
         with:
@@ -69,6 +54,29 @@ jobs:
           use-isort: false
           extra-pylint-options: --disable=C,R,E0401,W0612,W0101,W0611,W0613,W0511,W0311,W0954,W0703,W0621,W0201,W0109,W0235,W0603,W0106
           extra-flake8-options: --select=F21,F822,F823,F831,F811,F812,E999
+
+  build:
+    name: Build
+    # The type of runner that the job will run on
+    runs-on: ubuntu-20.04
+    needs: lint
+    if: github.repository == 'jc01rho-openpilot-BoltEV2019-KoKr/boltpilot'
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - name: Get number of CPU cores
+        uses: SimenB/github-actions-cpu-cores@v1
+        id: cpu-cores
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+
+      - name: Get current date
+        id: date
+        run: echo "::set-output name=date::$(expr $(date +'%d') % 5  )"
+        
+      - uses: actions/checkout@v3
+
+      - name: Set outputs
+        id: vars
+        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
 
       - name: Cache apt binaries
         uses: actions/cache@v3
