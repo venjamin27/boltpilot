@@ -219,9 +219,9 @@ class CarController():
 
       if self.frame % 2 == 0:
         stopping = controls.LoC.long_control_state == LongCtrlState.stopping
-        apply_accel = clip(actuators.accel if CC.longActive else 0,
+        apply_accel = self.scc_smoother.get_apply_accel(CS, controls.sm, actuators.accel, stopping)
+        apply_accel = clip(apply_accel if CC.longActive else 0,
                            CarControllerParams.ACCEL_MIN, CarControllerParams.ACCEL_MAX)
-        apply_accel = self.scc_smoother.get_apply_accel(CS, controls.sm, apply_accel, stopping)
 
         self.accel = apply_accel
 
