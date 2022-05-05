@@ -17,9 +17,10 @@ jobs:
     # The type of runner that the job will run on
     runs-on: ubuntu-20.04
     if: github.repository == 'jc01rho-openpilot-BoltEV2019-KoKr/boltpilot'
+    outputs:
+      has_new_commits: ${{ steps.sync.outputs.has_new_commits }}
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-
       - uses: actions/checkout@v3 #checkout origin
         with:
           fetch-depth: 0
@@ -35,8 +36,8 @@ jobs:
           target_repo_token: ${{ secrets.GITHUB_TOKEN }}
           upstream_sync_branch: hkg_dev
           upstream_sync_repo: neokii/npilot
-
-      - name: New commits found
-#        if: steps.sync.outputs.has_new_commits == 'true'
-        uses: ./.github/workflows/pr-from-hkg-dev.yml
+  make_pr_call:
+    needs: pull_from_neokii # ${{needs.job1.outputs.output1}}
+    if: needs.pull_from_neokii.outputs.has_new_commits == 'true'
+    uses: ./.github/workflows/pr-from-hkg-dev.yml
 
