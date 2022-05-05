@@ -31,14 +31,11 @@ jobs:
         with:
           destination_branch: "feature/0814"
           github_token: ${{ secrets.GITHUB_TOKEN }}
-#          pr_reviewer: "jc01rho"                         # Comma-separated list (no spaces)
+          pr_reviewer: "jc01rho"                         # Comma-separated list (no spaces)
 #          pr_assignee: "jc01rho"
           pr_label: "automerge"
 
-      - uses: peter-evans/enable-pull-request-automerge@v2
-        with:
-          token: ${{ secrets.PAT }}
-          pull-request-number: ${{steps.open-pr.outputs.pr_number}}
+
 
 
 #      - name: set remote and merge
