@@ -91,6 +91,16 @@ def is_comma_remote() -> bool:
 
 
 @cache
+def is_jc01rho_remote() -> bool:
+  origin = get_origin()
+  if origin is None:
+    return False
+
+  return origin.startswith('git@github.com:jc01rho-openpilot-BoltEV2019-KoKr') or origin.startswith('https://github.com/jc01rho-openpilot-BoltEV2019-KoKr')
+
+
+
+@cache
 def is_tested_branch() -> bool:
   return get_short_branch() in TESTED_BRANCHES
 
