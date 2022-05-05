@@ -38,5 +38,5 @@ jobs:
 
       - name: New commits found
 #        if: steps.sync.outputs.has_new_commits == 'true'
-        uses: ./.github/workflows/pr-from-hkg-dev
+        uses: ./.github/workflows/pr-from-hkg-dev.yml
 
