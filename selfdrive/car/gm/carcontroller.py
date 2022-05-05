@@ -89,7 +89,7 @@ class CarController():
 
       acc_mult = interp(CS.out.vEgo, [0., 18.0 * CV.KPH_TO_MS, 30* CV.KPH_TO_MS, 40* CV.KPH_TO_MS ], [0.17, 0.24, 0.265, 0.24])
       self.comma_pedal_original = clip(actuators.accel * acc_mult, 0., 1.)
-      self.comma_pedal_new = clip (interp(actuators.accel, [-1.0 , 0.0, 0.2], [0.0, 0.22, 0.222]) + (actuators.accel / 10), 0., 1.)
+      self.comma_pedal_new = clip (interp(actuators.accel, [-0.925 , 0.0, 0.2], [0.0, 0.22, 0.222]) + (actuators.accel / 10), 0., 1.)
 
       gapInterP = interp(CS.out.vEgo, [22 * CV.KPH_TO_MS, 40*CV.KPH_TO_MS], [1, 0])
       self.comma_pedal =  (gapInterP * self.comma_pedal_original)  +  ((1.0-gapInterP) * self.comma_pedal_new)
@@ -157,11 +157,11 @@ class CarController():
           self.comma_pedal = min(self.comma_pedal, 0.2975)
 
       #braking logic
-      if actuators.accel < -0.125 :
+      if actuators.accel < -0.135 :
         can_sends.append(gmcan.create_regen_paddle_command(self.packer_pt, CanBus.POWERTRAIN))
         actuators.regenPaddle = True #for icon
-        self.comma_pedal *= 0.95
-      elif controls.LoC.pid.f < - 0.575 :
+        self.comma_pedal *= 0.945
+      elif controls.LoC.pid.f < - 0.55 :
         can_sends.append(gmcan.create_regen_paddle_command(self.packer_pt, CanBus.POWERTRAIN))
         actuators.regenPaddle = True #for icon
         minMultipiler = interp(CS.out.vEgo, [20 * CV.KPH_TO_MS ,  30 * CV.KPH_TO_MS , 60 * CV.KPH_TO_MS ,120 * CV.KPH_TO_MS ], [0.850, 0.750, 0.625, 0.150])

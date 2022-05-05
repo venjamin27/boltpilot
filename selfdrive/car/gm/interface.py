@@ -124,11 +124,11 @@ class CarInterface(CarInterfaceBase):
     else:
       ret.lateralTuning.init('torque')
       ret.lateralTuning.torque.useSteeringAngle = True
-      max_lat_accel = 1.8
-      ret.lateralTuning.torque.kp = 1.0 / max_lat_accel
+      max_lat_accel = 3.0
+      ret.lateralTuning.torque.kp = 2.0 / max_lat_accel
       ret.lateralTuning.torque.kf = 1.0 / max_lat_accel
-      ret.lateralTuning.torque.ki = 0.25 / max_lat_accel
-      ret.lateralTuning.torque.friction = 0.01
+      ret.lateralTuning.torque.ki = 0.5 / max_lat_accel
+      ret.lateralTuning.torque.friction = 0.2
 
       ret.lateralTuning.torque.kd = 0.0
       ret.lateralTuning.torque.deadzone = 0.0
@@ -150,8 +150,8 @@ class CarInterface(CarInterfaceBase):
     ret.longitudinalTuning.kpV = [1.35, 1.20, 0.65] # when 40 => 1.09, y = 1.38333 - 0.00733333 x,  till 1.20~0.65,
     # ret.longitudinalTuning.kpV = [1.35, 1.20, 1.125, 0.65]   #but slightly cover up to 1.125
   
-    ret.longitudinalTuning.kiBP = [0., 130. * CV.KPH_TO_MS]
-    ret.longitudinalTuning.kiV = [0.18, 0.12]
+    ret.longitudinalTuning.kiBP = [0.,25. * CV.KPH_TO_MS , 130. * CV.KPH_TO_MS]
+    ret.longitudinalTuning.kiV = [0.18,0.13, 0.10]
     
     ret.longitudinalTuning.deadzoneBP = [0., 30.*CV.KPH_TO_MS]
     ret.longitudinalTuning.deadzoneV = [0., 0.10]
