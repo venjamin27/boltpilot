@@ -71,7 +71,6 @@ class CarInterface(CarInterfaceBase):
 
     #for neokii integration
     ret.maxSteeringAngleDeg = 1000.
-    ret.disableLateralLiveTuning = False
     # for neokii integration end.
 
     # Presence of a camera on the object bus is ok.
@@ -96,6 +95,7 @@ class CarInterface(CarInterfaceBase):
     ret.steerRatio = 16.85
     ret.steerRatioRear = 0.
     ret.centerToFront = ret.wheelbase * 0.49 # wild guess
+    ret.disableLateralLiveTuning = True
 
     lateral_control = Params().get("LateralControl", encoding='utf-8')
     if lateral_control == 'INDI':
