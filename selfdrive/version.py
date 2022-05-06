@@ -96,7 +96,7 @@ def is_jc01rho_remote() -> bool:
   if origin is None:
     return False
 
-  return origin.startswith('git@github.com:jc01rho-openpilot-BoltEV2019-KoKr') or origin.startswith('https://github.com/jc01rho-openpilot-BoltEV2019-KoKr')
+  return origin.startswith('git@github.com:jc01rho-openpilot') or origin.startswith('https://github.com/jc01rho-openpilot')
 
 
 
