@@ -10,7 +10,7 @@ from common.conversions import Conversions as CV
 from selfdrive.car.hyundai.values import Buttons
 from common.params import Params
 from selfdrive.controls.lib.drive_helpers import V_CRUISE_MAX, V_CRUISE_MIN, V_CRUISE_DELTA_KM, V_CRUISE_DELTA_MI, CONTROL_N
-from selfdrive.controls.lib.longitudinal_mpc_lib.long_mpc import AUTO_TR_CRUISE_GAP
+# from selfdrive.controls.lib.longitudinal_mpc_lib.long_mpc import AUTO_TR_CRUISE_GAP
 
 from selfdrive.ntune import ntune_scc_get
 from selfdrive.road_speed_limiter import road_speed_limiter_get_max_speed, road_speed_limiter_get_active, \
@@ -171,7 +171,7 @@ class SccSmoother(SingletonInstance):
 
     max_speed_log = ""
 
-    if apply_limit_speed >= self.kph_to_clu(10):
+    if apply_limit_speed >= self.kph_to_clu(20):
 
       if first_started:
         self.max_speed_clu = clu11_speed
@@ -214,8 +214,8 @@ class SccSmoother(SingletonInstance):
 
     # mph or kph
     # clu11_speed = CS.clu11["CF_Clu_Vanz"]
-    clu11_speed = CS.ECMVehicleSpeed["VehicleSpeed"] * CV.MPH_TO_KPH
-    road_limit_speed, left_dist, max_speed_log = self.cal_max_speed(frame, CC, CS, controls.sm, clu11_speed, controls)
+    clusterSpeed = CS.ECMVehicleSpeed["VehicleSpeed"] * CV.MPH_TO_KPH
+    road_limit_speed, left_dist, max_speed_log = self.cal_max_speed(frame, CC, CS, controls.sm, clusterSpeed, controls)
 
     # kph
     # controls.applyMaxSpeed = float(clip(CS.cruiseState_speed * CV.MS_TO_KPH, MIN_SET_SPEED_KPH,
@@ -228,7 +228,7 @@ class SccSmoother(SingletonInstance):
     CC.sccSmoother.applyMaxSpeed = controls.applyMaxSpeed
     CC.sccSmoother.cruiseMaxSpeed = controls.v_cruise_kph
 
-    CC.sccSmoother.autoTrGap = AUTO_TR_CRUISE_GAP
+    # CC.sccSmoother.autoTrGap = AUTO_TR_CRUISE_GAP
 
     ascc_enabled = CS.adaptive_Cruise and enabled \
                   and  not CS.brake_pressed
@@ -242,7 +242,7 @@ class SccSmoother(SingletonInstance):
     if not ascc_enabled:
       self.reset()
 
-    self.cal_target_speed(CS, clu11_speed, controls)
+    self.cal_target_speed(CS, clusterSpeed, controls)
 
     CC.sccSmoother.logMessage = max_speed_log
 
