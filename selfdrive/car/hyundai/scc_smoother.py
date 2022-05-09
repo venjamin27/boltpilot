@@ -37,7 +37,7 @@ ButtonPrev = ButtonType.unknown
 ButtonCnt = 0
 LongPressed = False
 
-class SingletonInstane:
+class SingletonInstance:
   __instance = None
 
   @classmethod
@@ -51,7 +51,7 @@ class SingletonInstane:
     return cls.__instance
 
 
-class SccSmoother(SingletonInstane):
+class SccSmoother(SingletonInstance):
 
   @staticmethod
   def get_alive_count():
@@ -299,10 +299,10 @@ class SccSmoother(SingletonInstane):
       lead = self.get_lead(sm)
       if lead is not None:
         d = lead.dRel - 5.
-        if 0. < d < -lead.vRel * (9. + 3.) * 2. and lead.vRel < -1.:
+        if 0. < d < -lead.vRel * (9. + 4.) * 2. and lead.vRel < -1.15:
           t = d / lead.vRel
           accel = -(lead.vRel / t) * self.speed_conv_to_clu
-          accel *= 1.2
+          accel *= 1.15
 
           if accel < 0.:
             target_speed = clu11_speed + accel
