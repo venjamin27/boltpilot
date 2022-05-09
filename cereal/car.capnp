@@ -149,11 +149,11 @@ struct CarState {
   events @13 :List(CarEvent);
 
   #BOLT EV
-  vehicleSpeed @48 :Float32;
+  vehicleSpeed @53 :Float32;
   regenPressed @50 :Bool; #this is regen button only
   adaptiveCruise @51 :Bool;
   mainOn @52 :Bool;
-  lkasEnable @49 :Bool;
+  lkasEnable @52 :Bool;
 
   # CAN health
   canValid @26 :Bool;       # invalid counter/checksums
