@@ -1075,8 +1075,8 @@ void NvgWindow::drawDebugText(QPainter &p) {
   const SubMaster &sm = *(uiState()->sm);
   QString str, temp;
 
-  int y = 80;
-  const int height = 60;
+  int y = 60;
+  const int height = 50;
 
   const int text_x = width()/2 + 250;
 
@@ -1105,6 +1105,8 @@ void NvgWindow::drawDebugText(QPainter &p) {
   float distAdder = car_control.getActuators().getPedalDistanceAdder();
   float finalAdder = car_control.getActuators().getPedalAdderFinal();
   int counter = car_control.getActuators().getStoppingStateTimeWindowsActiveCounter();
+  int counteClosing = car_control.getActuators().getStoppingStateTimeWindowsClosingCounter();
+
 
 
   const char* long_state[] = {"off", "pid", "stopping", "starting"};
@@ -1117,7 +1119,7 @@ void NvgWindow::drawDebugText(QPainter &p) {
   p.drawText(text_x, y, str);
 
   y += height;
-  str.sprintf("vEgo: %.2f/%.2f\n", vEgo*3.6f, vEgoRaw*3.6f);
+  str.sprintf("vEgo: %.2f/%.2f aEgo: %.3f\n", vEgo*3.6f, vEgoRaw*3.6f, car_state.getAEgo());
   p.drawText(text_x, y, str);
 
   y += height;
@@ -1141,20 +1143,15 @@ void NvgWindow::drawDebugText(QPainter &p) {
   p.drawText(text_x, y, str);
 
   y += height;
-  str.sprintf("CommaPedalOrig: %.3f\n", commaPedalOrigin);
+  str.sprintf("PedalOrig: %.3f Applied : %.3f \n", commaPedalOrigin, commaPedal);
   p.drawText(text_x, y, str);
-
-  y += height;
-  str.sprintf("CommaPedal: %.3f\n", commaPedal);
-  p.drawText(text_x, y, str);
-
 
   y += height;
   str.sprintf("start/dist/final: %.3f %.3f %.3f\n", startAdder,distAdder,finalAdder);
   p.drawText(text_x, y, str);
 
   y += height;
-  str.sprintf("counter: %d\n", counter);
+  str.sprintf("counter: %4d %4d\n", counter, counteClosing);
   p.drawText(text_x, y, str);
 //
 //  y += height;
@@ -1169,9 +1166,10 @@ void NvgWindow::drawDebugText(QPainter &p) {
   str.sprintf("%.3f (%.3f/%.3f)\n", aReqValue, aReqValueMin, aReqValueMax);
   p.drawText(text_x, y, str);
 
-  y += height;
-  str.sprintf("aEgo: %.3f, %.3f\n", car_state.getAEgo(), car_state.getABasis());
-  p.drawText(text_x, y, str);
+//  y += height;
+//  str.sprintf("aEgo: %.3f, %.3f\n", car_state.getAEgo(), car_state.getABasis());
+//  str.sprintf("aEgo: %.3f\n", car_state.getAEgo());
+//  p.drawText(text_x, y, str);
 
   auto lead_one = sm["modelV2"].getModelV2().getLeadsV3()[0];
 

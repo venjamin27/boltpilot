@@ -145,6 +145,7 @@ class CarController():
 
           else: #if self.stoppingStateTimeWindowsClosing :
             self.stoppingStateTimeWindowsClosingCounter +=1
+            actuators.stoppingStateTimeWindowsClosingCounter = self.stoppingStateTimeWindowsClosingCounter
             actuators.pedalAdderFinal =  interp(self.stoppingStateTimeWindowsClosingCounter, [0, (stoppingStateWindowsActiveCounterLimits / 3)], [self.stoppingStateTimeWindowsClosingAdder  , 0])
 
             if  self.stoppingStateTimeWindowsClosingAdder == 0 or (self.stoppingStateTimeWindowsClosingCounter > (stoppingStateWindowsActiveCounterLimits / 3)):
