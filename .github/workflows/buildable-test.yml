@@ -107,6 +107,11 @@ jobs:
           key: ${{ runner.os }}-pip-cache-${{ steps.vars.outputs.sha_short }}
           restore-keys: |
             ${{ runner.os }}-pip-cache
+      - name: disable-man-db
+        run : |
+          sudo mv /usr/bin/mandb /usr/bin/mandb-OFF
+          sudo cp -p /bin/true /usr/bin/mandb
+          sudo rm -r /var/cache/man
 
       - name: apt-update
         run : sudo apt update -y ;
