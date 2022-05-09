@@ -11,6 +11,8 @@
 - lat_icon_image, thanks to @Hammie K 
 - screenrecorder, thanks to neokii
 
+ALL existing Bolt ports, as well as most GM giraffes,GM harnesses and GM Pedals, pedal firmware changes, panda code changes are derived from the original port created by Jason Shuler
+
 ### 문의사항은 오카방 혹은 이슈 생성으로 주십시오. 감사합니다.
 
 rkjnice@gmail.com
@@ -21,6 +23,8 @@ rkjnice@gmail.com
 ### if you're unfamilier with git manifulation, do use "develop" or "release" branch. it will be get updated as stable as. (maybe .. )
 ### from 0.8.14, many codes from Hyundai-kia fork from @neokii, thx for @neokii
 ### ir you want using CommaPedal with this fork, you have to use "metric unit system" and turn on "CommaPedal" in toggles. AND  you must drive in "L" gear at BOLT.
+
+ALL existing Bolt ports, as well as most GM giraffes,GM harnesses and GM Pedals, pedal firmware changes, panda code changes are derived from the original port created by Jason Shuler
 
 any issues are welcomes.
 
