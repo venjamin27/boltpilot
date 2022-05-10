@@ -218,7 +218,7 @@ class CarInterface(CarInterfaceBase):
     #   events.add(car.CarEvent.EventName.belowSteerSpeed)
     if self.CP.enableGasInterceptor:
       if ret.cruiseState.enabled and ret.brakePressed:
-        if self.keep_Lat_When_Brake and not self.CS.adaptive_Cruise and self.CS.enable_lkas :
+        if self.keep_Lat_When_Brake and not self.CS.adaptive_Cruise and self.CS.enable_lkas : # KeepLatWhenBrake things.
           pass
         else :
           events.add(EventName.pedalPressed)
@@ -263,7 +263,7 @@ class CarInterface(CarInterfaceBase):
       if self.CS.main_on: #wihtout pedal case
         self.CS.adaptive_Cruise = False
         self.CS.enable_lkas = True
-        if ret.brakePressed and not self.keep_Lat_When_Brake:
+        if ret.brakePressed and not self.keep_Lat_When_Brake: # KeepLatWhenBrake things.
           self.CS.enable_lkas = False
           events.add(EventName.pedalPressed)
 
