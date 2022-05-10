@@ -610,6 +610,13 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
 //                                            "../assets/offroad/icon_openpilot.png",
 //                                            this));
 
+  toggles.append(new ParamControl("KeepLatWhenBrake",
+                                            "Keep Lat control when even if brake pressed(lat only)",
+                                            "Brake will not disengage with this toggle",
+                                            "../assets/offroad/icon_openpilot.png",
+                                            this));
+
+
 //  toggles.append(new ParamControl("IsLdwsCar",
 //                                            "LDWS",
 //                                            "If your car only supports LDWS, turn it on.",

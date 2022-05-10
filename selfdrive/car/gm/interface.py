@@ -15,6 +15,7 @@ EventName = car.CarEvent.EventName
 class CarInterface(CarInterfaceBase):
   def __init__(self, CP, CarController, CarState):
     super().__init__(CP, CarController, CarState)
+    self.keep_Lat_When_Brake = Params().get_bool('KeepLatWhenBrake')
 
 
   def _update(self, c: car.CarControl) -> car.CarState:
@@ -259,7 +260,7 @@ class CarInterface(CarInterfaceBase):
       if self.CS.main_on: #wihtout pedal case
         self.CS.adaptive_Cruise = False
         self.CS.enable_lkas = True
-        if ret.brakePressed :
+        if ret.brakePressed and not self.keep_Lat_When_Brake:
           self.CS.enable_lkas = False
           events.add(EventName.pedalPressed)
 
