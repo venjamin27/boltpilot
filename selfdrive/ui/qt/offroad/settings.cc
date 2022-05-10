@@ -611,7 +611,7 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
 //                                            this));
 
   toggles.append(new ParamControl("KeepLatWhenBrake",
-                                            "Keep Lat control when even if brake pressed(lat only)",
+                                            "Keep Lat control with Brakes",
                                             "Brake will not disengage with this toggle",
                                             "../assets/offroad/icon_openpilot.png",
                                             this));
