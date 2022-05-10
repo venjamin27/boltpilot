@@ -218,7 +218,10 @@ class CarInterface(CarInterfaceBase):
     #   events.add(car.CarEvent.EventName.belowSteerSpeed)
     if self.CP.enableGasInterceptor:
       if ret.cruiseState.enabled and ret.brakePressed:
-        events.add(EventName.pedalPressed)
+        if self.keep_Lat_When_Brake and not self.CS.adaptive_Cruise and self.CS.enable_lkas :
+          pass
+        else :
+          events.add(EventName.pedalPressed)
         self.CS.adaptive_Cruise = False
         self.CS.enable_lkas = True
 
