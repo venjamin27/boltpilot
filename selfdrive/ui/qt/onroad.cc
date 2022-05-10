@@ -1075,10 +1075,10 @@ void NvgWindow::drawDebugText(QPainter &p) {
   const SubMaster &sm = *(uiState()->sm);
   QString str, temp;
 
-  int y = 60;
+  int y = 55;
   const int height = 50;
 
-  const int text_x = width()/2 + 250;
+  const int text_x = width()/2 + 200;
 
   auto controls_state = sm["controlsState"].getControlsState();
   auto car_control = sm["carControl"].getCarControl();
@@ -1115,11 +1115,11 @@ void NvgWindow::drawDebugText(QPainter &p) {
   p.setPen(QColor(255, 255, 255, 200));
   p.setRenderHint(QPainter::TextAntialiasing);
 
-  str.sprintf("State: %s\n", long_state[longControlState]);
+  str.sprintf("State: %s  aEgo: %.3f\n", long_state[longControlState], car_state.getAEgo());
   p.drawText(text_x, y, str);
 
   y += height;
-  str.sprintf("vEgo: %.2f/%.2f aEgo: %.3f\n", vEgo*3.6f, vEgoRaw*3.6f, car_state.getAEgo());
+  str.sprintf("vEgo: %.2f/%.2f", vEgo*3.6f, vEgoRaw*3.6f);
   p.drawText(text_x, y, str);
 
   y += height;
@@ -1143,11 +1143,11 @@ void NvgWindow::drawDebugText(QPainter &p) {
   p.drawText(text_x, y, str);
 
   y += height;
-  str.sprintf("PedalOrig: %.3f Applied : %.3f \n", commaPedalOrigin, commaPedal);
+  str.sprintf("Pedal: %.3f PAppl : %.3f \n", commaPedalOrigin, commaPedal);
   p.drawText(text_x, y, str);
 
   y += height;
-  str.sprintf("start/dist/final: %.3f %.3f %.3f\n", startAdder,distAdder,finalAdder);
+  str.sprintf("stt/dis/fin: %.3f %.3f %.3f\n", startAdder,distAdder,finalAdder);
   p.drawText(text_x, y, str);
 
   y += height;
