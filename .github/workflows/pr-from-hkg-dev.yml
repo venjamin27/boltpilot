@@ -22,6 +22,9 @@ jobs:
     steps:
 
       - uses: actions/checkout@v3 #checkout origin
+        with:
+          fetch-depth: 0
+          ref: hkg_dev
 
 
       # Step 4: Print a helpful timestamp for your records (not required, just nice)
