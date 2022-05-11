@@ -125,14 +125,14 @@ class CarInterface(CarInterfaceBase):
     else:
       ret.lateralTuning.init('torque')
       ret.lateralTuning.torque.useSteeringAngle = True
-      max_lat_accel = 3.0
+      max_lat_accel = 2.35
       ret.lateralTuning.torque.kp = 2.0 / max_lat_accel
       ret.lateralTuning.torque.kf = 1.0 / max_lat_accel
-      ret.lateralTuning.torque.ki = 0.325 / max_lat_accel
-      ret.lateralTuning.torque.friction = 0.075
+      ret.lateralTuning.torque.ki = 0.2 / max_lat_accel
+      ret.lateralTuning.torque.friction = 0.01
 
-      ret.lateralTuning.torque.kd = 0.0
-      ret.lateralTuning.torque.deadzone = 0.0
+      ret.lateralTuning.torque.kd = 1.0
+      ret.lateralTuning.torque.deadzone = 0.01
 
 
 
