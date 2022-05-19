@@ -87,8 +87,8 @@ class CarInterface(CarInterfaceBase):
     tire_stiffness_factor = 0.5
 
     ret.minSteerSpeed = 11 * CV.KPH_TO_MS
-    ret.steerRateCost = 0.35 # def : 2.0
-    ret.steerActuatorDelay = 0.2  # def: 0.2 Default delay, not measured yet
+    ret.steerRateCost = 0.345 # def : 2.0
+    ret.steerActuatorDelay = 0.21  # def: 0.2 Default delay, not measured yet
 
     ret.minEnableSpeed = -1
     ret.mass = 1625. + STD_CARGO_KG
@@ -112,8 +112,8 @@ class CarInterface(CarInterfaceBase):
     elif lateral_control == 'LQR':
       ret.lateralTuning.init('lqr')
 
-      ret.lateralTuning.lqr.scale = 1950.0
-      ret.lateralTuning.lqr.ki = 0.032
+      ret.lateralTuning.lqr.scale = 1955.0
+      ret.lateralTuning.lqr.ki = 0.0315
       ret.lateralTuning.lqr.dcGain = 0.002237852961363602
 
       ret.lateralTuning.lqr.a = [0., 1., -0.22619643, 1.21822268]
@@ -125,10 +125,10 @@ class CarInterface(CarInterfaceBase):
     else:
       ret.lateralTuning.init('torque')
       ret.lateralTuning.torque.useSteeringAngle = True
-      max_lat_accel = 2.15
+      max_lat_accel = 2.275
       ret.lateralTuning.torque.kp = 2.0 / max_lat_accel
       ret.lateralTuning.torque.kf = 1.0 / max_lat_accel
-      ret.lateralTuning.torque.ki = 0.2 / max_lat_accel
+      ret.lateralTuning.torque.ki = 0.19 / max_lat_accel
       ret.lateralTuning.torque.friction = 0.02
 
       ret.lateralTuning.torque.kd = 1.0
