@@ -13,7 +13,7 @@
 #include "selfdrive/ui/qt/screenrecorder/screenrecorder.h"
 #endif
 
-#include "selfdrive/common/params.h"
+#include "common/params.h"
 
 // ***** onroad widgets *****
 
