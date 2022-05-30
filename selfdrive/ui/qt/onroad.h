@@ -86,11 +86,12 @@ protected:
   void drawBottomIcons(QPainter &p);
   void drawSpeedLimit(QPainter &p);
   void drawSteer(QPainter &p);
+  void drawThermal(QPainter &p);
   void drawRestArea(QPainter &p);
   void drawTurnSignals(QPainter &p);
   void drawGpsStatus(QPainter &p);
   void drawDebugText(QPainter &p);
-  void drawHud(QPainter &p);
+  void drawHud(QPainter &p, const cereal::ModelDataV2::Reader &model);
   void drawLkasIcon(QPainter &p);
 
 private:

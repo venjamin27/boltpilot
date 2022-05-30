@@ -380,19 +380,20 @@ void NvgWindow::paintGL() {
 }
 
 void NvgWindow::paintEvent(QPaintEvent *event) {
-  QPainter p;
-  p.begin(this);
+
+
+  UIState *s = uiState();
+  const cereal::ModelDataV2::Reader &model = (*s->sm)["modelV2"].getModelV2();
+
+  QPainter p(this);
 
   p.beginNativePainting();
+  CameraViewWidget::setFrameId(model.getFrameId());
   CameraViewWidget::paintGL();
   p.endNativePainting();
 
-  UIState *s = uiState();
-  if (s->worldObjectsVisible()) {
-    drawHud(p);
-  }
-
-  p.end();
+  if (s->worldObjectsVisible())
+    drawHud(p, model);
 
   double cur_draw_t = millis_since_boot();
   double dt = cur_draw_t - prev_draw_t;
@@ -451,7 +452,7 @@ void NvgWindow::drawText2(QPainter &p, int x, int y, int flags, const QString &t
   p.drawText(QRect(x, y, rect.width()+1, rect.height()), flags, text);
 }
 
-void NvgWindow::drawHud(QPainter &p) {
+void NvgWindow::drawHud(QPainter &p, const cereal::ModelDataV2::Reader &model) {
 
   p.setRenderHint(QPainter::Antialiasing);
   p.setPen(Qt::NoPen);
@@ -469,7 +470,7 @@ void NvgWindow::drawHud(QPainter &p) {
 
   drawLaneLines(p, s);
 
-  auto leads = sm["modelV2"].getModelV2().getLeadsV3();
+  auto leads = model.getLeadsV3();
   if (leads[0].getProb() > .5) {
     drawLead(p, leads[0], s->scene.lead_vertices[0], s->scene.lead_radar[0]);
   }
@@ -481,6 +482,7 @@ void NvgWindow::drawHud(QPainter &p) {
   drawSpeed(p);
   drawSpeedLimit(p);
   drawSteer(p);
+  drawThermal(p);
   drawRestArea(p);
   //drawTurnSignals(p);
   drawGpsStatus(p);
@@ -872,6 +874,98 @@ void NvgWindow::drawSteer(QPainter &p) {
 
   p.setPen(QColor(155, 255, 155, 200));
   p.drawText(rect, Qt::AlignCenter, str);
+
+  p.restore();
+}
+
+template <class T>
+float interp(float x, std::initializer_list<T> x_list, std::initializer_list<T> y_list, bool extrapolate)
+{
+  std::vector<T> xData(x_list);
+  std::vector<T> yData(y_list);
+  int size = xData.size();
+
+  int i = 0;
+  if(x >= xData[size - 2]) {
+    i = size - 2;
+  }
+  else {
+    while ( x > xData[i+1] ) i++;
+  }
+  T xL = xData[i], yL = yData[i], xR = xData[i+1], yR = yData[i+1];
+  if (!extrapolate) {
+    if ( x < xL ) yR = yL;
+    if ( x > xR ) yL = yR;
+  }
+
+  T dydx = ( yR - yL ) / ( xR - xL );
+  return yL + dydx * ( x - xL );
+}
+
+void NvgWindow::drawThermal(QPainter &p) {
+  p.save();
+
+  const SubMaster &sm = *(uiState()->sm);
+  auto deviceState = sm["deviceState"].getDeviceState();
+
+  const auto cpuTempC = deviceState.getCpuTempC();
+  //const auto gpuTempC = deviceState.getGpuTempC();
+  float ambientTemp = deviceState.getAmbientTempC();
+
+  float cpuTemp = 0.f;
+  //float gpuTemp = 0.f;
+
+  if(std::size(cpuTempC) > 0) {
+    for(int i = 0; i < std::size(cpuTempC); i++) {
+      cpuTemp += cpuTempC[i];
+    }
+    cpuTemp = cpuTemp / (float)std::size(cpuTempC);
+  }
+
+  /*if(std::size(gpuTempC) > 0) {
+    for(int i = 0; i < std::size(gpuTempC); i++) {
+      gpuTemp += gpuTempC[i];
+    }
+    gpuTemp = gpuTemp / (float)std::size(gpuTempC);
+    cpuTemp = (cpuTemp + gpuTemp) / 2.f;
+  }*/
+
+  int w = 192;
+  int x = width() - (30 + w);
+  int y = 450;
+
+  QString str;
+  QRect rect;
+
+  configFont(p, "Open Sans", 50, "Bold");
+  str.sprintf("%.0f°C", cpuTemp);
+  rect = QRect(x, y, w, w);
+
+  int r = interp<float>(cpuTemp, {50.f, 90.f}, {200.f, 255.f}, false);
+  int g = interp<float>(cpuTemp, {50.f, 90.f}, {255.f, 200.f}, false);
+  p.setPen(QColor(r, g, 200, 200));
+  p.drawText(rect, Qt::AlignCenter, str);
+
+  y += 55;
+  configFont(p, "Open Sans", 25, "Bold");
+  rect = QRect(x, y, w, w);
+  p.setPen(QColor(255, 255, 255, 200));
+  p.drawText(rect, Qt::AlignCenter, "CPU");
+
+  y += 80;
+  configFont(p, "Open Sans", 50, "Bold");
+  str.sprintf("%.0f°C", ambientTemp);
+  rect = QRect(x, y, w, w);
+  r = interp<float>(ambientTemp, {35.f, 60.f}, {200.f, 255.f}, false);
+  g = interp<float>(ambientTemp, {35.f, 60.f}, {255.f, 200.f}, false);
+  p.setPen(QColor(r, g, 200, 200));
+  p.drawText(rect, Qt::AlignCenter, str);
+
+  y += 55;
+  configFont(p, "Open Sans", 25, "Bold");
+  rect = QRect(x, y, w, w);
+  p.setPen(QColor(255, 255, 255, 200));
+  p.drawText(rect, Qt::AlignCenter, "AMBIENT");
 
   p.restore();
 }
