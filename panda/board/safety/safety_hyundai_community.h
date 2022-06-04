@@ -1,3 +1,14 @@
+bool Lcan_bus1 = false;
+bool Fwd_bus1 = false;
+bool Fwd_obd = false;
+bool Fwd_bus2 = true;
+int OBD_cnt = 20;
+int LKAS11_bus0_cnt = 0;
+int Lcan_bus1_cnt = 0;
+int MDPS12_checksum = -1;
+int MDPS12_cnt = 0;
+int Last_StrColTq = 0;
+
 int LKAS11_op = 0;
 int MDPS12_op = 0;
 int CLU11_op = 0;
@@ -189,6 +200,7 @@ static int hyundai_community_tx_hook(CANPacket_t *to_send, bool longitudinal_all
   if (addr == 832) {
     LKAS11_op = 20;
     int desired_torque = ((GET_BYTES_04(to_send) >> 16) & 0x7ff) - 1024;
+    bool steer_req = GET_BIT(to_send, 27U) != 0U;
     uint32_t ts = microsecond_timer_get();
     bool violation = 0;
 
@@ -224,8 +236,8 @@ static int hyundai_community_tx_hook(CANPacket_t *to_send, bool longitudinal_all
       }
     }
 
-    // no torque if controls is not allowed
-    if (!controls_allowed && (desired_torque != 0)) {
+    // no torque if controls is not allowed or mismatch with CF_Lkas_ActToi bit
+    if ((!controls_allowed || !steer_req) && (desired_torque != 0)) {
       violation = 1;
       puts("  LKAS torque not allowed: controls not allowed!\n");
     }
@@ -328,8 +340,6 @@ static int hyundai_community_fwd_hook(int bus_num, CANPacket_t *to_fwd) {
 
 static const addr_checks* hyundai_community_init(uint16_t param) {
   UNUSED(param);
-  controls_allowed = false;
-  relay_malfunction_reset();
 
   if (current_board->has_obd && Fwd_obd) {
     current_board->set_can_mode(CAN_MODE_OBD_CAN2);
