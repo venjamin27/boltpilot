@@ -296,6 +296,7 @@ static int hyundai_tx_hook(CANPacket_t *to_send, bool longitudinal_allowed) {
   // LKA STEER: safety check
   if (addr == 832) {
     int desired_torque = ((GET_BYTES_04(to_send) >> 16) & 0x7ffU) - 1024U;
+    bool steer_req = GET_BIT(to_send, 27U) != 0U;
     uint32_t ts = microsecond_timer_get();
     bool violation = 0;
 
@@ -323,8 +324,8 @@ static int hyundai_tx_hook(CANPacket_t *to_send, bool longitudinal_allowed) {
       }
     }
 
-    // no torque if controls is not allowed
-    if (!controls_allowed && (desired_torque != 0)) {
+    // no torque if controls is not allowed or mismatch with CF_Lkas_ActToi bit
+      if ((!controls_allowed || !steer_req) && (desired_torque != 0)) {
       violation = 1;
     }
 
@@ -378,9 +379,6 @@ static int hyundai_fwd_hook(int bus_num, CANPacket_t *to_fwd) {
 }
 
 static const addr_checks* hyundai_init(uint16_t param) {
-  controls_allowed = false;
-  relay_malfunction_reset();
-
   hyundai_legacy = false;
   hyundai_ev_gas_signal = GET_FLAG(param, HYUNDAI_PARAM_EV_GAS);
   hyundai_hybrid_gas_signal = !hyundai_ev_gas_signal && GET_FLAG(param, HYUNDAI_PARAM_HYBRID_GAS);
@@ -399,9 +397,6 @@ static const addr_checks* hyundai_init(uint16_t param) {
 }
 
 static const addr_checks* hyundai_legacy_init(uint16_t param) {
-  controls_allowed = false;
-  relay_malfunction_reset();
-
   hyundai_legacy = true;
   hyundai_longitudinal = false;
   hyundai_ev_gas_signal = GET_FLAG(param, HYUNDAI_PARAM_EV_GAS);
