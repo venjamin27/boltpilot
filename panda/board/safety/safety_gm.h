@@ -335,7 +335,7 @@ static int gm_fwd_hook(int bus_num, CANPacket_t *to_fwd) {
 
 
 static const addr_checks* gm_init(uint16_t param) {
-//  UNUSED(param);
+  UNUSED(param);
 //  controls_allowed = false;
 //  relay_malfunction_reset();
   gas_interceptor_detected = 0;
