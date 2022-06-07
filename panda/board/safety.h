@@ -3,7 +3,7 @@
 // include the safety policies.
 
 #ifdef STM32H7
-#define CANFD
+//#define CANFD
 #endif
 
 #ifdef CANFD
