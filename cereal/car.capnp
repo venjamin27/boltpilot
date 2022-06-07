@@ -463,7 +463,8 @@ struct CarParams {
 
   notCar @66 :Bool;  # flag for non-car robotics platforms
 
-  restartForceAccel  @79 :Bool;
+  #BoltEV things.
+  restartForceAccel  @81 :Bool;
   keepLatWhenBrake  @80 :Bool;
 
   enableGasInterceptor @2 :Bool;
