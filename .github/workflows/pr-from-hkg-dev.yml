@@ -10,6 +10,10 @@ on:
     - hkg_dev  # Support wildcard matching
   workflow_call:
 
+env:
+  ## Sets environment variable
+  GITHUB_TOKEN: ${{ secrets.REPO_SECRET }}
+
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
