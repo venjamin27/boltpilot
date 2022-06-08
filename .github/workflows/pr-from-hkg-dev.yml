@@ -43,6 +43,9 @@ jobs:
 #          pr_assignee: "jc01rho"
           pr_label: "automerge"
 
+      - name: Change env variable
+        run: echo "::set-env name=GITHUB_TOKEN::${{ secrets.REPO_SECRET }}"
+
 
 
 
