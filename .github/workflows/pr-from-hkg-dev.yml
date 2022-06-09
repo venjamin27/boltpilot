@@ -45,7 +45,10 @@ jobs:
 
       - name: Change env variable
         run: echo "::set-env name=GITHUB_TOKEN::${{ secrets.REPO_SECRET }}"
-
+      - name: set environment variables
+        uses: allenevans/set-env@v2.0.0
+        with:
+          GITHUB_TOKEN: ${{ secrets.REPO_SECRET }}
 
       - uses: peter-evans/enable-pull-request-automerge@v2
         with:
