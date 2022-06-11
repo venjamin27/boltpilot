@@ -39,20 +39,14 @@ jobs:
         with:
           source_branch: "hkg_dev"
           destination_branch: "feature/0815"
-          github_token: ${{ secrets.REPO_SECRET }}
+          github_token: ${{secrets.GITHUB_TOKEN}}
 #          pr_assignee: "jc01rho"
           pr_label: "automerge"
 
-      - name: Change env variable
-        run: echo "::set-env name=GITHUB_TOKEN::${{ secrets.REPO_SECRET }}"
-      - name: set environment variables
-        uses: allenevans/set-env@v2.0.0
-        with:
-          GITHUB_TOKEN: ${{ secrets.REPO_SECRET }}
 
       - uses: peter-evans/enable-pull-request-automerge@v2
         with:
-          token: ${{ secrets.REPO_SECRET }}
+          token: ${{secrets.GITHUB_TOKEN}}
           merge-method: merge
           pull-request-number: ${{steps.open-pr.outputs.pr_number}}
 
