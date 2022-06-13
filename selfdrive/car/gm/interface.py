@@ -64,7 +64,11 @@ class CarInterface(CarInterfaceBase):
     #   return self.get_steer_feedforward_acadia
     # else:
     #   return CarInterfaceBase.get_steer_feedforward_default
-    return self.get_steer_feedforward_bolt
+    lateral_control = Params().get("LateralControl", encoding='utf-8')
+    if lateral_control == 'PID':
+      return self.get_steer_feedforward_bolt
+    else:
+      return CarInterfaceBase.get_steer_feedforward_default
 
     
   @staticmethod
