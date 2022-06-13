@@ -164,3 +164,7 @@ def get_lag_adjusted_curvature(CP, v_ego, psis, curvatures, curvature_rates):
                                      current_curvature_desired + max_curvature_rate * DT_MDL)
 
   return safe_desired_curvature, safe_desired_curvature_rate
+
+
+def get_steer_max(CP, v_ego):
+  return interp(v_ego, CP.steerMaxBP, CP.steerMaxV)
