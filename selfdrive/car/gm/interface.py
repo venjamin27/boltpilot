@@ -59,6 +59,7 @@ class CarInterface(CarInterfaceBase):
 
   def get_steer_feedforward_function(self):
     # if self.CP.carFingerprint == CAR.VOLT:
+    lateral_control = Params().get("LateralControl", encoding='utf-8')
     if lateral_control == 'PID':
       return self.get_steer_feedforward_bolt
     else:
