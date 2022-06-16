@@ -607,7 +607,7 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
                                             this));
 
 
-                                  this));
+                                 
 
 //  toggles.append(new ParamControl("LongControlEnabled",
 //                                            "Enable HKG Long Control",
