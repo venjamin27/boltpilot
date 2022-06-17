@@ -47,6 +47,7 @@ jobs:
 
 
       - uses: peter-evans/enable-pull-request-automerge@v2
+        if:  ${{steps.open-pr.outputs.pr_number}} > 0
         with:
           token: ${{ secrets.REPO_SECRET }}
           merge-method: merge
