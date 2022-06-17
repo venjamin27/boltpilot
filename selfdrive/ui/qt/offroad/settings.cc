@@ -14,7 +14,7 @@
 
 #include "common/params.h"
 #include "common/util.h"
-#include "selfdrive/hardware/hw.h"
+#include "system/hardware/hw.h"
 #include "selfdrive/ui/qt/widgets/controls.h"
 #include "selfdrive/ui/qt/widgets/input.h"
 #include "selfdrive/ui/qt/widgets/scrollview.h"
@@ -216,7 +216,7 @@ DevicePanel::DevicePanel(SettingsWindow *parent) : ListWidget(parent) {
   power_layout->addWidget(poweroff_btn);
   QObject::connect(poweroff_btn, &QPushButton::clicked, this, &DevicePanel::poweroff);
 
-  if (Hardware::TICI()) {
+  if (!Hardware::PC()) {
     connect(uiState(), &UIState::offroadTransition, poweroff_btn, &QPushButton::setVisible);
   }
 
@@ -592,23 +592,13 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
                                             "../assets/offroad/icon_road.png",
                                             this));
 
+
   toggles.append(new ParamControl("RestartForceAccel",
                                             "Use Restart Force Accel",
                                             "warnings: it is beta, be careful!! Force Accelereation when Re-starts with leading car",
                                             "../assets/offroad/icon_road.png",
                                             this));
 
-//  toggles.append(new ParamControl("LongControlEnabled",
-//                                            "Enable HKG Long Control",
-//                                            "warnings: it is beta, be careful!! Openpilot will control the speed of your car",
-//                                            "../assets/offroad/icon_road.png",
-//                                            this));
-
-//  toggles.append(new ParamControl("MadModeEnabled",
-//                                            "Enable HKG MAD mode",
-//                                            "Openpilot will engage when turn cruise control on",
-//                                            "../assets/offroad/icon_openpilot.png",
-//                                            this));
 
   toggles.append(new ParamControl("KeepLatWhenBrake",
                                             "Keep Lat control with Brakes",
@@ -617,11 +607,19 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
                                             this));
 
 
+                                 
+
+//  toggles.append(new ParamControl("LongControlEnabled",
+//                                            "Enable HKG Long Control",
+//                                            "warnings: it is beta, be careful!! Openpilot will control the speed of your car",
+//                                            "../assets/offroad/icon_road.png",
+//                                            this));
+//
 //  toggles.append(new ParamControl("IsLdwsCar",
 //                                            "LDWS",
 //                                            "If your car only supports LDWS, turn it on.",
 //                                            "../assets/offroad/icon_openpilot.png",
-//                                            this));
+ //                                           this));
 
   toggles.append(new ParamControl("LaneChangeEnabled",
                                             "Enable Lane Change Assist",
@@ -765,7 +763,7 @@ LateralControl::LateralControl(QWidget* parent): QWidget(parent) {
   QScroller::grabGesture(list->viewport(), QScroller::LeftMouseButtonGesture);
   list->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
 
-  QStringList items = {"TORQUE", "LQR", "INDI"};
+  QStringList items = {"TORQUE", "LQR", "INDI", "PID"};
   list->addItems(items);
   list->setCurrentRow(0);
 

@@ -17,7 +17,7 @@ env:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
-  pull_from_neokii:
+  create_pr_and_automerge:
     name: CreatePullRequest from hkg_dev
     # The type of runner that the job will run on
     runs-on: ubuntu-20.04
@@ -38,14 +38,20 @@ jobs:
         with:
           source_branch: "hkg_dev"
           destination_branch: "feature/0815"
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          pr_reviewer: "jc01rho"                         # Comma-separated list (no spaces)
+          github_token: ${{ secrets.REPO_SECRET }}
 #          pr_assignee: "jc01rho"
           pr_label: "automerge"
 
       - name: Change env variable
         run: echo "::set-env name=GITHUB_TOKEN::${{ secrets.REPO_SECRET }}"
 
+
+      - uses: peter-evans/enable-pull-request-automerge@v2
+        if:  ${{steps.open-pr.outputs.pr_number}} > 0
+        with:
+          token: ${{ secrets.REPO_SECRET }}
+          merge-method: merge
+          pull-request-number: ${{steps.open-pr.outputs.pr_number}}
 
 
 

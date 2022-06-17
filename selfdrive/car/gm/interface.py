@@ -12,6 +12,12 @@ GearShifter = car.CarState.GearShifter
 ButtonType = car.CarState.ButtonEvent.Type
 EventName = car.CarEvent.EventName
 
+
+def get_steer_feedforward_sigmoid(desired_angle, v_ego, ANGLE, ANGLE_OFFSET, SIGMOID_SPEED, SIGMOID, SPEED):
+  x = ANGLE * (desired_angle + ANGLE_OFFSET)
+  sigmoid = x / (1 + fabs(x))
+  return (SIGMOID_SPEED * sigmoid * v_ego) + (SIGMOID * sigmoid) + (SPEED * v_ego)
+
 class CarInterface(CarInterfaceBase):
   def __init__(self, CP, CarController, CarState):
     super().__init__(CP, CarController, CarState)
@@ -34,25 +40,30 @@ class CarInterface(CarInterfaceBase):
 
   # Determined by iteratively plotting and minimizing error for f(angle, speed) = steer.
   @staticmethod
-  def get_steer_feedforward_volt(desired_angle, v_ego):
-    desired_angle *= 0.02904609
-    sigmoid = desired_angle / (1 + fabs(desired_angle))
-    return 0.10006696 * sigmoid * (v_ego + 3.12485927)
+  def get_steer_feedforward_bolt_euv(desired_angle, v_ego):
+    ANGLE = 0.0758345580739845
+    ANGLE_OFFSET = 0.31396926577596984
+    SIGMOID_SPEED = 0.04367532050459129
+    SIGMOID = 0.43144116109994846
+    SPEED = -0.002654134623368279
+    return get_steer_feedforward_sigmoid(desired_angle, v_ego, ANGLE, ANGLE_OFFSET, SIGMOID_SPEED, SIGMOID, SPEED)
 
   @staticmethod
-  def get_steer_feedforward_acadia(desired_angle, v_ego):
-    desired_angle *= 0.09760208
-    sigmoid = desired_angle / (1 + fabs(desired_angle))
-    return 0.04689655 * sigmoid * (v_ego + 10.028217)
+  def get_steer_feedforward_bolt(desired_angle, v_ego):
+    ANGLE = 0.06370624896135679
+    ANGLE_OFFSET = 0.32536345911579184
+    SIGMOID_SPEED = 0.06479105208670367
+    SIGMOID = 0.34485246691603205
+    SPEED = -0.0010645479469461995
+    return get_steer_feedforward_sigmoid(desired_angle, v_ego, ANGLE, ANGLE_OFFSET, SIGMOID_SPEED, SIGMOID, SPEED)
 
   def get_steer_feedforward_function(self):
     # if self.CP.carFingerprint == CAR.VOLT:
-    #   return self.get_steer_feedforward_volt
-    # elif self.CP.carFingerprint == CAR.ACADIA:
-    #   return self.get_steer_feedforward_acadia
-    # else:
-    #   return CarInterfaceBase.get_steer_feedforward_default
-    return CarInterfaceBase.get_steer_feedforward_default
+    lateral_control = Params().get("LateralControl", encoding='utf-8')
+    if lateral_control == 'PID':
+      return self.get_steer_feedforward_bolt
+    else:
+      return CarInterfaceBase.get_steer_feedforward_default
 
     
   @staticmethod
@@ -122,6 +133,26 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.lqr.k = [-110.73572306, 451.22718255]
       ret.lateralTuning.lqr.l = [0.3233671, 0.3185757]
 
+    elif lateral_control == 'PID':
+      ret.lateralTuning.init('pid')
+      ret.minEnableSpeed = -1
+      # ret.minSteerSpeed = 5 * CV.MPH_TO_MS
+      ret.mass = 1616. + STD_CARGO_KG
+      ret.wheelbase = 2.60096
+      ret.steerRatio = 16.8
+      ret.steerRatioRear = 0.
+      ret.centerToFront = 2.0828 #ret.wheelbase * 0.4 # wild guess
+      tire_stiffness_factor = 1.0
+      # still working on improving lateral
+      ret.steerRateCost = 0.5
+      ret.steerActuatorDelay = 0.
+      ret.lateralTuning.pid.kpBP, ret.lateralTuning.pid.kiBP = [[10., 41.0], [10., 41.0]]
+      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.14, 0.24], [0.01, 0.021]]
+      ret.lateralTuning.pid.kdBP = [0.]
+      ret.lateralTuning.pid.kdV = [0.5]
+      ret.lateralTuning.pid.kf = 1. # for get_steer_feedforward_bolt()
+      
+
     else:
       ret.lateralTuning.init('torque')
       ret.lateralTuning.torque.useSteeringAngle = True
@@ -132,7 +163,7 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.torque.friction = 0.02
 
       ret.lateralTuning.torque.kd = 1.0
-      ret.lateralTuning.torque.deadzone = 0.01
+      #ret.lateralTuning.torque.deadzone = 0.01
 
 
 

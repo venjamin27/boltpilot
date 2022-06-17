@@ -1,3 +1,14 @@
+bool Lcan_bus1 = false;
+bool Fwd_bus1 = false;
+bool Fwd_obd = false;
+bool Fwd_bus2 = true;
+int OBD_cnt = 20;
+int LKAS11_bus0_cnt = 0;
+int Lcan_bus1_cnt = 0;
+int MDPS12_checksum = -1;
+int MDPS12_cnt = 0;
+int Last_StrColTq = 0;
+
 int LKAS11_op = 0;
 int MDPS12_op = 0;
 int CLU11_op = 0;
@@ -328,8 +339,6 @@ static int hyundai_community_fwd_hook(int bus_num, CANPacket_t *to_fwd) {
 
 static const addr_checks* hyundai_community_init(uint16_t param) {
   UNUSED(param);
-  controls_allowed = false;
-  relay_malfunction_reset();
 
   if (current_board->has_obd && Fwd_obd) {
     current_board->set_can_mode(CAN_MODE_OBD_CAN2);

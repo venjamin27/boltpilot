@@ -13,10 +13,13 @@ on:
     - comma2_Eon-final
   pull_request:
     types:
-      - synchronize
       - opened
-      - edited
+      - synchronize
       - reopened
+      - edited
+      - ready_for_review
+#      - labeled
+#      - unlabeled
 
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
@@ -39,7 +42,7 @@ jobs:
           use-black: false
           use-mypy: false
           use-isort: false
-          extra-pylint-options: --disable=C,R,E0401,W0612,W0101,W0611,W0613,W0511,W0311,W0954,W0703,W0621,W0201,W0109,W0235,W0603
+          extra-pylint-options: --disable=C,R,E0401,W0612,W0101,W0611,W0613,W0511,W0311,W0954,W0703,W0621,W0201,W0109,W0235,W0603,W0212
           extra-flake8-options: --select=F21,F822,F823,F831,F811,F812,E999
 
       - name: Python Linter
@@ -60,7 +63,7 @@ jobs:
     # The type of runner that the job will run on
     runs-on: ubuntu-20.04
     needs: lint
-    if: github.repository == 'jc01rho-openpilot-BoltEV2019-KoKr/boltpilot'
+    if: always() && github.repository == 'jc01rho-openpilot-BoltEV2019-KoKr/boltpilot'
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - name: Get number of CPU cores

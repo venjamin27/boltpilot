@@ -9,8 +9,8 @@ import requests
 from timezonefinder import TimezoneFinder
 
 from common.params import Params
-from selfdrive.hardware import TICI
-from selfdrive.swaglog import cloudlog
+from system.hardware import AGNOS
+from system.swaglog import cloudlog
 
 
 def set_timezone(valid_timezones, timezone):
@@ -20,7 +20,7 @@ def set_timezone(valid_timezones, timezone):
 
   cloudlog.debug(f"Setting timezone to {timezone}")
   try:
-    if TICI:
+    if AGNOS:
       tzpath = os.path.join("/usr/share/zoneinfo/", timezone)
       subprocess.check_call(f'sudo su -c "ln -snf {tzpath} /data/etc/tmptime && \
                               mv /data/etc/tmptime /data/etc/localtime"', shell=True)
