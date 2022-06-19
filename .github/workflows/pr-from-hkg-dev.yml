@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: CreatePullRequest from hkg_dev
+name: CreatePullRequest and AutoMerge
 
 # Controls when the action will run. Triggers the workflow on push or pull request
 # events but only for the 075-kegman-lqr branch
@@ -45,7 +45,7 @@ jobs:
 
 
       - uses: peter-evans/enable-pull-request-automerge@v2
-        if:  ${{steps.open-pr.outputs.pr_number}} > 0
+        if:  ${{steps.open-pr.outputs.pr_number}} != 0
         with:
           token: ${{secrets.GITHUB_TOKEN}}
           merge-method: merge
