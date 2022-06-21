@@ -43,9 +43,12 @@ jobs:
 #          pr_assignee: "jc01rho"
           pr_label: "automerge"
 
+      - name: Change env variable
+        run: echo "::set-env name=PRNUMBER::${{steps.open-pr.outputs.pr_number}}"
+
 
       - uses: peter-evans/enable-pull-request-automerge@v2
-        if:  ${{steps.open-pr.outputs.pr_number}} != 0
+        if:  env.PRNUMBER != '0'
         with:
           token: ${{secrets.GITHUB_TOKEN}}
           merge-method: merge
