@@ -10,6 +10,10 @@ on:
     - hkg_dev  # Support wildcard matching
   workflow_call:
 
+env:
+  ## Sets environment variable
+  GITHUB_TOKEN:  ${{secrets.GITHUB_TOKEN}}
+
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
@@ -38,9 +42,12 @@ jobs:
 #          pr_assignee: "jc01rho"
           pr_label: "automerge"
 
+      - name: Change env variable
+        run: echo "::set-env name=PRNUMBER::${{steps.open-pr.outputs.pr_number}}"
+
 
       - uses: peter-evans/enable-pull-request-automerge@v2
-        if:  ${{steps.open-pr.outputs.pr_number}} > 0
+        if:  env.PRNUMBER != '0'
         with:
           token: ${{ secrets.REPO_SECRET }}
           merge-method: merge
