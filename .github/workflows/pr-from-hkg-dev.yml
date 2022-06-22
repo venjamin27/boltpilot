@@ -45,6 +45,10 @@ jobs:
 
       - name: Change env variable
         run: echo "::set-env name=PRNUMBER::${{steps.open-pr.outputs.pr_number}}"
+      - name: Change env variable
+        run: echo "::set-env name=PRURL::${{steps.open-pr.outputs.pr_url}}"
+      - name: Change env variable
+        run: echo "::set-env name=PRCHANGED::${{steps.open-pr.outputs.has_changed_files}}"
 
 
       - uses: peter-evans/enable-pull-request-automerge@v2
