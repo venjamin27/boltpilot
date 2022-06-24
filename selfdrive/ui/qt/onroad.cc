@@ -1302,7 +1302,7 @@ void NvgWindow::drawDebugText(QPainter &p) {
   float vision_dist = lead_one.getProb() > .5 ? (lead_one.getX()[0] - 1.5) : 0;
 
   y += height;
-  str.sprintf("Lead: %.1f\n", vision_dist);
+  str.sprintf("Lead d %.1f v_rel: %.1f \n", vision_dist, lead_one.getV()[0]);
   p.drawText(text_x, y, str);
 
   y += height;

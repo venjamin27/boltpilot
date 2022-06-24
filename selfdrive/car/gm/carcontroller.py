@@ -46,6 +46,8 @@ class CarController():
     self.stoppingStateTimeWindowsClosingCounter = 0
     self.pedalAdderClosing = 0
 
+    self.pedalMaxValue = 0.3310
+
 
 
 
@@ -98,7 +100,8 @@ class CarController():
 
       gapInterP = interp(CS.out.vEgo, [19 * CV.KPH_TO_MS, 45*CV.KPH_TO_MS], [1, 0])
       self.comma_pedal =  (gapInterP * self.comma_pedal_original)  +  ((1.0-gapInterP) * self.comma_pedal_new)
-      self.comma_pedal = clip(self.comma_pedal, 0.0 , 0.331) #급가속 방
+
+      self.comma_pedal = clip(self.comma_pedal, 0.0, interp(actuators.accel, [1.25, 1.5], [0.0000, 0.0150]) + self.pedalMaxValue) #급가속 방
 
       actuators.commaPedalOrigin = self.comma_pedal
 
@@ -157,7 +160,7 @@ class CarController():
               self.stoppingStateTimeWindowsActive =False
 
           self.comma_pedal += actuators.pedalAdderFinal
-          self.comma_pedal = clip(self.comma_pedal, 0.0 , 0.3075)
+          self.comma_pedal = clip(self.comma_pedal, 0.0 , (self.pedalMaxValue -0.025))
 
       #braking logic
       if actuators.accel < -0.15 :
