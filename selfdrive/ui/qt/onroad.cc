@@ -1306,13 +1306,13 @@ void NvgWindow::drawDebugText(QPainter &p) {
   str.sprintf("Leadv3 d: %.1f v: %.1f \n", vision_dist, lead_one.getV()[0]);
   p.drawText(text_x, y, str);
 
-  if radar_lead_one.getStatus()  {
+  if (radar_lead_one.getStatus())  {
     y += height;
     str.sprintf("radar: d: %.1f v: %.1f \n", radar_lead_one.getDRel(), radar_lead_one.getVRel());
     p.drawText(text_x, y, str);
   }
   y += height;
-  str.sprintf("Commit: %s\n", vision_dist);
+//  str.sprintf("Commit: %s\n", vision_dist);
   p.drawText(text_x, y, this->gitCommit);
 
   ////
