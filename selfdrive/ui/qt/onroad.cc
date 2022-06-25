@@ -1298,15 +1298,21 @@ void NvgWindow::drawDebugText(QPainter &p) {
 //  p.drawText(text_x, y, str);
 
   auto lead_one = sm["modelV2"].getModelV2().getLeadsV3()[0];
+  auto radar_lead_one = sm["radarState"].getLeadOne();
 
   float vision_dist = lead_one.getProb() > .5 ? (lead_one.getX()[0] - 1.5) : 0;
 
   y += height;
-  str.sprintf("Lead d %.1f v_rel: %.1f \n", vision_dist, lead_one.getV()[0]);
+  str.sprintf("Leadv3 d: %.1f v: %.1f \n", vision_dist, lead_one.getV()[0]);
   p.drawText(text_x, y, str);
 
+  if radar_lead_one.getStatus()  {
+    y += height;
+    str.sprintf("radar: d: %.1f v: %.1f \n", radar_lead_one.getDRel(), radar_lead_one.getVRel());
+    p.drawText(text_x, y, str);
+  }
   y += height;
-//  str.sprintf("Commit: %s\n", vision_dist);
+  str.sprintf("Commit: %s\n", vision_dist);
   p.drawText(text_x, y, this->gitCommit);
 
   ////
