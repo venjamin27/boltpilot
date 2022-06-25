@@ -1298,7 +1298,7 @@ void NvgWindow::drawDebugText(QPainter &p) {
 //  p.drawText(text_x, y, str);
 
   auto lead_one = sm["modelV2"].getModelV2().getLeadsV3()[0];
-  auto radar_lead_one = sm["radarState"].getLeadOne();
+  auto radar_lead_one = sm["radarState"].getRadarState().getLeadOne();
 
   float vision_dist = lead_one.getProb() > .5 ? (lead_one.getX()[0] - 1.5) : 0;
 
