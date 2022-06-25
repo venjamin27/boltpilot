@@ -52,7 +52,7 @@ jobs:
         run: echo "::set-env name=PRCHANGED::${{steps.open-pr.outputs.has_changed_files}}"
 
       - uses: peter-evans/enable-pull-request-automerge@v2
-        if: ${{ env.PRNUMBER > 0 }}
+        if: ${{ env.PRNUMBER > 0 }} && ${{ env.PRNUMBER != '' }}
         with:
           token: ${{ secrets.REPO_SECRET }}
           merge-method: merge
