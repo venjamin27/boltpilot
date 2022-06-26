@@ -101,7 +101,7 @@ class CarController():
       gapInterP = interp(CS.out.vEgo, [19 * CV.KPH_TO_MS, 45*CV.KPH_TO_MS], [1, 0])
       self.comma_pedal =  (gapInterP * self.comma_pedal_original)  +  ((1.0-gapInterP) * self.comma_pedal_new)
 
-      self.comma_pedal = clip(self.comma_pedal, 0.0, interp(actuators.accel, [1.25, 1.5], [0.0000, 0.0150]) + self.pedalMaxValue) #급가속 방
+      self.comma_pedal = clip(self.comma_pedal, 0.0, interp(actuators.accel, [0.85, 1.5], [0.0000, 0.0200]) + self.pedalMaxValue) #급가속 방
 
       actuators.commaPedalOrigin = self.comma_pedal
 
@@ -170,7 +170,7 @@ class CarController():
         can_sends.append(gmcan.create_regen_paddle_command(self.packer_pt, CanBus.POWERTRAIN))
         actuators.regenPaddle = True #for icon
         minMultipiler = interp(CS.out.vEgo, [20 * CV.KPH_TO_MS ,  30 * CV.KPH_TO_MS , 60 * CV.KPH_TO_MS ,120 * CV.KPH_TO_MS ], [0.850, 0.750, 0.625, 0.150])
-        self.comma_pedal *= interp(controls.LoC.pid.f, [-2.25 ,-2.0 , -1.5, -0.600], [0, 0.020, minMultipiler, 0.875])
+        self.comma_pedal *= interp(controls.LoC.pid.f, [-2.25 ,-2.0 , -1.5, -0.600], [0, 0.020, minMultipiler, 0.975])
       actuators.commaPedal = self.comma_pedal
     else:
       self.comma_pedal = 0.0  # Must be set by zero, otherwise cannot re-acceling when stopped. - jc01rho.
