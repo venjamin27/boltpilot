@@ -50,7 +50,9 @@ jobs:
         run: echo "::set-env name=PRURL::${{steps.open-pr.outputs.pr_url}}"
       - name: Change env variable
         run: echo "::set-env name=PRCHANGED::${{steps.open-pr.outputs.has_changed_files}}"
-
+      - name: Show an environment variable
+        run: |
+            echo "PRNUMBER is ${{env.PRNUMBER}}"
       - uses: peter-evans/enable-pull-request-automerge@v2
         if: ${{ env.PRNUMBER > 0 }} && ${{ env.PRNUMBER != '' }}
         with:
