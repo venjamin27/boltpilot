@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: CreatePullRequest and AutoMerge
+name: CreatePullRequest from hkg_dev
 
 # Controls when the action will run. Triggers the workflow on push or pull request
 # events but only for the 075-kegman-lqr branch
@@ -14,6 +14,7 @@ env:
   ## Sets environment variable
   GITHUB_TOKEN:  ${{secrets.GITHUB_TOKEN}}
   ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+  PRNUMBER: -1
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -39,7 +40,7 @@ jobs:
         with:
           source_branch: "hkg_dev"
           destination_branch: "feature/0815"
-          github_token: ${{secrets.GITHUB_TOKEN}}
+          github_token: ${{ secrets.REPO_SECRET }}
 #          pr_assignee: "jc01rho"
           pr_label: "automerge"
 
@@ -49,12 +50,13 @@ jobs:
         run: echo "::set-env name=PRURL::${{steps.open-pr.outputs.pr_url}}"
       - name: Change env variable
         run: echo "::set-env name=PRCHANGED::${{steps.open-pr.outputs.has_changed_files}}"
-
-
+      - name: Show an environment variable
+        run: |
+            echo "PRNUMBER is ${{env.PRNUMBER}}"
       - uses: peter-evans/enable-pull-request-automerge@v2
-        if:  env.PRNUMBER != '0'
+        if: ${{ env.PRNUMBER > 0 }} && ${{ env.PRNUMBER != '' }}
         with:
-          token: ${{secrets.GITHUB_TOKEN}}
+          token: ${{ secrets.REPO_SECRET }}
           merge-method: merge
           pull-request-number: ${{steps.open-pr.outputs.pr_number}}
 
