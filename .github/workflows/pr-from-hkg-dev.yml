@@ -40,23 +40,30 @@ jobs:
         with:
           source_branch: "hkg_dev"
           destination_branch: "feature/0815"
-          github_token: ${{ secrets.REPO_SECRET }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 #          pr_assignee: "jc01rho"
           pr_label: "automerge"
 
-      - name: Change env variable
+      - name: Change env for  PRNUMBER
         run: echo "::set-env name=PRNUMBER::${{steps.open-pr.outputs.pr_number}}"
-      - name: Change env variable
-        run: echo "::set-env name=PRURL::${{steps.open-pr.outputs.pr_url}}"
-      - name: Change env variable
-        run: echo "::set-env name=PRCHANGED::${{steps.open-pr.outputs.has_changed_files}}"
-      - name: Show an environment variable
+
+      - name: Check pr_number presence
+        id: checksecrets
+        shell: bash
         run: |
-            echo "PRNUMBER is ${{env.PRNUMBER}}"
+          if [ "$MULTI_LINE_ARG" == "" ]; then
+            echo ::set-output name=prnumberpresent::false
+          else
+            echo ::set-output name=prnumberpresent::true
+          fi
+        env:
+          MULTI_LINE_ARG: ${{ env.PRNUMBER }}
+
+
       - uses: peter-evans/enable-pull-request-automerge@v2
-        if: ${{ env.PRNUMBER > 0 }} && ${{ env.PRNUMBER != '' }}
+        if: steps.checksecrets.outputs.prnumberpresent == 'true'
         with:
-          token: ${{ secrets.REPO_SECRET }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           merge-method: merge
           pull-request-number: ${{steps.open-pr.outputs.pr_number}}
 
