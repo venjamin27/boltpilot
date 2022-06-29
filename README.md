@@ -14,7 +14,7 @@
 ALL existing Bolt ports, as well as most GM giraffes,GM harnesses and GM Pedals, pedal firmware changes, panda code changes are derived from the original port created by Jason Shuler
 
 ### 문의사항은 오카방 혹은 이슈 생성으로 주십시오. 감사합니다.
-working tested : BoltEV premier 2017, 2018, 2019
+#### working tested : BoltEV premier 2017, 2018, 2019
 rkjnice@gmail.com
 
 ---
@@ -27,7 +27,7 @@ rkjnice@gmail.com
 ALL existing Bolt ports, as well as most GM giraffes,GM harnesses and GM Pedals, pedal firmware changes, panda code changes are derived from the original port created by Jason Shuler
 
 any issues are welcomes.
-working tested : BoltEV premier 2017, 2018, 2019
+#### working tested : BoltEV premier 2017, 2018, 2019
 
 
 [Wanna be a Donator ?](https://jc01rho.com/donation/) [![wanna be a Donator?](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://jc01rho.com/donation/)
