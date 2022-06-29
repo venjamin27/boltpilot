@@ -11,15 +11,7 @@ on:
     - feature/*  # Support wildcard matching
     - release
     - comma2_Eon-final
-  pull_request:
-    types:
-      - opened
-      - synchronize
-      - reopened
-      - edited
-      - ready_for_review
-#      - labeled
-#      - unlabeled
+  pull_request_target:
 
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
