@@ -21,9 +21,9 @@ Table of Contents
 What is boltpilot?
 ------
 
-This "boltpilot" fork is a community supported fork of the open source driver assistance system called openpilot. Boltpilot has been designed spefically for Chevrolet Bolt EV models that lack ACC (Adaptive Cruise Control). Compatibility has been verified with 2017, 2018 and 2019 Bolt EV models. More recent year models might also be compatible but have not yet been confirmed.
+This "boltpilot" fork is a community supported fork of the open source driver assistance system called openpilot. Although the Bolt EV is not currently supported by Comma.ai in the main openpilot release, this customized fork fills that gap. Boltpilot was designed spefically for Chevrolet Bolt EV models that lack ACC (Adaptive Cruise Control). Compatibility has been verified with 2017, 2018 and 2019 Bolt EV models. More recent year models might also be compatible but have not yet been tested.
 
-Currently, boltpilot performs the functions of Adaptive Cruise Control (ACC) and Automated Lane Centering (ALC). It will move your steering wheel to keep your vehicle centred in the lane and can control your vehicle's speed. The system does not offer full self-driving capabilities and will not, for example, stop for red lights or stop signs, although some of these features are currently under development by Comma.ai. The driver must remain alert and able to take control at all times. 
+Currently, boltpilot performs the functions of Adaptive Cruise Control (ACC) and Automated Lane Centering (ALC). It will control your steering wheel to keep your vehicle centred in the lane and can optionally also control your vehicle's speed. The system does not offer full self-driving capabilities and will not, for example, stop for red lights or stop signs, although some of these features are currently under development by Comma.ai. The driver must remain alert and able to take control at all times. 
 
 This is an experimental application used for research and development. It is not a product and carries no warranty exporessed or implied. Use at your own risk. Issue reports are welcome via github, or contact kjnice@gmail.com.
 
@@ -53,25 +53,25 @@ Software installation
 
 1. Select your WiFi network and enter password.
 
-2. When asked to choose between Dashcam and Custom Software, choose Custom Software and enter the URL https://smiskol.com/fork/jc01rho-openpilot-BoltEV2019-KoKr/[branch] where [branch] is the desired branch name. For example, to install the develop branch, enter https://smiskol.com/fork/jc01rho-openpilot-BoltEV2019-KoKr/develop. The "develop" branch is currently recommended for most purposes as it is actively maintained and contains the most up-to-date functioning changes and features. You can also use the shortcut https://tiny.one/boltpilot-develop to install the "develop" branch. This will automatically redirect to the longer URL listed above.
+2. When asked to choose between Dashcam and Custom Software, choose Custom Software and enter the URL https://smiskol.com/fork/jc01rho-openpilot-BoltEV2019-KoKr/[branch] where [branch] is the desired branch name. For example, to install the 'develop' branch, enter https://smiskol.com/fork/jc01rho-openpilot-BoltEV2019-KoKr/develop. The 'develop' branch is currently recommended for most purposes as it is actively maintained and contains the most up-to-date changes and features. You can also use the shortcut https://tiny.one/boltpilot-develop to install the 'develop' branch. This will automatically redirect to the longer URL listed above.
 
 3. Your device will reboot after installation. When prompted, scroll to accept the terms and conditions, then follow the on-screen instructions to complete the openpilot training.
 
 4. Click the Gear icon at the top left to configure settings. Under the "Toggles" menu, ensure "Enable openpilot" and "Use Metric System" toggles are enabled. This fork is not compatible with imperial measures. 
 
-5. Under the "Community" settings, ensure the "Use Comma Pedal" toggle is enabled. The two buttons at the top of the Community settings are used to set steering control and vehicle settings. Click the top right button and select "Chevrolet Bolt EV" for your vehicle. Next, click the top left button and select the type of steering control you wish to use. Good results have been reported with the "PID", TORQUE" and "LQR" options. The "INDI" option will soon be phased out. You may wish to experiment with steering control options to determine which one produces the best results on your vehicle. Reboot your device by selecting the "Device" menu, and then clicking the "Reboot" button. Important: you must reboot your device after changing steering options for the settings to take effect. 
+5. Under the "Community" settings, ensure the "Use Comma Pedal" toggle is enabled. The two buttons at the top of the Community settings are used to set steering control and vehicle settings. Click the top right button and select "Chevrolet Bolt EV" for your vehicle. Next, click the top left button and select the type of steering control you wish to use. Each option represents a a different mathematical approach for steering control calculations. Good results have been reported with the "PID", TORQUE" and "LQR" options. The "INDI" option will soon be phased out. You may wish to experiment with all steering control options to determine which one produces the best results on your vehicle. Reboot your device by selecting the "Device" menu, and then press the "Reboot" button. Important: you must reboot your device after changing steering control options for the settings to take effect. 
 
 
 Boltpilot usage
 ------
 
-Calibration: Your device requires a one-time calibration after software installation. This takes only a couple minutes and will occur automatically st the beginning of your first drive.
+Calibration: Your device requires a one-time calibration after software installation. This takes only a couple minutes and will occur automatically at the beginning of your first drive.
 
 Gear selection: This fork is designed for use in L-mode only. You must place the gear shifter in L. Your vehicle's regenerative braking will be used to lower its speed when requried.
 
 Bolt pilot has two main operation modes: (1) full control mode, which controls both steering and speed, and (2) lateral control mode, which controls only the steering. 
 
-Full control mode: To engage both steering and speed control, make sure the stock cruise control is turned off, and then while driving press the Set/- button (bottom) on the left steering wheel control pad. Pressing the X (left) keypad button will disengage openpilot. 
+Full control mode: To engage both steering and speed control, make sure the stock cruise control is turned off, and then while driving press the Set/- button (bottom button on the left steering wheel control pad). Pressing the X (left) keypad button will disengage openpilot. 
 
 Lateral control mode: Use the stock cruise control button (right button on steering wheel keypad) to toggle steering control only. 
 
@@ -79,13 +79,13 @@ Lateral control mode: Use the stock cruise control button (right button on steer
 Acknowledgments
 ------
 
-This fork is maintained by @whrho (Discord user @jc01rho) of Korea (kjnice@gmail.com). Special thanks to Jason Shuler of Stand Back Labs for his extensive openpilot development work on GM vehicles--especially the Bolt EV, GM giraffe, GM harness, GM Pedal, pedal firmware, and panda coding. Without his work the creation of this fork would not have been possible. Starting with version 0.8.14 this fork is based on the work of @neokii from the Hyundai-Kia fork. Thanks to hanabi95 (@hanabi95) for safety and CAN bus related content. Thank you @Hammie K for the lat_icon_image, and @neokii for the screenrecorder.
+This fork is maintained by @whrho (Discord user @jc01rho) of Korea (kjnice@gmail.com). Special thanks to Jason Shuler of Stand Back Labs for his extensive openpilot development work on GM vehicles--especially the Bolt EV, GM giraffe, GM harness, GM Pedal, pedal firmware, and panda coding. Without his work the creation of this fork would not have been possible. Starting with version 0.8.14 this fork is based on the work of @neokii with the Hyundai-Kia fork. Thanks to hanabi95 (@hanabi95) for safety and CAN bus related content. Thank you @Hammie K for the lat_icon_image, and @neokii for the screenrecorder.
 
 
 Donations
 ------
 
-If you find this fork useful, please consider donating to support the continued development and maintenance of boltpilot. Donations can be made at https://jc01rho.com/donation
+If you find this fork useful, please consider donating to support the continued development and maintenance. Donations can be made at https://jc01rho.com/donation
 
 
 # 볼트EV + 콤마3 전용 오픈파일럿 포크
