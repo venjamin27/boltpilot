@@ -35,7 +35,7 @@ This Bolt-specific fork requires a Comma 3 device (https://comma.ai/shop), a har
 
 Making a custom Bolt EV wiring harness and pedal interceptor requires specialized equipment and considerable skill. However, both of these devices are currently available for purchase from BearTechWorkshop's Etsy store (https://www.etsy.com/ca/shop/BearTechWorkshop).
 
-Earlier comma devices including the Comma 2 and Eon are not supported by the actively maintained branches of this fork. If you intend on using a Comma 2 or Eon you must use the comma2_Eon-final branch. You may need additional hardware with your Comma 2 or Eon as described in the Chevy-Bolt openpilot Wiki (https://github.com/commaai/openpilot/wiki/Chevy-Bolt).
+Earlier comma devices including the Comma 2 and Eon are not supported by the actively maintained branches of this fork. If you intend on using a Comma 2 or Eon you must use the comma2_Eon-final branch, and you may need additional hardware as described in the Chevy-Bolt openpilot Wiki (https://github.com/commaai/openpilot/wiki/Chevy-Bolt).
 
 
 Hardware installation
@@ -51,15 +51,15 @@ Thanks to Jason Shuler of Stand Back Labs for making these videos available.
 Software installation
 ------
 
-1. Select your WiFi network and enter password.
+1. Select your WiFi network and enter Wi-Fi password on your Comma 3 device.
 
 2. When asked to choose between Dashcam and Custom Software, choose Custom Software and enter the URL https://smiskol.com/fork/jc01rho-openpilot-BoltEV2019-KoKr/[branch] where [branch] is the desired branch name. For example, to install the 'develop' branch, enter https://smiskol.com/fork/jc01rho-openpilot-BoltEV2019-KoKr/develop. The 'develop' branch is currently recommended for most purposes as it is actively maintained and contains the most up-to-date changes and features. You can also use the shortcut https://tiny.one/boltpilot-develop to install the 'develop' branch. This will automatically redirect to the longer URL listed above.
 
 3. Your device will reboot after installation. When prompted, scroll to accept the terms and conditions, then follow the on-screen instructions to complete the openpilot training.
 
-4. Click the Gear icon at the top left to configure settings. Under the "Toggles" menu, ensure "Enable openpilot" and "Use Metric System" toggles are enabled. This fork is not compatible with imperial measures. 
+4. Click the Gear icon to open settings. Under the 'Toggles' menu, ensure 'Enable openpilot' and 'Use Metric System' toggles are enabled. This fork is not compatible with imperial measures. 
 
-5. Under the "Community" settings, ensure the "Use Comma Pedal" toggle is enabled. The two buttons at the top of the Community settings are used to set steering control and vehicle settings. Click the top right button and select "Chevrolet Bolt EV" for your vehicle. Next, click the top left button and select the type of steering control you wish to use. Each option represents a a different mathematical approach for steering control calculations. Good results have been reported with the "PID", TORQUE" and "LQR" options. The "INDI" option will soon be phased out. You may wish to experiment with all steering control options to determine which one produces the best results on your vehicle. Reboot your device by selecting the "Device" menu, and then press the "Reboot" button. Important: you must reboot your device after changing steering control options for the settings to take effect. 
+5. Under the 'Community' settings, ensure the 'Use Comma Pedal' toggle is enabled. The two buttons at the top of the Community settings are used to set steering control and vehicle settings. Click the top right button and select 'Chevrolet Bolt EV' for your vehicle. Next, click the top left button and select the type of steering control you wish to use. Each option represents a a different mathematical approach for steering control calculations. Good results have been reported with the PID, TORQUE and LQR options. The INDI option will soon be phased out. You may wish to experiment with all steering control options to determine which one produces the best results on your vehicle. Reboot your device by selecting the 'Device' menu, and then press the 'Reboot' button. Important: you must reboot your device after changing steering control options for the settings to take effect. 
 
 
 Boltpilot usage
@@ -67,11 +67,11 @@ Boltpilot usage
 
 Calibration: Your device requires a one-time calibration after software installation. This takes only a couple minutes and will occur automatically at the beginning of your first drive.
 
-Gear selection: This fork is designed for use in L-mode only. You must place the gear shifter in L. Your vehicle's regenerative braking will be used to lower its speed when requried.
+Gear selection: This fork is designed for use in L-mode only. You must place the gear shifter in L. Your vehicle's regenerative braking will be used to lower the speed when requried.
 
-Bolt pilot has two main operation modes: (1) full control mode, which controls both steering and speed, and (2) lateral control mode, which controls only the steering. 
+Bolt pilot has two main operation modes: (1) full control mode, which controls both steering and speed, and (2) lateral control mode, which controls only the steering.
 
-Full control mode: To engage both steering and speed control, make sure the stock cruise control is turned off, and then while driving press the Set/- button (bottom button on the left steering wheel control pad). Pressing the X (left) keypad button will disengage openpilot. 
+Full control mode: To engage both steering and speed control, make sure the stock cruise control is turned off, and then while driving press the Set/- button (bottom button on the left steering wheel control pad). Pressing the X (left) keypad button or the brake pedal will disengage openpilot. 
 
 Lateral control mode: Use the stock cruise control button (right button on steering wheel keypad) to toggle steering control only. 
 
@@ -141,7 +141,7 @@ And [follow us on Twitter](https://twitter.com/comma_ai).
 User Data and comma Account
 ------
 
-By default, openpilot uploads the driving data to our servers. You can also access your data through [comma connect](https://connect.comma.ai/). We use your data to train better models and improve openpilot for everyone.
+By default, openpilot uploads the driving data to comma.ai's servers. You can also access your data through [comma connect](https://connect.comma.ai/). We use your data to train better models and improve openpilot for everyone.
 
 openpilot is open source software: the user is free to disable data collection if they wish to do so.
 
