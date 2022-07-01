@@ -82,6 +82,8 @@ void OnroadWindow::updateState(const UIState &s) {
     alerts->updateAlert(alert, bgColor);
   }
 
+  nvg->updateState(s);
+
   if (bg != bgColor) {
     // repaint border
     bg = bgColor;
@@ -226,18 +228,18 @@ void OnroadAlerts::paintEvent(QPaintEvent *event) {
   p.setPen(QColor(0xff, 0xff, 0xff));
   p.setRenderHint(QPainter::TextAntialiasing);
   if (alert.size == cereal::ControlsState::AlertSize::SMALL) {
-    configFont(p, "Open Sans", 74, "SemiBold");
+    configFont(p, "Inter", 74, "SemiBold");
     p.drawText(r, Qt::AlignCenter, alert.text1);
   } else if (alert.size == cereal::ControlsState::AlertSize::MID) {
-    configFont(p, "Open Sans", 88, "Bold");
+    configFont(p, "Inter", 88, "Bold");
     p.drawText(QRect(0, c.y() - 125, width(), 150), Qt::AlignHCenter | Qt::AlignTop, alert.text1);
-    configFont(p, "Open Sans", 66, "Regular");
+    configFont(p, "Inter", 66, "Regular");
     p.drawText(QRect(0, c.y() + 21, width(), 90), Qt::AlignHCenter, alert.text2);
   } else if (alert.size == cereal::ControlsState::AlertSize::FULL) {
     bool l = alert.text1.length() > 15;
-    configFont(p, "Open Sans", l ? 132 : 177, "Bold");
+    configFont(p, "Inter", l ? 132 : 177, "Bold");
     p.drawText(QRect(0, r.y() + (l ? 240 : 270), width(), 600), Qt::AlignHCenter | Qt::TextWordWrap, alert.text1);
-    configFont(p, "Open Sans", 88, "Regular");
+    configFont(p, "Inter", 88, "Regular");
     p.drawText(QRect(0, r.height() - (l ? 361 : 420), width(), 300), Qt::AlignHCenter | Qt::TextWordWrap, alert.text2);
   }
 }
@@ -278,23 +280,30 @@ void NvgWindow::initializeGL() {
   
 }
 
-void NvgWindow::updateFrameMat(int w, int h) {
-  CameraViewWidget::updateFrameMat(w, h);
+void NvgWindow::updateState(const UIState &s) {
 
+  if (s.scene.calibration_valid) {
+    CameraViewWidget::updateCalibration(s.scene.view_from_calib);
+  } else {
+    CameraViewWidget::updateCalibration(DEFAULT_CALIBRATION);
+  }
+
+}
+
+void NvgWindow::updateFrameMat() {
+  CameraViewWidget::updateFrameMat();
   UIState *s = uiState();
+  int w = width(), h = height();
+
   s->fb_w = w;
   s->fb_h = h;
-  auto intrinsic_matrix = s->wide_camera ? ecam_intrinsic_matrix : fcam_intrinsic_matrix;
-  float zoom = ZOOM / intrinsic_matrix.v[0];
-  if (s->wide_camera) {
-    zoom *= 0.5;
-  }
+
   // Apply transformation such that video pixel coordinates match video
   // 1) Put (0, 0) in the middle of the video
   // 2) Apply same scaling as video
   // 3) Put (0, 0) in top left corner of video
   s->car_space_transform.reset();
-  s->car_space_transform.translate(w / 2, h / 2 + y_offset)
+  s->car_space_transform.translate(w / 2 - x_offset, h / 2 - y_offset)
       .scale(zoom, zoom)
       .translate(-intrinsic_matrix.v[2], -intrinsic_matrix.v[5]);
 }
@@ -380,7 +389,6 @@ void NvgWindow::paintGL() {
 }
 
 void NvgWindow::paintEvent(QPaintEvent *event) {
-
 
   UIState *s = uiState();
   const cereal::ModelDataV2::Reader &model = (*s->sm)["modelV2"].getModelV2();
@@ -498,12 +506,11 @@ void NvgWindow::drawHud(QPainter &p, const cereal::ModelDataV2::Reader &model) {
   int scc_bus = car_params.getSccBus();
 
   QString infoText;
-  infoText.sprintf("%s AO(%.2f/%.2f) SR(%.2f) SRC(%.2f) SAD(%.2f) BUS(MDPS %d, SCC %d) SCC(%.2f/%.2f/%.2f)",
+  infoText.sprintf("%s AO(%.2f/%.2f) SR(%.2f) SAD(%.2f) BUS(MDPS %d, SCC %d) SCC(%.2f/%.2f/%.2f)",
                       s->lat_control.c_str(),
                       live_params.getAngleOffsetDeg(),
                       live_params.getAngleOffsetAverageDeg(),
                       controls_state.getSteerRatio(),
-                      controls_state.getSteerRateCost(),
                       controls_state.getSteerActuatorDelay(),
                       mdps_bus, scc_bus,
                       controls_state.getSccGasFactor(),
@@ -514,7 +521,7 @@ void NvgWindow::drawHud(QPainter &p, const cereal::ModelDataV2::Reader &model) {
   // info
 
   p.save();
-  configFont(p, "Open Sans", 34, "Regular");
+  configFont(p, "Inter", 34, "Regular");
   p.setPen(QColor(0xff, 0xff, 0xff, 200));
   p.drawText(rect().left() + 20, rect().height() - 15, infoText);
   p.restore();
@@ -666,10 +673,10 @@ void NvgWindow::drawSpeed(QPainter &p) {
 
   QString speed;
   speed.sprintf("%.0f", cur_speed);
-  configFont(p, "Open Sans", 176, "Bold");
+  configFont(p, "Inter", 176, "Bold");
   drawTextWithColor(p, rect().center().x(), 230, speed, color);
 
-  configFont(p, "Open Sans", 66, "Regular");
+  configFont(p, "Inter", 66, "Regular");
   drawText(p, rect().center().x(), 310, s->scene.is_metric ? "km/h" : "mph", 200);
 
   p.restore();
@@ -890,7 +897,7 @@ void NvgWindow::drawSteer(QPainter &p) {
   float steer_angle = car_state.getSteeringAngleDeg();
   float desire_angle = car_control.getActuators().getSteeringAngleDeg();
 
-  configFont(p, "Open Sans", 50, "Bold");
+  configFont(p, "Inter", 50, "Bold");
 
   QString str;
   int width = 192;
@@ -969,7 +976,7 @@ void NvgWindow::drawThermal(QPainter &p) {
   QString str;
   QRect rect;
 
-  configFont(p, "Open Sans", 50, "Bold");
+  configFont(p, "Inter", 50, "Bold");
   str.sprintf("%.0f°C", cpuTemp);
   rect = QRect(x, y, w, w);
 
@@ -979,13 +986,13 @@ void NvgWindow::drawThermal(QPainter &p) {
   p.drawText(rect, Qt::AlignCenter, str);
 
   y += 55;
-  configFont(p, "Open Sans", 25, "Bold");
+  configFont(p, "Inter", 25, "Bold");
   rect = QRect(x, y, w, w);
   p.setPen(QColor(255, 255, 255, 200));
   p.drawText(rect, Qt::AlignCenter, "CPU");
 
   y += 80;
-  configFont(p, "Open Sans", 50, "Bold");
+  configFont(p, "Inter", 50, "Bold");
   str.sprintf("%.0f°C", ambientTemp);
   rect = QRect(x, y, w, w);
   r = interp<float>(ambientTemp, {35.f, 60.f}, {200.f, 255.f}, false);
@@ -994,7 +1001,7 @@ void NvgWindow::drawThermal(QPainter &p) {
   p.drawText(rect, Qt::AlignCenter, str);
 
   y += 55;
-  configFont(p, "Open Sans", 25, "Bold");
+  configFont(p, "Inter", 25, "Bold");
   rect = QRect(x, y, w, w);
   p.setPen(QColor(255, 255, 255, 200));
   p.drawText(rect, Qt::AlignCenter, "AMBIENT");
@@ -1066,16 +1073,16 @@ void NvgWindow::drawRestAreaItem(QPainter &p, int yPos, capnp::Text::Reader imag
   int x = rc.left() + mx;
   int y = rc.top() + my;
 
-  configFont(p, "Open Sans", 60, "Bold");
+  configFont(p, "Inter", 60, "Bold");
   p.drawText(x, y+60+5, title.cStr());
 
   QPixmap icon = get_icon_iol_com(image.cStr());
   p.drawPixmap(x, y + box_height/2 + 5, icon_size, icon_size, icon);
 
-  configFont(p, "Open Sans", 50, "Bold");
+  configFont(p, "Inter", 50, "Bold");
   p.drawText(x + icon_size + 15, y + box_height/2 + 50 + 5, oilPrice.cStr());
 
-  configFont(p, "Open Sans", 60, "Bold");
+  configFont(p, "Inter", 60, "Bold");
 
   QFontMetrics fm(p.font());
   QRect rect = fm.boundingRect(distance.cStr());
@@ -1182,7 +1189,7 @@ void NvgWindow::drawGpsStatus(QPainter &p) {
   p.setOpacity(0.8);
   p.drawPixmap(x, y, w, h, ic_satellite);
 
-  configFont(p, "Open Sans", 40, "Bold");
+  configFont(p, "Inter", 40, "Bold");
   p.setPen(QColor(255, 255, 255, 200));
   p.setRenderHint(QPainter::TextAntialiasing);
 
@@ -1237,7 +1244,7 @@ void NvgWindow::drawDebugText(QPainter &p) {
 
   const char* long_state[] = {"off", "pid", "stopping", "starting"};
 
-  configFont(p, "Open Sans", 35, "Regular");
+  configFont(p, "Inter", 35, "Regular");
   p.setPen(QColor(255, 255, 255, 200));
   p.setRenderHint(QPainter::TextAntialiasing);
 

@@ -299,7 +299,7 @@ class SccSmoother(SingletonInstance):
       lead = self.get_lead(sm)
       if lead is not None:
         d = lead.dRel - 5.
-        if 0. < d < -lead.vRel * (9. + 0.) * 2. and lead.vRel < -1.25:
+        if 0. < d < -lead.vRel * (9. + 4.5) * 2. and lead.vRel < -1.25:
           t = d / lead.vRel
           accel = -(lead.vRel / t) * self.speed_conv_to_clu
           accel *= 1.025
