@@ -61,7 +61,7 @@ jobs:
 
 
       - uses: peter-evans/enable-pull-request-automerge@v2
-        if: ${{ steps.checksecrets.outputs.prnumberpresent }}
+        if: ${{ env.PRNUMBER != '' &&  steps.checksecrets.outputs.prnumberpresent == 'true' }}
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           merge-method: merge
