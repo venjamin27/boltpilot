@@ -121,7 +121,7 @@ jobs:
         run : sudo chmod 777 -R /home/runner/.cache/apt/
 
       - name: pip-install
-        run : pip install --upgrade  setuptools pip & pip install scons sympy cython numpy pycapnp cffi zmq smbus2 casadi pycryptodome future-fstrings setproctitle hatanaka
+        run : pip install --upgrade  setuptools pip & pip install scons sympy cython numpy pycapnp cffi zmq smbus2 casadi pycryptodome future-fstrings setproctitle hatanaka pycurl
 
       - name: scons-cache-clean
         if: steps.date.outputs.date == '1'
