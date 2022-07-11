@@ -6,7 +6,7 @@ name: Pull (Fast-Forward) upstream changes
 # events but only for the 075-kegman-lqr branch
 on:
   schedule:
-    - cron: '49 */6 * * *'
+    - cron: '41 */12 * * *'
   workflow_dispatch:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
