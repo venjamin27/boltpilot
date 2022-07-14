@@ -40,7 +40,7 @@ jobs:
         with:
           source_branch: "hkg_dev"
           destination_branch: "feature/0815"
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token:  ${{ secrets.REPO_SECRET }}
 #          pr_assignee: "jc01rho"
           pr_label: "automerge"
 
@@ -56,16 +56,22 @@ jobs:
           else
             echo "true ongoing";  echo ::set-output name=prnumberpresent::true
           fi
+          sleep 20s;
         env:
           MULTI_LINE_ARG: ${{ env.PRNUMBER }}
 
 
-      - uses: peter-evans/enable-pull-request-automerge@v2
-        if: steps.checksecrets.outputs.prnumberpresent == 'true'
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          merge-method: merge
-          pull-request-number: ${{steps.open-pr.outputs.pr_number}}
+      - uses: jitterbit/await-check-suites@v1
+        if: ${{ env.PRNUMBER != '' &&  steps.checksecrets.outputs.prnumberpresent == 'true' }}
+
+      - id: automerge
+        if: ${{ env.PRNUMBER != '' &&  steps.checksecrets.outputs.prnumberpresent == 'true' }}
+        name: automerge
+        uses: "pascalgn/automerge-action@v0.15.3"
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+
+
 
 
 
