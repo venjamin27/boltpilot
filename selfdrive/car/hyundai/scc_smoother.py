@@ -171,7 +171,7 @@ class SccSmoother(SingletonInstance):
 
     max_speed_log = ""
 
-    if apply_limit_speed >= self.kph_to_clu(20):
+    if apply_limit_speed >= self.kph_to_clu(10):
 
       if first_started:
         self.max_speed_clu = clu11_speed
@@ -299,10 +299,10 @@ class SccSmoother(SingletonInstance):
       lead = self.get_lead(sm)
       if lead is not None:
         d = lead.dRel - 5.
-        if 0. < d < -lead.vRel * (9. + 4.5) * 2. and lead.vRel < -1.25:
+        if 0. < d < -lead.vRel * (9. + 3.) * 2. and lead.vRel < -1.:
           t = d / lead.vRel
           accel = -(lead.vRel / t) * self.speed_conv_to_clu
-          accel *= 1.025
+          accel *= 1.075
 
           if accel < 0.:
             target_speed = clu11_speed + accel
@@ -333,7 +333,7 @@ class SccSmoother(SingletonInstance):
   def cal_target_speed(self, CS, clu11_speed, controls):
 
     if not self.longcontrol:
-      if CS.gas_pressed and self.sync_set_speed_while_gas_pressed and CS.cruise_buttons == Buttons.NONE:
+      if CS.gas_pressed and self.sync_set_speed_while_gas_pressed and CS.cruise_buttons[-1] == Buttons.NONE:
         if clu11_speed + SYNC_MARGIN > self.kph_to_clu(controls.v_cruise_kph):
           set_speed = clip(clu11_speed + SYNC_MARGIN, self.min_set_speed_clu, self.max_set_speed_clu)
           controls.v_cruise_kph = set_speed * self.speed_conv_to_ms * CV.MS_TO_KPH
@@ -344,7 +344,7 @@ class SccSmoother(SingletonInstance):
         self.target_speed = clip(self.target_speed, self.min_set_speed_clu, self.max_speed_clu)
 
     elif CS.cruiseState_enabled:
-      if CS.gas_pressed and self.sync_set_speed_while_gas_pressed and CS.cruise_buttons == Buttons.NONE:
+      if CS.gas_pressed and self.sync_set_speed_while_gas_pressed and CS.cruise_buttons[-1] == Buttons.NONE:
         if clu11_speed + SYNC_MARGIN > self.kph_to_clu(controls.v_cruise_kph):
           set_speed = clip(clu11_speed + SYNC_MARGIN, self.min_set_speed_clu, self.max_set_speed_clu)
           self.target_speed = set_speed

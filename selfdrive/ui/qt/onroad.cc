@@ -82,6 +82,12 @@ void OnroadWindow::updateState(const UIState &s) {
     alerts->updateAlert(alert, bgColor);
   }
 
+  if (s.scene.map_on_left) {
+    split->setDirection(QBoxLayout::LeftToRight);
+  } else {
+    split->setDirection(QBoxLayout::RightToLeft);
+  }
+
   nvg->updateState(s);
 
   if (bg != bgColor) {
@@ -156,7 +162,7 @@ void OnroadWindow::offroadTransition(bool offroad) {
       QObject::connect(uiState(), &UIState::offroadTransition, m, &MapWindow::offroadTransition);
 
       m->setFixedWidth(topWidget(this)->width() / 2);
-      split->addWidget(m, 0, Qt::AlignRight);
+      split->insertWidget(0, m);
 
       // Make map visible after adding to split
       m->offroadTransition(offroad);
@@ -489,7 +495,7 @@ void NvgWindow::drawHud(QPainter &p, const cereal::ModelDataV2::Reader &model) {
   drawMaxSpeed(p);
   drawSpeed(p);
   drawSteer(p);
-  drawThermal(p);
+  drawDeviceState(p);
   drawRestArea(p);
   //drawTurnSignals(p);
   drawGpsStatus(p);
@@ -974,11 +980,13 @@ float interp(float x, std::initializer_list<T> x_list, std::initializer_list<T> 
   return yL + dydx * ( x - xL );
 }
 
-void NvgWindow::drawThermal(QPainter &p) {
+void NvgWindow::drawDeviceState(QPainter &p) {
   p.save();
 
   const SubMaster &sm = *(uiState()->sm);
   auto deviceState = sm["deviceState"].getDeviceState();
+
+  const auto freeSpacePercent = deviceState.getFreeSpacePercent();
 
   const auto cpuTempC = deviceState.getCpuTempC();
   //const auto gpuTempC = deviceState.getGpuTempC();
@@ -1004,17 +1012,32 @@ void NvgWindow::drawThermal(QPainter &p) {
 
   int w = 192;
   int x = width() - (30 + w);
-  int y = 450;
+  int y = 340;
 
   QString str;
   QRect rect;
 
   configFont(p, "Inter", 50, "Bold");
-  str.sprintf("%.0f°C", cpuTemp);
+  str.sprintf("%.0f%%", freeSpacePercent);
   rect = QRect(x, y, w, w);
 
-  int r = interp<float>(cpuTemp, {50.f, 90.f}, {200.f, 255.f}, false);
-  int g = interp<float>(cpuTemp, {50.f, 90.f}, {255.f, 200.f}, false);
+  int r = interp<float>(freeSpacePercent, {10.f, 90.f}, {255.f, 200.f}, false);
+  int g = interp<float>(freeSpacePercent, {10.f, 90.f}, {200.f, 255.f}, false);
+  p.setPen(QColor(r, g, 200, 200));
+  p.drawText(rect, Qt::AlignCenter, str);
+
+  y += 55;
+  configFont(p, "Inter", 25, "Bold");
+  rect = QRect(x, y, w, w);
+  p.setPen(QColor(255, 255, 255, 200));
+  p.drawText(rect, Qt::AlignCenter, "STORAGE");
+
+  y += 80;
+  configFont(p, "Inter", 50, "Bold");
+  str.sprintf("%.0f°C", cpuTemp);
+  rect = QRect(x, y, w, w);
+  r = interp<float>(cpuTemp, {50.f, 90.f}, {200.f, 255.f}, false);
+  g = interp<float>(cpuTemp, {50.f, 90.f}, {255.f, 200.f}, false);
   p.setPen(QColor(r, g, 200, 200));
   p.drawText(rect, Qt::AlignCenter, str);
 
