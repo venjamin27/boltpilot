@@ -171,7 +171,7 @@ class SccSmoother(SingletonInstance):
 
     max_speed_log = ""
 
-    if apply_limit_speed >= self.kph_to_clu(20):
+    if apply_limit_speed >= self.kph_to_clu(10):
 
       if first_started:
         self.max_speed_clu = clu11_speed
@@ -299,10 +299,10 @@ class SccSmoother(SingletonInstance):
       lead = self.get_lead(sm)
       if lead is not None:
         d = lead.dRel - 5.
-        if 0. < d < -lead.vRel * (9. + 4.5) * 2. and lead.vRel < -1.25:
+        if 0. < d < -lead.vRel * (9. + 3.) * 2. and lead.vRel < -1.:
           t = d / lead.vRel
           accel = -(lead.vRel / t) * self.speed_conv_to_clu
-          accel *= 1.025
+          accel *= 1.075
 
           if accel < 0.:
             target_speed = clu11_speed + accel

@@ -83,6 +83,12 @@ TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
       tr("Use 24h format instead of am/pm"),
       "../assets/offroad/icon_metric.png",
     },
+    {
+      "NavSettingLeftSide",
+      tr("Show Map on Left Side of UI"),
+      tr("Show map on left side when in split screen view."),
+      "../assets/offroad/icon_road.png",
+    },
 #endif
 
   };
@@ -145,7 +151,7 @@ DevicePanel::DevicePanel(SettingsWindow *parent) : ListWidget(parent) {
   // offroad-only buttons
 
   auto dcamBtn = new ButtonControl(tr("Driver Camera"), tr("PREVIEW"),
-                                   tr("Preview the driver facing camera to help optimize device mounting position for best driver monitoring experience. (vehicle must be off)"));
+                                   tr("Preview the driver facing camera to ensure that driver monitoring has good visibility. (vehicle must be off)"));
   connect(dcamBtn, &ButtonControl::clicked, [=]() { emit showDriverView(); });
   addItem(dcamBtn);
 
@@ -180,7 +186,8 @@ DevicePanel::DevicePanel(SettingsWindow *parent) : ListWidget(parent) {
   auto translateBtn = new ButtonControl(tr("Change Language"), tr("CHANGE"), "");
   connect(translateBtn, &ButtonControl::clicked, [=]() {
     QMap<QString, QString> langs = getSupportedLanguages();
-    QString selection = MultiOptionDialog::getSelection(tr("Select a language"), langs.keys(), this);
+    QString currentLang = QString::fromStdString(Params().get("LanguageSetting"));
+    QString selection = MultiOptionDialog::getSelection(tr("Select a language"), langs.keys(), langs.key(currentLang), this);
     if (!selection.isEmpty()) {
       // put language setting, exit Qt UI, and trigger fast restart
       Params().put("LanguageSetting", langs[selection].toStdString());
@@ -310,7 +317,7 @@ SoftwarePanel::SoftwarePanel(QWidget* parent) : ListWidget(parent) {
   });
 
 
-  auto uninstallBtn = new ButtonControl(tr("Uninstall ") + getBrand(), tr("UNINSTALL"));
+  auto uninstallBtn = new ButtonControl(tr("Uninstall %1").arg(getBrand()), tr("UNINSTALL"));
   connect(uninstallBtn, &ButtonControl::clicked, [&]() {
     if (ConfirmationDialog::confirm(tr("Are you sure you want to uninstall?"), this)) {
       params.putBool("DoUninstall", true);
@@ -764,7 +771,7 @@ LateralControl::LateralControl(QWidget* parent): QWidget(parent) {
   QScroller::grabGesture(list->viewport(), QScroller::LeftMouseButtonGesture);
   list->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
 
-  QStringList items = {"TORQUE", "LQR", "INDI", "PID"};
+  QStringList items = {"TORQUE", "INDI", "PID"};
   list->addItems(items);
   list->setCurrentRow(0);
 
