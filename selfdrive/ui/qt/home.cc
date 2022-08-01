@@ -85,6 +85,7 @@ void HomeWindow::mouseReleaseEvent(QMouseEvent* e) {
 }
 
 void HomeWindow::mouseDoubleClickEvent(QMouseEvent* e) {
+  HomeWindow::mousePressEvent(e);
   const SubMaster &sm = *(uiState()->sm);
   if (sm["carParams"].getCarParams().getNotCar()) {
     if (onroad->isVisible()) {
@@ -92,6 +93,7 @@ void HomeWindow::mouseDoubleClickEvent(QMouseEvent* e) {
     } else if (body->isVisible()) {
       slayout->setCurrentWidget(onroad);
     }
+    showSidebar(false);
   }
 }
 
@@ -109,7 +111,7 @@ OffroadHome::OffroadHome(QWidget* parent) : QFrame(parent) {
   date = new QLabel();
   header_layout->addWidget(date, 1, Qt::AlignHCenter | Qt::AlignLeft);
 
-  update_notif = new QPushButton("UPDATE");
+  update_notif = new QPushButton(tr("UPDATE"));
   update_notif->setVisible(false);
   update_notif->setStyleSheet("background-color: #364DEF;");
   QObject::connect(update_notif, &QPushButton::clicked, [=]() { center_layout->setCurrentIndex(1); });
@@ -181,7 +183,14 @@ void OffroadHome::hideEvent(QHideEvent *event) {
 }
 
 void OffroadHome::refresh() {
-  date->setText(QDateTime::currentDateTime().toString("dddd, MMMM d"));
+  QString translation_file = QString::fromStdString(Params().get("LanguageSetting"));
+  if(translation_file.contains("ko")) {
+    QLocale locale(QLocale("ko_KR"));
+    date->setText(locale.toString(QDateTime::currentDateTime(), QLocale::NarrowFormat));
+  }
+  else {
+    date->setText(QLocale::system().toString(QDateTime::currentDateTime(), QLocale::NarrowFormat));
+  }
 
   bool updateAvailable = update_widget->refresh();
   int alerts = alerts_widget->refresh();
@@ -200,6 +209,6 @@ void OffroadHome::refresh() {
   update_notif->setVisible(updateAvailable);
   alert_notif->setVisible(alerts);
   if (alerts) {
-    alert_notif->setText(QString::number(alerts) + (alerts > 1 ? " ALERTS" : " ALERT"));
+    alert_notif->setText(QString::number(alerts) + (alerts > 1 ? tr(" ALERTS") : tr(" ALERT")));
   }
 }

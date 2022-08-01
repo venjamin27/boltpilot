@@ -4,6 +4,7 @@ from cereal import log
 from common.numpy_fast import interp
 from selfdrive.controls.lib.latcontrol import LatControl, MIN_STEER_SPEED
 from selfdrive.controls.lib.pid import PIDController
+from selfdrive.controls.lib.drive_helpers import apply_deadzone
 from selfdrive.controls.lib.vehicle_model import ACCELERATION_DUE_TO_GRAVITY
 from selfdrive.ntune import nTune
 from selfdrive.controls.lib.latcontrol_pid import ERROR_RATE_FRAME
@@ -20,17 +21,8 @@ from selfdrive.controls.lib.latcontrol_pid import ERROR_RATE_FRAME
 # move it at all, this is compensated for too.
 
 
-LOW_SPEED_FACTOR = 200
-JERK_THRESHOLD = 0.2
+FRICTION_THRESHOLD = 0.2
 
-def apply_deadzone(error, deadzone):
-  if error > deadzone:
-    error -= deadzone
-  elif error < - deadzone:
-    error += deadzone
-  else:
-    error = 0.
-  return error
 
 class LatControlTorque(LatControl):
   def __init__(self, CP, CI):
@@ -42,13 +34,13 @@ class LatControlTorque(LatControl):
     self.use_steering_angle = CP.lateralTuning.torque.useSteeringAngle
     self.friction = CP.lateralTuning.torque.friction
     self.kf = CP.lateralTuning.torque.kf
-    self.deadzone = CP.lateralTuning.torque.deadzone
+    self.steering_angle_deadzone_deg = CP.lateralTuning.torque.steeringAngleDeadzoneDeg
     self.errors = []
     self.tune = nTune(CP, self)
 
   def reset(self):
     super().reset()
-    self.pid.reset()
+    #self.pid.reset()
     self.errors = []
 
   def update(self, active, CS, VM, params, last_actuators, desired_curvature, desired_curvature_rate, llk):
@@ -63,15 +55,24 @@ class LatControlTorque(LatControl):
     else:
       if self.use_steering_angle:
         actual_curvature = -VM.calc_curvature(math.radians(CS.steeringAngleDeg - params.angleOffsetDeg), CS.vEgo, params.roll)
+        curvature_deadzone = abs(VM.calc_curvature(math.radians(self.steering_angle_deadzone_deg), CS.vEgo, 0.0))
       else:
-        actual_curvature = llk.angularVelocityCalibrated.value[2] / CS.vEgo
+        actual_curvature_vm = -VM.calc_curvature(math.radians(CS.steeringAngleDeg - params.angleOffsetDeg), CS.vEgo, params.roll)
+        actual_curvature_llk = llk.angularVelocityCalibrated.value[2] / CS.vEgo
+        actual_curvature = interp(CS.vEgo, [2.0, 5.0], [actual_curvature_vm, actual_curvature_llk])
+        curvature_deadzone = 0.0
       desired_lateral_accel = desired_curvature * CS.vEgo ** 2
-      desired_lateral_jerk = desired_curvature_rate * CS.vEgo ** 2
-      actual_lateral_accel = actual_curvature * CS.vEgo ** 2
 
-      setpoint = desired_lateral_accel + LOW_SPEED_FACTOR * desired_curvature
-      measurement = actual_lateral_accel + LOW_SPEED_FACTOR * actual_curvature
+      # desired rate is the desired rate of change in the setpoint, not the absolute desired curvature
+      #desired_lateral_jerk = desired_curvature_rate * CS.vEgo ** 2
+      actual_lateral_accel = actual_curvature * CS.vEgo ** 2
+      lateral_accel_deadzone = curvature_deadzone * CS.vEgo ** 2
+
+      speed_factor = interp(CS.vEgo, [10, 20, 30, 40], [500, 300, 100, 0])
+      setpoint = desired_lateral_accel + speed_factor * desired_curvature
+      measurement = actual_lateral_accel + speed_factor * actual_curvature
       error = setpoint - measurement
+      pid_log.error = error
 
       error_rate = 0
       if len(self.errors) >= ERROR_RATE_FRAME:
@@ -81,16 +82,12 @@ class LatControlTorque(LatControl):
       while len(self.errors) > ERROR_RATE_FRAME:
         self.errors.pop(0)
 
-      error_deadzone = apply_deadzone(error, self.deadzone)
-
-      pid_log.error = error_deadzone
-
       ff = desired_lateral_accel - params.roll * ACCELERATION_DUE_TO_GRAVITY
       # convert friction into lateral accel units for feedforward
-      friction_compensation = interp(desired_lateral_jerk, [-JERK_THRESHOLD, JERK_THRESHOLD], [-self.friction, self.friction])
+      friction_compensation = interp(apply_deadzone(error, lateral_accel_deadzone), [-FRICTION_THRESHOLD, FRICTION_THRESHOLD], [-self.friction, self.friction])
       ff += friction_compensation / self.kf
       freeze_integrator = CS.steeringRateLimited or CS.steeringPressed or CS.vEgo < 5
-      output_torque = self.pid.update(error_deadzone, error_rate,
+      output_torque = self.pid.update(error, error_rate,
                                       feedforward=ff,
                                       speed=CS.vEgo,
                                       freeze_integrator=freeze_integrator)

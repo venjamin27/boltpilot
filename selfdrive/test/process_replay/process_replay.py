@@ -4,9 +4,7 @@ import os
 import sys
 import threading
 import time
-import shutil
 import signal
-import uuid
 from collections import namedtuple
 
 import capnp
@@ -16,8 +14,10 @@ from cereal import car, log
 from cereal.services import service_list
 from common.params import Params
 from common.timeout import Timeout
-from selfdrive.car.fingerprints import FW_VERSIONS
+from common.realtime import DT_CTRL
+from panda.python import ALTERNATIVE_EXPERIENCE
 from selfdrive.car.car_helpers import get_car, interfaces
+from selfdrive.test.process_replay.helpers import OpenpilotPrefix
 from selfdrive.manager.process import PythonProcess
 from selfdrive.manager.process_config import managed_processes
 
@@ -28,14 +28,14 @@ TIMEOUT = 15
 PROC_REPLAY_DIR = os.path.dirname(os.path.abspath(__file__))
 FAKEDATA = os.path.join(PROC_REPLAY_DIR, "fakedata/")
 
-ProcessConfig = namedtuple('ProcessConfig', ['proc_name', 'pub_sub', 'ignore', 'init_callback', 'should_recv_callback', 'tolerance', 'fake_pubsubmaster', 'submaster_config'], defaults=({},))
+ProcessConfig = namedtuple('ProcessConfig', ['proc_name', 'pub_sub', 'ignore', 'init_callback', 'should_recv_callback', 'tolerance', 'fake_pubsubmaster', 'submaster_config', 'environ', 'subtest_name', "field_tolerances"], defaults=({}, {}, "", {}))
 
 
 def wait_for_event(evt):
   if not evt.wait(TIMEOUT):
     if threading.currentThread().getName() == "MainThread":
       # tested process likely died. don't let test just hang
-      raise Exception("Timeout reached. Tested process likely crashed.")
+      raise Exception(f"Timeout reached. Tested process {os.environ['PROC_NAME']} likely crashed.")
     else:
       # done testing this process, let it die
       sys.exit(0)
@@ -191,6 +191,7 @@ def get_car_params(msgs, fsm, can_sock, fingerprint):
     _, CP = get_car(can, sendcan)
   Params().put("CarParams", CP.to_bytes())
 
+
 def controlsd_rcv_callback(msg, CP, cfg, fsm):
   # no sendcan until controlsd is initialized
   socks = [s for s in cfg.pub_sub[msg.which()] if
@@ -198,6 +199,7 @@ def controlsd_rcv_callback(msg, CP, cfg, fsm):
   if "sendcan" in socks and fsm.frame < 2000:
     socks.remove("sendcan")
   return socks, len(socks) > 0
+
 
 def radar_rcv_callback(msg, CP, cfg, fsm):
   if msg.which() != "can":
@@ -237,20 +239,30 @@ def ublox_rcv_callback(msg):
     return []
 
 
+def laika_rcv_callback(msg, CP, cfg, fsm):
+  if msg.which() == 'ubloxGnss' and msg.ubloxGnss.which() == "measurementReport":
+    return ["gnssMeasurements"], True
+  else:
+    return [], True
+
+
 CONFIGS = [
   ProcessConfig(
     proc_name="controlsd",
     pub_sub={
       "can": ["controlsState", "carState", "carControl", "sendcan", "carEvents", "carParams"],
       "deviceState": [], "pandaStates": [], "peripheralState": [], "liveCalibration": [], "driverMonitoringState": [], "longitudinalPlan": [], "lateralPlan": [], "liveLocationKalman": [], "liveParameters": [], "radarState": [],
-      "modelV2": [], "driverCameraState": [], "roadCameraState": [], "managerState": [], "testJoystick": [],
+      "modelV2": [], "driverCameraState": [], "roadCameraState": [], "wideRoadCameraState": [], "managerState": [], "testJoystick": [],
     },
     ignore=["logMonoTime", "valid", "controlsState.startMonoTime", "controlsState.cumLagMs"],
     init_callback=fingerprint,
     should_recv_callback=controlsd_rcv_callback,
     tolerance=NUMPY_TOLERANCE,
     fake_pubsubmaster=True,
-    submaster_config={'ignore_avg_freq': ['radarState', 'longitudinalPlan']}
+    submaster_config={
+      'ignore_avg_freq': ['radarState', 'longitudinalPlan', 'driverCameraState', 'driverMonitoringState'],  # dcam is expected at 20 Hz
+      'ignore_alive': ['wideRoadCameraState'],  # TODO: Add to regen
+    }
   ),
   ProcessConfig(
     proc_name="radard",
@@ -280,7 +292,8 @@ CONFIGS = [
     proc_name="calibrationd",
     pub_sub={
       "carState": ["liveCalibration"],
-      "cameraOdometry": []
+      "cameraOdometry": [],
+      "carParams": [],
     },
     ignore=["logMonoTime", "valid"],
     init_callback=get_car_params,
@@ -291,7 +304,7 @@ CONFIGS = [
   ProcessConfig(
     proc_name="dmonitoringd",
     pub_sub={
-      "driverState": ["driverMonitoringState"],
+      "driverStateV2": ["driverMonitoringState"],
       "liveCalibration": [], "carState": [], "modelV2": [], "controlsState": [],
     },
     ignore=["logMonoTime", "valid"],
@@ -335,54 +348,83 @@ CONFIGS = [
     tolerance=None,
     fake_pubsubmaster=False,
   ),
+  ProcessConfig(
+    proc_name="laikad",
+    subtest_name="Offline",
+    pub_sub={
+      "ubloxGnss": ["gnssMeasurements"],
+      "clocks": []
+    },
+    ignore=["logMonoTime"],
+    init_callback=get_car_params,
+    should_recv_callback=laika_rcv_callback,
+    tolerance=NUMPY_TOLERANCE,
+    fake_pubsubmaster=True,
+    environ={"LAIKAD_NO_INTERNET": "1"},
+  ),
+  ProcessConfig(
+    proc_name="laikad",
+    pub_sub={
+      "ubloxGnss": ["gnssMeasurements"],
+      "clocks": []
+    },
+    ignore=["logMonoTime"],
+    init_callback=get_car_params,
+    should_recv_callback=laika_rcv_callback,
+    tolerance=NUMPY_TOLERANCE,
+    fake_pubsubmaster=True,
+  ),
 ]
-
-def setup_prefix():
-  os.environ['OPENPILOT_PREFIX'] = str(uuid.uuid4())
-  msgq_path = os.path.join('/dev/shm', os.environ['OPENPILOT_PREFIX'])
-  try:
-    os.mkdir(msgq_path)
-  except FileExistsError:
-    pass
-
-
-def teardown_prefix():
-  if not os.environ.get("OPENPILOT_PREFIX", 0):
-    return
-  symlink_path = Params().get_param_path()
-  if os.path.exists(symlink_path):
-    shutil.rmtree(os.path.realpath(symlink_path), ignore_errors=True)
-    os.remove(symlink_path)
-  msgq_path = os.path.join('/dev/shm', os.environ['OPENPILOT_PREFIX'])
-  shutil.rmtree(msgq_path, ignore_errors=True)
 
 
 def replay_process(cfg, lr, fingerprint=None):
-  setup_prefix()
-  try:
+  with OpenpilotPrefix():
     if cfg.fake_pubsubmaster:
       return python_replay_process(cfg, lr, fingerprint)
     else:
       return cpp_replay_process(cfg, lr, fingerprint)
-  finally:
-    teardown_prefix()
 
-def setup_env(simulation=False):
+
+def setup_env(simulation=False, CP=None, cfg=None):
   params = Params()
   params.clear_all()
   params.put_bool("OpenpilotEnabledToggle", True)
   params.put_bool("Passive", False)
   params.put_bool("DisengageOnAccelerator", True)
-  params.put_bool("EnableWideCamera", False)
+  params.put_bool("WideCameraOnly", False)
   params.put_bool("DisableLogging", False)
 
   os.environ["NO_RADAR_SLEEP"] = "1"
   os.environ["REPLAY"] = "1"
+  os.environ['SKIP_FW_QUERY'] = ""
+  os.environ['FINGERPRINT'] = ""
+
+  if cfg is not None:
+    # Clear all custom processConfig environment variables
+    for config in CONFIGS:
+      for k, _ in config.environ.items():
+        if k in os.environ:
+          del os.environ[k]
+
+    os.environ.update(cfg.environ)
+    os.environ['PROC_NAME'] = cfg.proc_name
 
   if simulation:
     os.environ["SIMULATION"] = "1"
   elif "SIMULATION" in os.environ:
     del os.environ["SIMULATION"]
+
+  # Regen or python process
+  if CP is not None:
+    if CP.alternativeExperience == ALTERNATIVE_EXPERIENCE.DISABLE_DISENGAGE_ON_GAS:
+      params.put_bool("DisengageOnAccelerator", False)
+
+    if CP.fingerprintSource == "fw":
+      params.put("CarParamsCache", CP.as_builder().to_bytes())
+    else:
+      os.environ['SKIP_FW_QUERY'] = "1"
+      os.environ['FINGERPRINT'] = CP.carFingerprint
+
 
 def python_replay_process(cfg, lr, fingerprint=None):
   sub_sockets = [s for _, sub in cfg.pub_sub.items() for s in sub]
@@ -398,30 +440,13 @@ def python_replay_process(cfg, lr, fingerprint=None):
   all_msgs = sorted(lr, key=lambda msg: msg.logMonoTime)
   pub_msgs = [msg for msg in all_msgs if msg.which() in list(cfg.pub_sub.keys())]
 
-  setup_env()
-
-  # TODO: remove after getting new route for civic & accord
-  migration = {
-    "HONDA CIVIC 2016 TOURING": "HONDA CIVIC 2016",
-    "HONDA ACCORD 2018 SPORT 2T": "HONDA ACCORD 2018",
-    "HONDA ACCORD 2T 2018": "HONDA ACCORD 2018",
-    "Mazda CX-9 2021": "MAZDA CX-9 2021",
-  }
-
   if fingerprint is not None:
     os.environ['SKIP_FW_QUERY'] = "1"
     os.environ['FINGERPRINT'] = fingerprint
+    setup_env(cfg=cfg)
   else:
-    os.environ['SKIP_FW_QUERY'] = ""
-    os.environ['FINGERPRINT'] = ""
-    for msg in lr:
-      if msg.which() == 'carParams':
-        car_fingerprint = migration.get(msg.carParams.carFingerprint, msg.carParams.carFingerprint)
-        if msg.carParams.fingerprintSource == "fw" and (car_fingerprint in FW_VERSIONS):
-          Params().put("CarParamsCache", msg.carParams.as_builder().to_bytes())
-        else:
-          os.environ['SKIP_FW_QUERY'] = "1"
-          os.environ['FINGERPRINT'] = car_fingerprint
+    CP = [m for m in lr if m.which() == 'carParams'][0].carParams
+    setup_env(CP=CP, cfg=cfg)
 
   assert(type(managed_processes[cfg.proc_name]) is PythonProcess)
   managed_processes[cfg.proc_name].prepare()
@@ -482,7 +507,7 @@ def cpp_replay_process(cfg, lr, fingerprint=None):
   log_msgs = []
 
   # We need to fake SubMaster alive since we can't inject a fake clock
-  setup_env(simulation=True)
+  setup_env(simulation=True, cfg=cfg)
 
   managed_processes[cfg.proc_name].prepare()
   managed_processes[cfg.proc_name].start()
@@ -524,11 +549,17 @@ def cpp_replay_process(cfg, lr, fingerprint=None):
 
 
 def check_enabled(msgs):
+  cur_enabled_count = 0
+  max_enabled_count = 0
   for msg in msgs:
     if msg.which() == "carParams":
       if msg.carParams.notCar:
         return True
     elif msg.which() == "controlsState":
       if msg.controlsState.active:
-        return True
-  return False
+        cur_enabled_count += 1
+      else:
+        cur_enabled_count = 0
+      max_enabled_count = max(max_enabled_count, cur_enabled_count)
+
+  return max_enabled_count > int(10. / DT_CTRL)

@@ -4,7 +4,7 @@ import numpy as np
 
 from common.realtime import sec_since_boot
 from common.numpy_fast import clip, interp
-from selfdrive.swaglog import cloudlog
+from system.swaglog import cloudlog
 from selfdrive.modeld.constants import index_function
 from selfdrive.controls.lib.radar_helpers import _LEAD_ACCEL_TAU
 from common.conversions import Conversions as CV
@@ -35,7 +35,7 @@ X_EGO_COST = 0.
 V_EGO_COST = 0.
 A_EGO_COST = 0.
 J_EGO_COST = 5.0
-A_CHANGE_COST = 50. # 200.
+A_CHANGE_COST = 20. # 200.
 DANGER_ZONE_COST = 100.
 CRASH_DISTANCE = .5
 LIMIT_COST = 1e6
@@ -46,7 +46,7 @@ CRUISE_GAP_BP = [1., 2., 3., 4.]
 CRUISE_GAP_V = [1.1, 1.3, 1.58, 2.10]
 
 AUTO_TR_BP = [0., 30.*CV.KPH_TO_MS,50.*CV.KPH_TO_MS, 70.*CV.KPH_TO_MS, 110.*CV.KPH_TO_MS]
-AUTO_TR_V = [1.08, 1.175,1.225, 1.27, 1.45]
+AUTO_TR_V = [1.09, 1.190,1.240, 1.285, 1.475]
 
 # AUTO_TR_CRUISE_GAP = 4
 DIFF_RADAR_VISION = 1.5
@@ -63,7 +63,7 @@ T_DIFFS = np.diff(T_IDXS, prepend=[0.])
 MIN_ACCEL = -3.5
 T_FOLLOW = 1.45
 COMFORT_BRAKE = 2.5
-STOP_DISTANCE = 6.25
+STOP_DISTANCE = 6.3
 
 def get_stopped_equivalence_factor(v_lead):
   return (v_lead**2) / (2 * COMFORT_BRAKE)
@@ -265,7 +265,7 @@ class LongitudinalMpc:
       self.solver.cost_set(i, 'Zl', Zl)
 
   def set_weights_for_xva_policy(self):
-    W = np.asfortranarray(np.diag([0., 10., 1., 10., 0.0, 1.]))
+    W = np.asfortranarray(np.diag([0., 0.2, 0.25, 1., 0.0, .1]))
     for i in range(N):
       self.solver.cost_set(i, 'W', W)
     # Setting the slice without the copy make the array not contiguous,

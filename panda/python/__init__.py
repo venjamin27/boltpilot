@@ -149,6 +149,7 @@ class Panda:
   SAFETY_STELLANTIS = 25
   SAFETY_FAW = 26
   SAFETY_BODY = 27
+  SAFETY_HYUNDAI_HDA2 = 28
 
   SERIAL_DEBUG = 0
   SERIAL_ESP = 1
@@ -188,6 +189,7 @@ class Panda:
   FLAG_HONDA_ALT_BRAKE = 1
   FLAG_HONDA_BOSCH_LONG = 2
   FLAG_HONDA_NIDEC_ALT = 4
+  FLAG_HONDA_RADARLESS = 8
 
   FLAG_HYUNDAI_EV_GAS = 1
   FLAG_HYUNDAI_HYBRID_GAS = 2
@@ -195,6 +197,8 @@ class Panda:
 
   FLAG_TESLA_POWERTRAIN = 1
   FLAG_TESLA_LONG_CONTROL = 2
+
+  FLAG_CHRYSLER_RAM_DT = 1
 
   def __init__(self, serial: Optional[str] = None, claim: bool = True):
     self._serial = serial
