@@ -1,3 +1,5 @@
+from enum import IntFlag
+
 from cereal import car
 from selfdrive.car import dbc_dict
 Ecu = car.CarParams.Ecu
@@ -9,20 +11,27 @@ class CarControllerParams:
 
   def __init__(self, CP):
     self.STEER_MAX = 384
-
     self.STEER_DELTA_UP = 3
-    self.STEER_DELTA_DOWN = 6
+
+    if CP.carFingerprint in [CAR.KONA_HEV, CAR.KONA_EV]:
+      self.STEER_DELTA_DOWN = 7
+    else:
+      self.STEER_DELTA_DOWN = 6
 
     self.STEER_DRIVER_ALLOWANCE = 50
     self.STEER_DRIVER_MULTIPLIER = 2
     self.STEER_DRIVER_FACTOR = 1
     self.STEER_THRESHOLD = 150
 
-    if CP.carFingerprint in HDA2_CAR:
+    if CP.carFingerprint in CANFD_CAR:
       self.STEER_MAX = 270
       self.STEER_DRIVER_ALLOWANCE = 250
       self.STEER_DRIVER_MULTIPLIER = 2
       self.STEER_THRESHOLD = 250
+
+class HyundaiFlags(IntFlag):
+  CANFD_HDA2 = 1
+  CANFD_ALT_BUTTONS = 2
 
 class CAR:
   # genesis
@@ -60,6 +69,9 @@ class CAR:
   GRANDEUR_IG_FL = "HYUNDAI GRANDEUR IG FL 2020"
   GRANDEUR_IG_FL_HEV = "HYUNDAI GRANDEUR IG FL HEV 2020"
   TUCSON_TL_SCC  = "HYUNDAI TUCSON TL SCC 2017"
+  IONIQ_5 = "HYUNDAI IONIQ 5 2022"
+  TUCSON_HYBRID_4TH_GEN = "HYUNDAI TUCSON HYBRID 4TH GEN"
+
   # kia
   FORTE = "KIA FORTE E 2018"
   K5 = "KIA K5 2019 & 2016"
@@ -376,6 +388,38 @@ FW_VERSIONS = {
       b'\xf1\x00CV1 MFC  AT USA LHD 1.00 1.05 99210-CV000 211027',
     ],
   },
+  CAR.IONIQ_5: {
+    (Ecu.esp, 0x7d1, None): [
+      b'\xf1\x00NE1 IEB \x07 106!\x11) 58520-GI010',
+      b'\xf1\x8758520GI010\xf1\x00NE1 IEB \x07 106!\x11) 58520-GI010',
+    ],
+    (Ecu.eps, 0x7d4, None): [
+      b'\xf1\x00NE  MDPS R 1.00 1.06 57700GI000  4NEDR106',
+      b'\xf1\x8757700GI000 \xf1\x00NE  MDPS R 1.00 1.06 57700GI000  4NEDR106',
+    ],
+    (Ecu.fwdRadar, 0x7d0, None): [
+      b'\xf1\x00NE1_ RDR -----      1.00 1.00 99110-GI000         ',
+      b'\xf1\x8799110GI000\xf1\x00NE1_ RDR -----      1.00 1.00 99110-GI000         ',
+    ],
+    (Ecu.fwdCamera, 0x7c4, None): [
+      b'\xf1\x00NE1 MFC  AT USA LHD 1.00 1.02 99211-GI010 211206',
+    ],
+  },
+  CAR.TUCSON_HYBRID_4TH_GEN: {
+    (Ecu.fwdCamera, 0x7c4, None): [
+      b'\xf1\x00NX4 FR_CMR AT USA LHD 1.00 1.00 99211-N9240 14Q',
+    ],
+    (Ecu.eps, 0x7d4, None): [
+      b'\xf1\x00NX4 MDPS C 1.00 1.01 56300-P0100 2228',
+    ],
+    (Ecu.engine, 0x7e0, None): [
+      b'\xf1\x87391312MND0',
+    ],
+    (Ecu.transmission, 0x7e1, None): [
+      b'\xf1\x00PSBG2441  G19_Rev\x00\x00\x00SNX4T16XXHS01NS2lS\xdfa',
+      b'\xf1\x8795441-3D220\x00\xf1\x81G19_Rev\x00\x00\x00\xf1\x00PSBG2441  G19_Rev\x00\x00\x00SNX4T16XXHS01NS2lS\xdfa',
+    ],
+  },
 }
 
 CHECKSUM = {
@@ -403,7 +447,7 @@ FEATURES = {
                    CAR.SELTOS, CAR.MOHAVE, CAR.K5_HEV_2022},
 
   # these cars use the FCA11 message for the AEB and FCW signals, all others use SCC12
-  "use_fca": {CAR.SONATA, CAR.ELANTRA, CAR.ELANTRA_GT_I30, CAR.STINGER, CAR.IONIQ_EV_2020, CAR.IONIQ_PHEV, CAR.KONA, CAR.KONA_EV, CAR.FORTE,
+  "use_fca": {CAR.KONA_HEV, CAR.SONATA, CAR.ELANTRA, CAR.ELANTRA_GT_I30, CAR.STINGER, CAR.IONIQ_EV_2020, CAR.IONIQ_PHEV, CAR.KONA, CAR.KONA_EV, CAR.FORTE,
               CAR.PALISADE, CAR.GENESIS_G70, CAR.SANTA_FE, CAR.SELTOS, CAR.ELANTRA_2021, CAR.ELANTRA_HEV_2021,
               CAR.K9, CAR.GENESIS_G90, CAR.SANTA_FE_2022, CAR.SANTA_FE_HEV_2022, CAR.K5_2021, CAR.MOHAVE},
 
@@ -421,7 +465,7 @@ EV_CAR = {CAR.IONIQ_EV_LTD, CAR.IONIQ_EV_2020, CAR.KONA_EV, CAR.NIRO_EV}
 
 EV_HYBRID_CAR = EV_CAR | HYBRID_CAR
 
-HDA2_CAR = {CAR.EV6, }
+CANFD_CAR = {CAR.EV6, CAR.IONIQ_5, CAR.TUCSON_HYBRID_4TH_GEN}
 
 DBC = {
   # genesis
@@ -477,7 +521,11 @@ DBC = {
   CAR.K7: dbc_dict('hyundai_kia_generic', None),
   CAR.K7_HEV: dbc_dict('hyundai_kia_generic', None),
   CAR.K9: dbc_dict('hyundai_kia_generic', None),
-  CAR.EV6: dbc_dict('kia_ev6', None),
+
+  # CAN FD
+  CAR.EV6: dbc_dict('hyundai_canfd', None),
+  CAR.IONIQ_5: dbc_dict('hyundai_canfd', None),
+  CAR.TUCSON_HYBRID_4TH_GEN: dbc_dict('hyundai_canfd', None),
 }
 
 

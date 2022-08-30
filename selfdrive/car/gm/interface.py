@@ -181,10 +181,10 @@ class CarInterface(CarInterfaceBase):
     ret.longitudinalTuning.kpBP = [0., 5.*CV.KPH_TO_MS, 10.*CV.KPH_TO_MS, 30.*CV.KPH_TO_MS, 130.*CV.KPH_TO_MS]
     ret.longitudinalTuning.kpV = [1.2, 1.0, 0.93, 0.88, 0.5]
     ret.longitudinalTuning.kiBP = [0., 130. * CV.KPH_TO_MS]
-    ret.longitudinalTuning.kiV = [0.1, 0.05]
+    ret.longitudinalTuning.kiV = [0.14, 0.075]
     
     ret.longitudinalTuning.deadzoneBP = [0., 30.*CV.KPH_TO_MS]
-    ret.longitudinalTuning.deadzoneV = [0., 0.10]
+    ret.longitudinalTuning.deadzoneV = [0., 0.10] 
     ret.longitudinalActuatorDelayLowerBound = 0.12
     ret.longitudinalActuatorDelayUpperBound = 0.25
     
@@ -211,7 +211,7 @@ class CarInterface(CarInterfaceBase):
     ret.cruiseState.enabled = self.CS.main_on or self.CS.adaptive_Cruise
     ret.canValid = self.cp.can_valid and self.cp_loopback.can_valid
     ret.canTimeout = any(cp.bus_timeout for cp in self.can_parsers if cp is not None)
-    ret.steeringRateLimited = self.CC.steer_rate_limited if self.CC is not None else False
+    # ret.steeringRateLimited = self.CC.steer_rate_limited if self.CC is not None else False
 
     buttonEvents = []
 

@@ -59,7 +59,7 @@ class CarState(CarStateBase):
 
 
     ###for neokii integration
-    ret.cluSpeedMs = vEgoRawClu
+    ret.vEgoCluster = vEgoRawClu
     self.ECMVehicleSpeed = pt_cp.vl["ECMVehicleSpeed"]
     ret.vCluRatio = (vEgoWheel / vEgoClu) if (vEgoClu > 3. and vEgoWheel > 3.) else 1.0
     ###for neokii integration ends

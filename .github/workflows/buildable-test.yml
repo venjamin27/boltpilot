@@ -38,6 +38,7 @@ jobs:
           extra-flake8-options: --select=F21,F822,F823,F831,F811,F812,E999
 
       - name: Python Linter
+        if: always()
         uses: ricardochaves/python-lint@v1.4.0
         with:
           python-root-list: selfdrive/controls/lib/*.py

@@ -37,6 +37,8 @@ struct InitData {
   passive @12 :Bool;
   params @17 :Map(Text, Data);
 
+  commands @19 :Map(Text, Data);
+
   enum DeviceType {
     unknown @0;
     neo @1;
@@ -251,9 +253,7 @@ struct GpsLocationData {
   # Represents expected accuracy in meters. (presumably 1 sigma?)
   accuracy @6 :Float32;
 
-  # Timestamp for the location fix.
-  # Milliseconds since January 1, 1970.
-  timestamp @7 :Int64;
+  unixTimestampMillis @7 :Int64;
 
   source @8 :SensorSource;
 
@@ -294,6 +294,7 @@ struct DeviceState @0xa4d8b5af2aa492eb {
   networkType @22 :NetworkType;
   networkInfo @31 :NetworkInfo;
   networkStrength @24 :NetworkStrength;
+  networkStats @43 :NetworkStats;
   networkMetered @41 :Bool;
   lastAthenaPingTime @32 :UInt64;
 
@@ -330,7 +331,7 @@ struct DeviceState @0xa4d8b5af2aa492eb {
   fanSpeedPercentDesired @10 :UInt16;
   screenBrightnessPercent @37 :Int8;
 
-  wifiIpAddress @43 :Text;
+  wifiIpAddress @44 :Text;
   
   struct ThermalZone {
     name @0 :Text;
@@ -371,6 +372,11 @@ struct DeviceState @0xa4d8b5af2aa492eb {
     state @5 :Text;
   }
 
+  struct NetworkStats {
+    wwanTx @0 :Int64;
+    wwanRx @1 :Int64;
+  }
+
   # deprecated
   cpu0DEPRECATED @0 :UInt16;
   cpu1DEPRECATED @1 :UInt16;
@@ -407,6 +413,7 @@ struct PandaState @0xa7649e2575e4591e {
   heartbeatLost @22 :Bool;
   blockedCnt @24 :UInt32;
   interruptLoad @25 :Float32;
+  fanPower @28 :UInt8;
 
   enum FaultStatus {
     none @0;
@@ -565,7 +572,8 @@ struct ControlsState @0x97ff69c53601abf1 {
   longControlState @30 :Car.CarControl.Actuators.LongControlState;
   vPid @2 :Float32;
   vTargetLead @3 :Float32;
-  vCruise @22 :Float32;
+  vCruise @22 :Float32;  # actual set speed
+  vCruiseCluster @63 :Float32;  # set speed to display in the UI
   upAccelCmd @4 :Float32;
   uiAccelCmd @5 :Float32;
   ufAccelCmd @33 :Float32;
@@ -597,20 +605,20 @@ struct ControlsState @0x97ff69c53601abf1 {
     torqueState @60 :LateralTorqueState;
   }
 
-  angleSteers @63 :Float32;
-  applyAccel @64 :Float32;
-  aReqValue @65 :Float32;
-  aReqValueMin @66 :Float32;
-  aReqValueMax @67 :Float32;
+  angleSteers @64 :Float32;
+  applyAccel @65 :Float32;
+  aReqValue @66 :Float32;
+  aReqValueMin @67 :Float32;
+  aReqValueMax @68 :Float32;
 
-  steerRatio @68 :Float32;
-  steerActuatorDelay @69 :Float32;
-  sccGasFactor @70 :Float32;
-  sccBrakeFactor @71 :Float32;
-  sccCurvatureFactor @72 :Float32;
+  steerRatio @69 :Float32;
+  steerActuatorDelay @70 :Float32;
+  sccGasFactor @71 :Float32;
+  sccBrakeFactor @72 :Float32;
+  sccCurvatureFactor @73 :Float32;
 
-  sccStockCamAct @73 :Float32;
-  sccStockCamStatus @74 :Float32;
+  sccStockCamAct @74 :Float32;
+  sccStockCamStatus @75 :Float32;
 
 
   enum OpenpilotState @0xdbe58b96d2d1ac61 {
@@ -1881,6 +1889,9 @@ struct EncodeData {
   unixTimestampNanos @3 :UInt64;
 }
 
+struct UserFlag {
+}
+
 struct RoadLimitSpeed {
     active @0 :Int16;
     roadLimitSpeed @1 :Int16;
@@ -1932,6 +1943,7 @@ struct Event {
     ubloxRaw @39 :Data;
     qcomGnss @31 :QcomGnss;
     gpsLocationExternal @48 :GpsLocationData;
+    gpsLocation @21 :GpsLocationData;
     gnssMeasurements @91 :GnssMeasurements;
     liveParameters @61 :LiveParametersData;
     cameraOdometry @63 :CameraOdometry;
@@ -1967,8 +1979,11 @@ struct Event {
     navRoute @83 :NavRoute;
     navThumbnail @84: Thumbnail;
     
+    # user flags
+    userFlag @93 :UserFlag;
+    
     # neokii
-    roadLimitSpeed @93 :RoadLimitSpeed;
+    roadLimitSpeed @94 :RoadLimitSpeed;
 
     # *********** debug ***********
     testJoystick @52 :Joystick;
@@ -2011,7 +2026,6 @@ struct Event {
     orbFeaturesSummaryDEPRECATED @58 :Legacy.OrbFeaturesSummary;
     featuresDEPRECATED @10 :Legacy.CalibrationFeatures;
     kalmanOdometryDEPRECATED @65 :Legacy.KalmanOdometry;
-    gpsLocationDEPRECATED @21 :GpsLocationData;
     uiLayoutStateDEPRECATED @57 :Legacy.UiLayoutState;
     pandaStateDEPRECATED @12 :PandaState;
     driverStateDEPRECATED @59 :DriverStateDEPRECATED;

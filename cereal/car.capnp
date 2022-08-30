@@ -111,11 +111,12 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     lkasDisabled @107;
     canBusMissing @111;
     controlsdLagging @112;
+    resumeBlocked @113;
 
-    turningIndicatorOn @113;
-    autoLaneChange @114;
-    slowingDownSpeed @115;
-    slowingDownSpeedSound @116;
+    turningIndicatorOn @114;
+    autoLaneChange @115;
+    slowingDownSpeed @116;
+    slowingDownSpeedSound @117;
 
     radarCanErrorDEPRECATED @15;
     communityFeatureDisallowedDEPRECATED @62;
@@ -160,9 +161,11 @@ struct CarState {
   canTimeout @40 :Bool;     # CAN bus dropped out
 
   # car speed
-  vEgo @1 :Float32;         # best estimate of speed
-  aEgo @16 :Float32;        # best estimate of acceleration
-  vEgoRaw @17 :Float32;     # unfiltered speed from CAN sensors
+  vEgo @1 :Float32;          # best estimate of speed
+  aEgo @16 :Float32;         # best estimate of acceleration
+  vEgoRaw @17 :Float32;      # unfiltered speed from CAN sensors
+  vEgoCluster @44 :Float32;  # best estimate of speed shown on car's instrument cluster, used for UI
+
   yawRate @22 :Float32;     # best estimate of yaw rate
   standstill @18 :Bool;
   wheelSpeeds @2 :WheelSpeeds;
@@ -186,7 +189,6 @@ struct CarState {
   steeringTorque @8 :Float32;      # TODO: standardize units
   steeringTorqueEps @27 :Float32;  # TODO: standardize units
   steeringPressed @9 :Bool;        # if the user is using the steering wheel
-  steeringRateLimited @29 :Bool;   # if the torque is limited by the rate limiter
   steerFaultTemporary @35 :Bool;   # temporary EPS fault
   steerFaultPermanent @36 :Bool;   # permanent EPS fault
   stockAeb @30 :Bool;
@@ -225,7 +227,6 @@ struct CarState {
   charging @43 :Bool;
 
 
-  cluSpeedMs @44 :Float32;
   cruiseGap @45 : Int32;
   autoHold @46 : Int32;
   tpms @47 : Tpms;
@@ -250,11 +251,12 @@ struct CarState {
   struct CruiseState {
     enabled @0 :Bool;
     speed @1 :Float32;
+    speedCluster @6 :Float32;  # Set speed as shown on instrument cluster
     available @2 :Bool;
     speedOffset @3 :Float32;
     standstill @4 :Bool;
     nonAdaptive @5 :Bool;
-    enabledAcc @6 :Bool;
+    enabledAcc @7 :Bool;
   }
 
   enum GearShifter {
@@ -293,6 +295,7 @@ struct CarState {
 
   errorsDEPRECATED @0 :List(CarEvent.EventName);
   brakeLights @19 :Bool;
+  steeringRateLimitedDEPRECATED @29 :Bool;
 }
 
 # ******* radar state @ 20hz *******
@@ -650,7 +653,7 @@ struct CarParams {
     stellantis @25;
     faw @26;
     body @27;
-    hyundaiHDA2 @28;
+    hyundaiCanfd @28;
   }
 
   enum SteerControlType {
@@ -674,6 +677,7 @@ struct CarParams {
     responseAddress @4 :UInt32;
     request @5 :List(Data);
     brand @6 :Text;
+    bus @7 :UInt8;
   }
 
   enum Ecu {

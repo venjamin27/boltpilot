@@ -2,7 +2,7 @@ import os
 
 from cereal import car
 from common.params import Params
-from system.hardware import PC
+from system.hardware import PC, TICI
 from selfdrive.manager.process import PythonProcess, NativeProcess, DaemonProcess
 
 WEBCAM = os.getenv("USE_WEBCAM") is not None
@@ -29,7 +29,7 @@ procs = [
   #DaemonProcess("manage_athenad", "selfdrive.athena.manage_athenad", "AthenadPid"),
   NativeProcess("dmonitoringmodeld", "selfdrive/modeld", ["./dmonitoringmodeld"], enabled=(not PC or WEBCAM), callback=driverview),
   NativeProcess("encoderd", "selfdrive/loggerd", ["./encoderd"]),
-  NativeProcess("loggerd", "selfdrive/loggerd", ["./loggerd"], onroad=False, callback=logging),
+  # NativeProcess("loggerd", "selfdrive/loggerd", ["./loggerd"], onroad=False, callback=logging),
   NativeProcess("modeld", "selfdrive/modeld", ["./modeld"]),
   NativeProcess("sensord", "selfdrive/sensord", ["./sensord"], enabled=not PC),
   NativeProcess("ubloxd", "selfdrive/locationd", ["./ubloxd"], enabled=(not PC or WEBCAM)),
@@ -57,7 +57,7 @@ procs = [
   PythonProcess("webjoystick", "tools.joystick.web", onroad=False, callback=notcar),
 
   # Experimental
-  PythonProcess("rawgpsd", "selfdrive.sensord.rawgps.rawgpsd", enabled=os.path.isfile("/persist/comma/use-quectel-rawgps")),
+  PythonProcess("rawgpsd", "selfdrive.sensord.rawgps.rawgpsd", enabled=(TICI and os.path.isfile("/persist/comma/use-quectel-rawgps"))),
 ]
 
 managed_processes = {p.name: p for p in procs}
