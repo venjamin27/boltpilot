@@ -65,10 +65,16 @@ TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
       tr("In this mode openpilot will ignore lanelines and just drive how it thinks a human would."),
       "../assets/offroad/icon_road.png",
     },
+    {
+     "EndToEndLong",
+      tr("🌮 End-to-end longitudinal (extremely alpha) 🌮"),
+      tr("Let the driving model control the gas and brakes, openpilot will drive as it thinks a human would. Super experimental."),
+      "../assets/offroad/icon_road.png",
+    },
 //    {
 //      "DisengageOnAccelerator",
-//      "Disengage On Accelerator Pedal",
-//      "When enabled, pressing the accelerator pedal will disengage openpilot.",
+//      tr("Disengage On Accelerator Pedal"),
+//      tr("When enabled, pressing the accelerator pedal will disengage openpilot."),
 //      "../assets/offroad/icon_disengage_on_accelerator.svg",
 //    },
 #ifdef ENABLE_MAPS
