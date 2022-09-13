@@ -133,7 +133,7 @@ class CarController():
                                                     [0.1850, 0.2275, 0.1750, 0.025])
               if d > 0:
                 actuators.pedalDistanceAdder = interp(d, [1, 6, 8, 9.5, 15, 30],
-                                                      [-1.0250, -0.5000, -0.0525, -0.0100, 0.0175, 0.1000])
+                                                      [-1.0250, -0.2500, -0.0425, -0.0080, 0.0175, 0.1000])
               actuators.pedalAdderFinal = (actuators.pedalStartingAdder + actuators.pedalDistanceAdder)
 
             if self.stoppingStateTimeWindowsActiveCounter > (stoppingStateWindowsActiveCounterLimits) \
