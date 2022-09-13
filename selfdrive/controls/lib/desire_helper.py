@@ -60,7 +60,7 @@ class DesireHelper:
       torque_applied = carstate.steeringPressed and \
                        ((carstate.steeringTorque > 0 and self.lane_change_direction == LaneChangeDirection.left) or
                         (carstate.steeringTorque < 0 and self.lane_change_direction == LaneChangeDirection.right)) or \
-                       (self.auto_lane_change_enabled and not below_lane_change_speed_auto) and \
+                       self.auto_lane_change_enabled and \
                        (AUTO_LCA_START_TIME+0.25) > self.auto_lane_change_timer > AUTO_LCA_START_TIME
 
       blindspot_detected = ((carstate.leftBlindspot and self.lane_change_direction == LaneChangeDirection.left) or

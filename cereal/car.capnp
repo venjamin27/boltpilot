@@ -466,8 +466,8 @@ struct CarParams {
   notCar @66 :Bool;  # flag for non-car robotics platforms
 
   #BoltEV things.
-  restartForceAccel  @82 :Bool;
-  keepLatWhenBrake  @81 :Bool;
+  restartForceAccel  @84 :Bool;
+  keepLatWhenBrake  @83 :Bool;
 
   enableGasInterceptor @2 :Bool;
   pcmCruise @3 :Bool;        # is openpilot's state tied to the PCM's cruise state?
