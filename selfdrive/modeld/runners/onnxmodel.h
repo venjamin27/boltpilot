@@ -42,3 +42,4 @@ private:
   int pipein[2];
   int pipeout[2];
 };
+

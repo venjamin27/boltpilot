@@ -393,8 +393,7 @@ struct CarControl {
       off @0;
       pid @1;
       stopping @2;
-
-      startingDEPRECATED @3;
+      starting @3;
     }
 
   }
@@ -476,6 +475,7 @@ struct CarParams {
   enableApgs @6 :Bool;       # advanced parking guidance system
   enableBsm @56 :Bool;       # blind spot monitoring
   flags @64 :UInt32;         # flags for car specific quirks
+  experimentalLongitudinalAvailable @71 :Bool;
 
   minEnableSpeed @7 :Float32;
   minSteerSpeed @8 :Float32;
@@ -485,14 +485,7 @@ struct CarParams {
 
   # Car docs fields
   maxLateralAccel @68 :Float32;
-  autoResumeSng @69 :Bool;  # describes whether car can resume from a stop automatically
-
-  steerMaxBPDEPRECATED @11 :List(Float32);
-  steerMaxVDEPRECATED @12 :List(Float32);
-  gasMaxBPDEPRECATED @13 :List(Float32);
-  gasMaxVDEPRECATED @14 :List(Float32);
-  brakeMaxBPDEPRECATED @15 :List(Float32);
-  brakeMaxVDEPRECATED @16 :List(Float32);
+  autoResumeSng @69 :Bool;               # describes whether car can resume from a stop automatically
 
   # things about the car in the manual
   mass @17 :Float32;            # [kg] curb weight: all fluids no cargo
@@ -521,11 +514,13 @@ struct CarParams {
   vEgoStopping @29 :Float32; # Speed at which the car goes into stopping state
   vEgoStarting @59 :Float32; # Speed at which the car goes into starting state
   directAccelControl @30 :Bool; # Does the car have direct accel control or just gas/brake
-  stoppingControl @31 :Bool; # Does the car allows full control even at lows speeds when stopping
-  stopAccel @60 :Float32; # Required acceleration to keep vehicle stationary
+  stoppingControl @31 :Bool; # Does the car allow full control even at lows speeds when stopping
   steerControlType @34 :SteerControlType;
   radarOffCan @35 :Bool; # True when radar objects aren't visible on CAN
+  stopAccel @60 :Float32; # Required acceleration to keep vehicle stationary
   stoppingDecelRate @52 :Float32; # m/s^2/s while trying to stop
+  startAccel @32 :Float32; # Required acceleration to get car moving
+  startingState @70 :Bool; # Does this car make use of special starting state
 
   steerActuatorDelay @36 :Float32; # Steering wheel actuator delay in seconds
   longitudinalActuatorDelayLowerBound @61 :Float32; # Gas/Brake actuator delay in seconds, lower bound
@@ -549,18 +544,17 @@ struct CarParams {
     safetyParam2DEPRECATED @2 :UInt32;
   }
   
-  mdpsBus @70: Int8;
-  sasBus @71: Int8;
-  sccBus @72: Int8;
-  enableAutoHold @73 :Bool;
-  hasScc13 @74 :Bool;
-  hasScc14 @75 :Bool;
-  hasEms @76 :Bool;
-  hasLfaHda @77 :Bool;
-  steerFaultMaxAngle @78 :Int16;
-  steerFaultMaxFrames @79 :Int16;
-
-  disableLateralLiveTuning @80 :Bool;
+  mdpsBus @72: Int8;
+  sasBus @73: Int8;
+  sccBus @74: Int8;
+  enableAutoHold @75 :Bool;
+  hasScc13 @76 :Bool;
+  hasScc14 @77 :Bool;
+  hasEms @78 :Bool;
+  hasLfaHda @79 :Bool;
+  steerFaultMaxAngle @80 :Int16;
+  steerFaultMaxFrames @81 :Int16;
+  disableLateralLiveTuning @82 :Bool;
 
   struct LateralParams {
     torqueBP @0 :List(Int32);
@@ -685,7 +679,7 @@ struct CarParams {
 
   enum Ecu {
     eps @0;
-    esp @1;
+    abs @1;
     fwdRadar @2;
     fwdCamera @3;
     engine @4;
@@ -731,7 +725,12 @@ struct CarParams {
   safetyModelDEPRECATED @9 :SafetyModel;
   safetyModelPassiveDEPRECATED @42 :SafetyModel = silent;
   minSpeedCanDEPRECATED @51 :Float32;
-  startAccelDEPRECATED @32 :Float32;
   communityFeatureDEPRECATED @46: Bool;
   startingAccelRateDEPRECATED @53 :Float32;
+  steerMaxBPDEPRECATED @11 :List(Float32);
+  steerMaxVDEPRECATED @12 :List(Float32);
+  gasMaxBPDEPRECATED @13 :List(Float32);
+  gasMaxVDEPRECATED @14 :List(Float32);
+  brakeMaxBPDEPRECATED @15 :List(Float32);
+  brakeMaxVDEPRECATED @16 :List(Float32);
 }
