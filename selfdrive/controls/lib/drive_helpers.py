@@ -49,7 +49,7 @@ REGEN_THRESHOLD = 5
 
 
 class MPC_COST_LAT:
-  PATH = 0.5
+  PATH = 1.0
   HEADING = 1.0
   STEER_RATE = 1.0
 
