@@ -93,17 +93,7 @@ class CarController():
       accelFomula = round(accelFomula, 3)
 
       self.comma_pedal = clip(
-        interp(actuators.accel, [-0.725, 0.00, 0.20], [0.0, ConstAccel, ConstAccel + 0.0125]) + accelFomula, 0., 1.)
-
-      # pedalValue = interp(CS.out.vEgo, [0., 18.0 * CV.KPH_TO_MS], [0.1625, 0.2125]) + accelFomula
-      # pedalValue = min(pedalValue, interp(CS.out.vEgo, [0., 19.0 * CV.KPH_TO_MS, 30.0 * CV.KPH_TO_MS], [0.2550, 0.2750, 0.3150]) )
-
-      # self.comma_pedal_original = pedalValue # (actuators.accel * acc_mult, 0., 1.)
-      # self.comma_pedal_new = clip (interp(actuators.accel, [-0.725, -0.315, 0.00, 0.20], [0.0, 0.1575, 0.2190, 0.22150]) + accelFomula , 0., 1.)
-      # gapInterP = interp(CS.out.vEgo, [19 * CV.KPH_TO_MS, 45*CV.KPH_TO_MS], [1, 0])
-      # self.comma_pedal =  (gapInterP * self.comma_pedal_original)  +  ((1.0-gapInterP) * self.comma_pedal_new)
-
-      # self.comma_pedal = clip(self.comma_pedal, 0.0, interp(actuators.accel, [0.85, 1.5], [0.0000, 0.0200]) + self.pedalMaxValue) #급가속 방
+        interp(actuators.accel, [-0.75, 0.00, 0.20], [0.0, ConstAccel, ConstAccel + 0.0125]) + accelFomula, 0., 1.)
 
       actuators.commaPedalOrigin = self.comma_pedal
 
