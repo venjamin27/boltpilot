@@ -109,7 +109,7 @@ class CarController():
       accelFomula = round(accelFomula, 3)
 
       self.comma_pedal_original = clip(
-        interp(actuators.accel, [-0.75, 0.00, 0.20], [0.0, ConstAccel, ConstAccel + 0.0125]) + accelFomula, 0., 1.)
+        interp(actuators.accel, [-0.775, 0.00, 0.20], [0.0, ConstAccel, ConstAccel + 0.0125]) + accelFomula, 0., 1.)
       
       self.pedal_final, self.pedal_steady = actuator_hystereses(self.comma_pedal_original, self.pedal_steady)
       self.comma_pedal = clip(self.pedal_final, 0., 1.)
@@ -180,11 +180,11 @@ class CarController():
           self.comma_pedal = clip(self.comma_pedal, 0.0, (self.pedalMaxValue - 0.025))
 
       # braking logic
-      if actuators.accel < interp(CS.out.vEgo, [18.0 * CV.KPH_TO_MS, 100.0 * CV.KPH_TO_MS], [-0.15, -0.5]):
+      if actuators.accel < interp(CS.out.vEgo, [18.0 * CV.KPH_TO_MS, 100.0 * CV.KPH_TO_MS], [-0.15, -0.6]):
         # if actuators.accel < -0.15 :
         can_sends.append(gmcan.create_regen_paddle_command(self.packer_pt, CanBus.POWERTRAIN))
         actuators.regenPaddle = True  # for icon
-      elif controls.LoC.pid.f < - 0.65:
+      elif controls.LoC.pid.f < - 0.675:
         can_sends.append(gmcan.create_regen_paddle_command(self.packer_pt, CanBus.POWERTRAIN))
         actuators.regenPaddle = True  # for icon
         minMultipiler = interp(CS.out.vEgo,
