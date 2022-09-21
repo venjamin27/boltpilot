@@ -14,9 +14,9 @@ min_set_speed = 30 * CV.KPH_TO_MS
 VisualAlert = car.CarControl.HUDControl.VisualAlert
 LongCtrlState = car.CarControl.Actuators.LongControlState
 
-def actuator_hystereses(final_pedal, pedal_steady):
+def actuator_hystereses(final_pedal, pedal_steady, pedal_hyst_gap):
   # hyst params... TODO: move these to VehicleParams
-  pedal_hyst_gap = 0.01    # don't change pedal command for small oscillations within this value
+  #pedal_hyst_gap = 0.01    # don't change pedal command for small oscillations within this value
 
   # for small pedal oscillations within pedal_hyst_gap, don't change the pedal command
   if math.isclose(final_pedal,0.0):
@@ -111,7 +111,9 @@ class CarController():
       self.comma_pedal_original = clip(
         interp(actuators.accel, [-0.775, 0.00, 0.20], [0.0, ConstAccel, ConstAccel + 0.0125]) + accelFomula, 0., 1.)
       
-      self.pedal_final, self.pedal_steady = actuator_hystereses(self.comma_pedal_original, self.pedal_steady)
+      #self.pedal_hyst_gap = 0.01 
+      self.pedal_hyst_gap = interp(CS.out.vEgo, [50.0 * CV.KPH_TO_MS, 100.0 * CV.KPH_TO_MS], [0.01, 0.007])
+      self.pedal_final, self.pedal_steady = actuator_hystereses(self.comma_pedal_original, self.pedal_steady, self.pedal_hyst_gap)
       self.comma_pedal = clip(self.pedal_final, 0., 1.)
 
       actuators.commaPedalOrigin = self.comma_pedal
