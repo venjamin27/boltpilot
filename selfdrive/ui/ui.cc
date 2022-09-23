@@ -237,12 +237,13 @@ UIState::UIState(QObject *parent) : QObject(parent) {
     "modelV2", "controlsState", "liveCalibration", "radarState", "deviceState", "roadCameraState",
     "pandaStates", "carParams", "sensorEvents", "carState", "liveLocationKalman",
     "wideRoadCameraState", "managerState", "navInstruction", "navRoute", "gnssMeasurements",
-    "gpsLocationExternal", "carControl", "liveParameters", "roadLimitSpeed",
+    "gpsLocationExternal", "carControl", "liveParameters", "liveTorqueParameters", "roadLimitSpeed",
   });
 
   Params params;
   wide_camera = params.getBool("WideCameraOnly");
   prime_type = std::atoi(params.get("PrimeType").c_str());
+  language = QString::fromStdString(params.get("LanguageSetting"));
 
   // update timer
   timer = new QTimer(this);

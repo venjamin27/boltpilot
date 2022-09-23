@@ -31,6 +31,11 @@ OnroadWindow::OnroadWindow(QWidget *parent) : QWidget(parent) {
   split->setSpacing(0);
   split->addLayout(road_view_layout);
 
+  if (getenv("DUAL_CAMERA_VIEW")) {
+    CameraViewWidget *arCam = new CameraViewWidget("camerad", VISION_STREAM_ROAD, true, this);
+    split->insertWidget(0, arCam);
+  }
+
   stacked_layout->addWidget(split_wrapper);
 
   alerts = new OnroadAlerts(this);
@@ -505,17 +510,29 @@ void NvgWindow::drawHud(QPainter &p, const cereal::ModelDataV2::Reader &model) {
   const auto controls_state = sm["controlsState"].getControlsState();
   const auto car_params = sm["carParams"].getCarParams();
   const auto live_params = sm["liveParameters"].getLiveParameters();
+  const auto live_torque_params = sm["liveTorqueParameters"].getLiveTorqueParameters();
 
   int mdps_bus = car_params.getMdpsBus();
   int scc_bus = car_params.getSccBus();
 
   QString infoText;
-  infoText.sprintf("%s AO(%.2f/%.2f) SR(%.2f) SAD(%.2f) BUS(MDPS %d, SCC %d) SCC(%.2f/%.2f/%.2f)",
+  infoText.sprintf("%s LTP(%.2f/%.2f/%s) LTP_RAW(%.2f/%.2f/%.0f) AO(%.2f/%.2f) SR(%.2f) SAD(%.2f) BUS(MDPS %d, SCC %d) SCC(%.2f/%.2f/%.2f)",
                       s->lat_control.c_str(),
+
+                      live_torque_params.getLatAccelFactorFiltered(),
+                      live_torque_params.getFrictionCoefficientFiltered(),
+                      live_torque_params.getLiveValid() ? "O" : "X",
+
+                      live_torque_params.getLatAccelFactorRaw(),
+                      live_torque_params.getFrictionCoefficientRaw(),
+                      live_torque_params.getTotalBucketPoints(),
+
                       live_params.getAngleOffsetDeg(),
                       live_params.getAngleOffsetAverageDeg(),
+
                       controls_state.getSteerRatio(),
                       controls_state.getSteerActuatorDelay(),
+
                       mdps_bus, scc_bus,
                       controls_state.getSccGasFactor(),
                       controls_state.getSccBrakeFactor(),
