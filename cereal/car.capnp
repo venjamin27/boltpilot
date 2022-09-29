@@ -17,7 +17,8 @@ struct CarEvent @0x9b1657f34caf3ad3 {
   immediateDisable @6 :Bool;
   preEnable @7 :Bool;
   permanent @8 :Bool; # alerts presented regardless of openpilot state
-  override @9 :Bool;
+  overrideLateral @10 :Bool;
+  overrideLongitudinal @9 :Bool;
 
   enum EventName @0xbaa8c5d505f727de {
     canError @0;
@@ -35,6 +36,7 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     pedalPressed @13;  # exits active state
     pedalPressedPreEnable @73;  # added during pre-enable state for either pedal
     gasPressedOverride @108;  # added when user is pressing gas with no disengage on gas
+    steerOverride @114;
     cruiseDisabled @14;
     speedTooLow @17;
     outOfSpace @18;
@@ -113,10 +115,10 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     controlsdLagging @112;
     resumeBlocked @113;
 
-    turningIndicatorOn @114;
-    autoLaneChange @115;
-    slowingDownSpeed @116;
-    slowingDownSpeedSound @117;
+    turningIndicatorOn @115;
+    autoLaneChange @116;
+    slowingDownSpeed @117;
+    slowingDownSpeedSound @118;
 
     radarCanErrorDEPRECATED @15;
     communityFeatureDisallowedDEPRECATED @62;
@@ -566,9 +568,7 @@ struct CarParams {
     kpV @1 :List(Float32);
     kiBP @2 :List(Float32);
     kiV @3 :List(Float32);
-    kdBP @4 :List(Float32);
-    kdV @5 :List(Float32);
-    kf @6 :Float32;
+    kf @4 :Float32;
   }
 
   struct LateralTorqueTuning {
@@ -578,7 +578,8 @@ struct CarParams {
     friction @3 :Float32;
     kf @4 :Float32;
     steeringAngleDeadzoneDeg @5 :Float32;
-    kd @6 :Float32;
+    latAccelFactor @6 :Float32;
+    latAccelOffset @7 :Float32;
   }
 
   struct LongitudinalPIDTuning {
@@ -689,6 +690,8 @@ struct CarParams {
     gateway @10; # can gateway
     hud @11; # heads up display
     combinationMeter @12; # instrument cluster
+    electricBrakeBooster @15;
+    adas @19;
 
     # Toyota only
     dsu @6;
@@ -697,7 +700,6 @@ struct CarParams {
     # Honda only
     vsa @13; # Vehicle Stability Assist
     programmedFuelInjection @14;
-    electricBrakeBooster @15;
     shiftByWire @16;
 
     # Chrysler only
