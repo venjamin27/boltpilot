@@ -14,6 +14,17 @@ GearShifter = car.CarState.GearShifter
 ButtonType = car.CarState.ButtonEvent.Type
 EventName = car.CarEvent.EventName
 
+def torque_tune(tune, lat_accel_factor=3.0, friction=0.01, steering_angle_deadzone_deg=0.0):
+  tune.init('torque')
+  tune.torque.useSteeringAngle = True
+  tune.torque.kp = 1.0
+  tune.torque.kf = 1.0
+  tune.torque.ki = 0.1
+  tune.torque.latAccelFactor = lat_accel_factor
+  tune.torque.latAccelOffset = 0.0
+  tune.torque.friction = friction
+  tune.torque.steeringAngleDeadzoneDeg = steering_angle_deadzone_deg
+
 
 def get_steer_feedforward_sigmoid(desired_angle, v_ego, ANGLE, ANGLE_OFFSET, SIGMOID_SPEED, SIGMOID, SPEED):
   x = ANGLE * (desired_angle + ANGLE_OFFSET)
@@ -146,21 +157,26 @@ class CarInterface(CarInterfaceBase):
       ret.steerActuatorDelay = 0.
       ret.lateralTuning.pid.kpBP, ret.lateralTuning.pid.kiBP = [[10., 41.0], [10., 41.0]]
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.14, 0.24], [0.01, 0.021]]
-      ret.lateralTuning.pid.kdBP = [0.]
-      ret.lateralTuning.pid.kdV = [0.5]
+      # ret.lateralTuning.pid.kdBP = [0.]
+      # ret.lateralTuning.pid.kdV = [0.5]
       ret.lateralTuning.pid.kf = 1.  # for get_steer_feedforward_bolt()
 
 
     else:
-      ret.lateralTuning.init('torque')
-      ret.lateralTuning.torque.useSteeringAngle = True
-      max_lat_accel = 2.275
-      ret.lateralTuning.torque.kp = 2.0 / max_lat_accel
-      ret.lateralTuning.torque.kf = 1.0 / max_lat_accel
-      ret.lateralTuning.torque.ki = 0.19 / max_lat_accel
-      ret.lateralTuning.torque.friction = 0.02
+      # ret.lateralTuning.init('torque')
+      # ret.lateralTuning.torque.useSteeringAngle = True
+      # max_lat_accel = 2.275
+      # ret.lateralTuning.torque.kp = 2.0 / max_lat_accel
+      # ret.lateralTuning.torque.kf = 1.0 / max_lat_accel
+      # ret.lateralTuning.torque.ki = 0.19 / max_lat_accel
+      # ret.lateralTuning.torque.friction = 0.02
+      #
+      # ret.lateralTuning.torque.kd = 1.0
+      torque_tune(ret.lateralTuning, 2.275, 0.025)
+      # try:
+      #   CarInterfaceBase.configure_torque_tune(candidate, ret.lateralTuning)
+      # except:
 
-      ret.lateralTuning.torque.kd = 1.0
       # ret.lateralTuning.torque.deadzone = 0.01
 
     # TODO: get actual value, for now starting with reasonable value for
