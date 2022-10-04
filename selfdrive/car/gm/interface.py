@@ -172,7 +172,7 @@ class CarInterface(CarInterfaceBase):
       # ret.lateralTuning.torque.friction = 0.02
       #
       # ret.lateralTuning.torque.kd = 1.0
-      torque_tune(ret.lateralTuning, 2.5, 0.05)
+      torque_tune(ret.lateralTuning, 2.75, 0.05)
       # try:
       #   CarInterfaceBase.configure_torque_tune(candidate, ret.lateralTuning)
       # except:
