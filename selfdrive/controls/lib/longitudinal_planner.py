@@ -108,17 +108,6 @@ class LongitudinalPlanner:
        v_cruise = int(v_cruise * CV.MS_TO_KPH + 0.25) * CV.KPH_TO_MS
 
 
-    
-    scc_smoother = SccSmoother.instance()
-    # road_speed_limiter = get_road_speed_limiter()
-    # apply_limit_speed, road_limit_speed, left_dist, first_started, max_speed_log = \
-    #   road_speed_limiter.get_max_speed(v_ego * CV.MS_TO_KPH, True)
-    #
-    if scc_smoother.max_speed_clu >= 30:
-      v_cruise = min(v_cruise, scc_smoother.max_speed_clu * CV.KPH_TO_MS)
-    #
-
-
     long_control_off = sm['controlsState'].longControlState == LongCtrlState.off
     force_slow_decel = sm['controlsState'].forceDecel
 
