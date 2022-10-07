@@ -227,12 +227,12 @@ class SccSmoother(SingletonInstance):
       self.read_param()
     self.param_read_counter += 1
 
-    if self.is_metric == CS.is_set_speed_in_mph:
-      self.is_metric = not CS.is_set_speed_in_mph
-      self.speed_conv_to_ms = CV.KPH_TO_MS if self.is_metric else CV.MPH_TO_MS
-      self.speed_conv_to_clu = CV.MS_TO_KPH if self.is_metric else CV.MS_TO_MPH
-      self.min_set_speed_clu = self.kph_to_clu(MIN_SET_SPEED_KPH)
-      self.max_set_speed_clu = self.kph_to_clu(MAX_SET_SPEED_KPH)
+    #if self.is_metric == CS.is_set_speed_in_mph:
+    #  self.is_metric = not CS.is_set_speed_in_mph
+    #  self.speed_conv_to_ms = CV.KPH_TO_MS if self.is_metric else CV.MPH_TO_MS
+    #  self.speed_conv_to_clu = CV.MS_TO_KPH if self.is_metric else CV.MS_TO_MPH
+    #  self.min_set_speed_clu = self.kph_to_clu(MIN_SET_SPEED_KPH)
+    #  self.max_set_speed_clu = self.kph_to_clu(MAX_SET_SPEED_KPH)
 
     # mph or kph
     # clu11_speed = CS.clu11["CF_Clu_Vanz"]
