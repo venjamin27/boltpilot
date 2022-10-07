@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import math
 import numpy as np
-from common.numpy_fast import interp
+from common.numpy_fast import clip, interp
 
 import cereal.messaging as messaging
 from common.conversions import Conversions as CV
@@ -90,8 +90,8 @@ class LongitudinalPlanner:
       j = np.zeros(len(T_IDXS_MPC))
     return x, v, a, j
 
-  def update(self, sm):
-    if self.param_read_counter % 100 == 0:
+  def update(self, sm, read=True):
+    if self.param_read_counter % 100 == 0 and read:
       self.read_param()
     self.param_read_counter += 1
 
@@ -128,15 +128,17 @@ class LongitudinalPlanner:
     # No change cost when user is controlling the speed, or when standstill
     prev_accel_constraint = not (reset_state or sm['carState'].standstill)
 
+    accel_limits = [A_CRUISE_MIN, get_max_accel(v_ego)]
+    accel_limits_turns = limit_accel_in_turns(v_ego, sm['carState'].steeringAngleDeg, accel_limits, self.CP)
+
     if reset_state:
       self.v_desired_filter.x = v_ego
-      self.a_desired = 0.0
+      # Clip aEgo to cruise limits to prevent large accelerations when becoming active
+      self.a_desired = clip(sm['carState'].aEgo, accel_limits[0], accel_limits[1])
 
     # Prevent divergence, smooth in current v_ego
     self.v_desired_filter.x = max(0.0, self.v_desired_filter.update(v_ego))
 
-    accel_limits = [A_CRUISE_MIN, get_max_accel(v_ego)]
-    accel_limits_turns = limit_accel_in_turns(v_ego, sm['carState'].steeringAngleDeg, accel_limits, self.CP)
     if force_slow_decel:
       # if required so, force a smooth deceleration
       accel_limits_turns[1] = min(accel_limits_turns[1], AWARENESS_DECEL)

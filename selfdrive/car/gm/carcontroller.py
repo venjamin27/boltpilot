@@ -47,7 +47,7 @@ class CarController():
     # self.packer_obj = CANPacker(DBC[CP.carFingerprint]['radar'])
     # self.packer_ch = CANPacker(DBC[CP.carFingerprint]['chassis'])
 
-    self.scc_smoother = SccSmoother.instance()
+    self.scc_smoother = SccSmoother.instance(CP)
     self.frame = 0
     self.longcontrol = CP.openpilotLongitudinalControl
     self.packer = CANPacker(dbc_name)
@@ -88,6 +88,7 @@ class CarController():
         apply_steer = 0
 
       self.apply_steer_last = apply_steer
+      apply_steer = int(round(float(apply_steer)))
       # GM EPS faults on any gap in received message counters. To handle transient OP/Panda safety sync issues at the
       # moment of disengaging, increment the counter based on the last message known to pass Panda safety checks.
       idx = (CS.lka_steering_cmd_counter + 1) % 4
@@ -240,7 +241,7 @@ class CarController():
     self.scc_smoother.update(CC.enabled, can_sends, self.packer, CC, CS, self.frame, controls)
 
     # send scc to car if longcontrol enabled and SCC not on bus 0 or ont live
-    if self.longcontrol and CS.cruiseState_enabled:
+    if self.longcontrol and CS.out.cruiseState.enabled:
 
       if self.frame % 2 == 0:
         stopping = controls.LoC.long_control_state == LongCtrlState.stopping
