@@ -246,7 +246,7 @@ class CarInterfaceBase(ABC):
       events.add(EventName.parkBrake)
     if cs_out.accFaulted:
       events.add(EventName.accFaulted)
-    if cs_out.steeringPressed:
+    if cs_out.steeringPressed and not (cs_out.leftBlinker or cs_out.rightBlinker) :
       events.add(EventName.steerOverride)
 
     # Handle button presses
