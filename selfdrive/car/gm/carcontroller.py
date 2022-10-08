@@ -102,9 +102,6 @@ class CarController():
       self.comma_pedal = 0.0  # Must be set by zero, or cannot re-acceling when stopped. - jc01rho.
 
     elif CS.adaptive_Cruise:
-
-      # acc_mult = interp(CS.out.vEgo, [0., 18.0 * CV.KPH_TO_MS, 30* CV.KPH_TO_MS, 40* CV.KPH_TO_MS ], [0.17, 0.24, 0.265, 0.24])
-      # accelFomula = (actuators.accel / 8.8 if actuators.accel >=0 else actuators.accel / 9.25 )
       ConstAccel = interp(CS.out.vEgo, [18.0 * CV.KPH_TO_MS, 100.0 * CV.KPH_TO_MS], [0.17, 0.245])
       accelFomula = ((actuators.accel - ConstAccel) / 8.0)
       accelFomula = round(accelFomula, 3)
@@ -112,8 +109,7 @@ class CarController():
       self.comma_pedal_original = clip(
         interp(actuators.accel, [-0.775, 0.00, 0.20], [0.0, ConstAccel, ConstAccel + 0.0125]) + accelFomula, 0., 1.)
       
-      #self.pedal_hyst_gap = 0.01 
-      self.pedal_hyst_gap = interp(CS.out.vEgo, [50.0 * CV.KPH_TO_MS, 100.0 * CV.KPH_TO_MS], [0.01, 0.006])
+      self.pedal_hyst_gap = interp(CS.out.vEgo, [40.0 * CV.KPH_TO_MS, 100.0 * CV.KPH_TO_MS], [0.01, 0.0055])
       self.pedal_final, self.pedal_steady = actuator_hystereses(self.comma_pedal_original, self.pedal_steady, self.pedal_hyst_gap)
       self.comma_pedal = clip(self.pedal_final, 0., 1.)
 
@@ -263,6 +259,3 @@ class CarController():
 
         controls.sccStockCamAct = 0
         controls.sccStockCamStatus = 0
-
-
-
