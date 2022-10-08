@@ -4,25 +4,29 @@ import signal
 import json
 import weakref
 from enum import Enum
-import numpy as np
-
-CONF_PATH = '/data/ntune/'
-CONF_LAT_INDI_FILE = '/data/ntune/lat_indi.json'
-CONF_LAT_TORQUE_FILE = '/data/ntune/lat_torque_v4.json'
-
-ntunes = {}
-
-
-def file_watch_handler(signum, frame):
-  global ntunes
-  for ntune in ntunes.values():
-    ntune.handle()
-
 
 class LatType(Enum):
   NONE = 0
   INDI = 1
   TORQUE = 2
+
+class GroupType:
+  NONE = "none"
+  INDI = "lat_indi"
+  TORQUE = "lat_torque_v4"
+  COMMON = "common"
+  SCC = "scc"
+
+CONF_PATH = '/data/ntune/'
+CONF_LAT_INDI_FILE = '/data/ntune/'+GroupType.INDI+'.json'
+CONF_LAT_TORQUE_FILE = '/data/ntune/'+GroupType.TORQUE+'.json'
+
+ntunes = {}
+
+def file_watch_handler(signum, frame):
+  global ntunes
+  for ntune in ntunes.values():
+    ntune.handle()
 
 
 class nTune():
@@ -41,7 +45,7 @@ class nTune():
     self.CP = CP
     self.ctrl = weakref.ref(ctrl) if ctrl is not None else None
     self.type = LatType.NONE
-    self.group = group
+    self.group = GroupType.NONE if group is None else group
     self.config = {}
     self.key = str(self)
     self.disable_lateral_live_tuning = CP.disableLateralLiveTuning if CP is not None else False
@@ -60,7 +64,7 @@ class nTune():
 
     self.read()
 
-    if self.group is None:
+    if self.group == GroupType.NONE:
       ntunes[self.key] = self
 
     try:
@@ -134,14 +138,16 @@ class nTune():
 
   def checkValid(self):
 
-    if self.type == LatType.INDI:
+    if self.type == LatType.INDI or self.group == GroupType.INDI:
       return self.checkValidIndi()
-    elif self.type == LatType.TORQUE:
+    elif self.type == LatType.TORQUE or self.group == GroupType.TORQUE:
       return self.checkValidTorque()
-    elif self.group == "common":
+    elif self.group == GroupType.COMMON:
       return self.checkValidCommon()
-    else:
-      return self.checkValidISCC()
+    elif self.group == GroupType.SCC:
+      return self.checkValidSCC()
+
+    return False
 
   def update(self):
 
@@ -162,7 +168,7 @@ class nTune():
     if self.checkValue("steerRatio", 10.0, 20.0, 16.5):
       updated = True
 
-    if self.checkValue("steerActuatorDelay", 0., 0.8, 0.1):
+    if self.checkValue("steerActuatorDelay", 0., 0.8, 0.21):
       updated = True
 
     if self.checkValue("pathOffset", -1.0, 1.0, 0.0):
@@ -189,20 +195,16 @@ class nTune():
 
     if self.checkValue("useSteeringAngle", 0., 1., 1.):
       updated = True
-    if self.checkValue("maxLatAccel", 0.5, 4.0, 2.5):
+    if self.checkValue("latAccelFactor", 0.5, 4.5, 2.350):
       updated = True
-    if self.checkValue("friction", 0.0, 0.2, 0.0):
+    if self.checkValue("friction", 0.0, 0.2, 0.175):
       updated = True
-    if self.checkValue("ki_factor", 0.0, 1.0, 0.2):
-      updated = True
-    if self.checkValue("kd", 0.0, 2.0, 1.0):
-      updated = True
-    if self.checkValue("angle_deadzone_v2", 0.0, 2.0, 0.0):
+    if self.checkValue("angle_deadzone_v2", 0.0, 2.0, 0.03):
       updated = True
 
     return updated
 
-  def checkValidISCC(self):
+  def checkValidSCC(self):
     updated = False
 
     if self.checkValue("sccGasFactor", 0.5, 1.5, 1.0):
@@ -230,14 +232,9 @@ class nTune():
     torque = self.get_ctrl()
     if torque is not None:
       torque.use_steering_angle = float(self.config["useSteeringAngle"]) > 0.5
-      max_lat_accel = float(self.config["maxLatAccel"])
-      torque.pid._k_p = [[0], [1.0 / max_lat_accel]]
-      torque.pid.k_f = 1.0 / max_lat_accel
-      torque.pid._k_i = [[0], [self.config["ki_factor"] / max_lat_accel]]
-      torque.pid._k_d = [[0], [float(self.config["kd"])]]
-      torque.friction = float(self.config["friction"])
       torque.steering_angle_deadzone_deg = float(self.config["angle_deadzone_v2"])
-      torque.reset()
+      torque.torque_params.latAccelFactor = float(self.config["latAccelFactor"])
+      torque.torque_params.friction = float(self.config["friction"])
 
   def read_cp(self):
 
@@ -248,9 +245,8 @@ class nTune():
           pass
         elif self.type == LatType.TORQUE:
           self.config["useSteeringAngle"] = 1. if self.CP.lateralTuning.torque.useSteeringAngle else 0.
-          self.config["maxLatAccel"] = round(1. / self.CP.lateralTuning.torque.kp, 2)
+          self.config["latAccelFactor"] = self.CP.lateralTuning.torque.latAccelFactor
           self.config["friction"] = round(self.CP.lateralTuning.torque.friction, 3)
-          self.config["kd"] = round(self.CP.lateralTuning.torque.kd, 2)
           self.config["angle_deadzone_v2"] = round(self.CP.lateralTuning.torque.steeringAngleDeadzoneDeg, 1)
         else:
           self.config["useLiveSteerRatio"] = 1.
@@ -307,12 +303,13 @@ def ntune_get(group, key):
 
 
 def ntune_common_get(key):
-  return ntune_get("common", key)
-
+  return ntune_get(GroupType.COMMON, key)
 
 def ntune_common_enabled(key):
   return ntune_common_get(key) > 0.5
 
-
 def ntune_scc_get(key):
-  return ntune_get("scc", key)
+  return ntune_get(GroupType.SCC, key)
+
+def ntune_torque_get(key):
+  return ntune_get(GroupType.TORQUE, key)

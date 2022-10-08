@@ -27,7 +27,6 @@ class LateralPlanner:
     self.solution_invalid_cnt = 0
 
     self.path_xyz = np.zeros((TRAJECTORY_SIZE, 3))
-    self.path_xyz_stds = np.ones((TRAJECTORY_SIZE, 3))
     self.plan_yaw = np.zeros((TRAJECTORY_SIZE,))
     self.plan_curv_rate = np.zeros((TRAJECTORY_SIZE,))
     self.t_idxs = np.arange(TRAJECTORY_SIZE)
@@ -51,8 +50,6 @@ class LateralPlanner:
       self.path_xyz = np.column_stack([md.position.x, md.position.y, md.position.z])
       self.t_idxs = np.array(md.position.t)
       self.plan_yaw = np.array(md.orientation.z)
-    if len(md.position.xStd) == TRAJECTORY_SIZE:
-      self.path_xyz_stds = np.column_stack([md.position.xStd, md.position.yStd, md.position.zStd])
 
     # Lane change logic
     lane_change_prob = self.LP.l_lane_change_prob + self.LP.r_lane_change_prob
@@ -67,7 +64,7 @@ class LateralPlanner:
     if self.use_lanelines:
       d_path_xyz = self.LP.get_d_path(v_ego, self.t_idxs, self.path_xyz)
       d_path_xyz[:, 1] += ntune_common_get('pathOffset')
-      self.lat_mpc.set_weights(MPC_COST_LAT.PATH, MPC_COST_LAT.HEADING, 0.4)
+      self.lat_mpc.set_weights(MPC_COST_LAT.PATH, MPC_COST_LAT.HEADING, MPC_COST_LAT.STEER_RATE)
     else:
       d_path_xyz = self.path_xyz
       d_path_xyz[:, 1] += ntune_common_get('pathOffset')

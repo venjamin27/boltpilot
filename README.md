@@ -1,3 +1,9 @@
+# For foreign users (non Korean.)
+### 2022-10-07
+- full clean wipe & factory reset the device when you read this first time.
+- (especially, delete /data/ntune directory. )
+
+=======================
 ![boltpilot](https://i.imgur.com/azNrGqZ.gif)
 
 Table of Contents

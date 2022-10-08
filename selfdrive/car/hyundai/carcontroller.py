@@ -70,7 +70,9 @@ class CarController:
     self.keep_steering_turn_signals = param.get_bool('KeepSteeringTurnSignals')
     self.haptic_feedback_speed_camera = param.get_bool('HapticFeedbackWhenSpeedCamera')
 
-    self.scc_smoother = SccSmoother.instance()
+    self.can_fd = CP.carFingerprint in CANFD_CAR
+
+    self.scc_smoother = SccSmoother(CP)
     self.last_blinker_frame = 0
     self.prev_active_cam = False
     self.active_cam_timer = 0
@@ -84,8 +86,8 @@ class CarController:
     self.steer_fault_max_frames = CP.steerFaultMaxFrames
 
   def update(self, CC, CS, controls):
-    if self.CP.carFingerprint in CANFD_CAR:
-      return self.update_canfd(CC, CS)
+    if self.can_fd:
+      return self.update_canfd(CC, CS, controls)
 
     actuators = CC.actuators
     hud_control = CC.hudControl
@@ -110,6 +112,7 @@ class CarController:
       apply_steer = 0
 
     self.apply_steer_last = apply_steer
+    apply_steer = int(round(float(apply_steer)))
 
     sys_warning, sys_state, left_lane_warning, right_lane_warning = process_hud_alert(CC.enabled, self.CP.carFingerprint, hud_control)
 
@@ -225,7 +228,7 @@ class CarController:
     self.scc_smoother.update(CC.enabled, can_sends, self.packer, CC, CS, self.frame, controls)
 
     # send scc to car if longcontrol enabled and SCC not on bus 0 or ont live
-    if self.longcontrol and CS.cruiseState_enabled and (CS.scc_bus or not self.scc_live):
+    if self.longcontrol and CS.out.cruiseState.enabled and (CS.scc_bus or not self.scc_live):
 
       if self.frame % 2 == 0:
 
@@ -293,7 +296,7 @@ class CarController:
     else:
       self.scc12_cnt = -1
 
-  def update_canfd(self, CC, CS):
+  def update_canfd(self, CC, CS, controls):
     actuators = CC.actuators
 
     # Steering Torque
@@ -304,6 +307,7 @@ class CarController:
       apply_steer = 0
 
     self.apply_steer_last = apply_steer
+    apply_steer = int(round(float(apply_steer)))
 
     can_sends = []
 
@@ -333,7 +337,8 @@ class CarController:
       # cruise standstill resume
       elif CC.cruiseControl.resume:
         if not (self.CP.flags & HyundaiFlags.CANFD_ALT_BUTTONS):
-          can_sends.append(hyundaicanfd.create_buttons(self.packer, CS.buttons_counter + 1, Buttons.RES_ACCEL))
+          for _ in range(20):
+            can_sends.append(hyundaicanfd.create_buttons(self.packer, CS.buttons_counter + 1, Buttons.RES_ACCEL))
           self.last_button_frame = self.frame
 
     new_actuators = actuators.copy()

@@ -12,6 +12,14 @@ ButtonType = car.CarState.ButtonEvent.Type
 EventName = car.CarEvent.EventName
 
 
+def apply_hysteresis(val: float, val_steady: float, hyst_gap: float) -> float:
+  if val > val_steady + hyst_gap:
+    val_steady = val - hyst_gap
+  elif val < val_steady - hyst_gap:
+    val_steady = val + hyst_gap
+  return val_steady
+
+
 def create_button_event(cur_but: int, prev_but: int, buttons_dict: Dict[int, capnp.lib.capnp._EnumModule],
                         unpressed: int = 0) -> capnp.lib.capnp._DynamicStructBuilder:
   if cur_but != unpressed:
@@ -93,7 +101,7 @@ def apply_std_steer_torque_limits(apply_torque, apply_torque_last, driver_torque
     apply_torque = clip(apply_torque, apply_torque_last - LIMITS.STEER_DELTA_UP,
                         min(apply_torque_last + LIMITS.STEER_DELTA_DOWN, LIMITS.STEER_DELTA_UP))
 
-  return int(round(float(apply_torque)))
+  return apply_torque
 
 
 def apply_toyota_steer_torque_limits(apply_torque, apply_torque_last, motor_torque, LIMITS):

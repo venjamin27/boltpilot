@@ -3,10 +3,8 @@ from cereal import log
 from common.filter_simple import FirstOrderFilter
 from common.numpy_fast import interp, clip, mean
 from common.realtime import DT_MDL
-from system.swaglog import cloudlog
 
 TRAJECTORY_SIZE = 33
-CAMERA_OFFSET = 0.04
 
 ENABLE_ZORROBYTE = True
 ENABLE_INC_LANE_PROB = True
@@ -32,7 +30,7 @@ class LanePlanner:
     self.l_lane_change_prob = 0.
     self.r_lane_change_prob = 0.
 
-    self.camera_offset = CAMERA_OFFSET
+    self.camera_offset = 0.0
 
     self.readings = []
     self.frame = 0
@@ -115,6 +113,4 @@ class LanePlanner:
     if safe_idxs[0]:
       lane_path_y_interp = np.interp(path_t, self.ll_t[safe_idxs], lane_path_y[safe_idxs])
       path_xyz[:,1] = self.d_prob * lane_path_y_interp + (1.0 - self.d_prob) * path_xyz[:,1]
-    else:
-      cloudlog.warning("Lateral mpc - NaNs in laneline times, ignoring")
     return path_xyz
