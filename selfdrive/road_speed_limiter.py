@@ -55,6 +55,7 @@ class RoadLimitSpeedServer:
       i = 0.
       frame = 1
       start_time = sec_since_boot()
+      print("gps_thread_start")
       while True:
         self.gps_event.wait(wait_time)
         self.gps_timer()
@@ -91,10 +92,11 @@ class RoadLimitSpeedServer:
               location.bearingAccuracyDeg,
               location.speedAccuracy,
             ]})
-
+            print("json timer print : " + json_location)
             address = (self.remote_gps_addr[0], Port.LOCATION_PORT)
             self.gps_socket.sendto(json_location.encode(), address)
-    except:
+    except Exception as err:
+      print("gps_timer exception:" + err)
       self.remote_gps_addr = None
 
   def get_broadcast_address(self):
@@ -163,14 +165,17 @@ class RoadLimitSpeedServer:
             pass
 
         if 'request_gps' in json_obj:
+          print("request_gps")
           try:
             if json_obj['request_gps'] == 1:
               self.remote_gps_addr = self.remote_addr
+              print("remote_addr:" +self.remote_addr)
             else:
               self.remote_gps_addr = None
             ret = False
-          except:
-            pass
+          except Exception as err:
+            print("request_gps except: "+err)
+            # pass
 
         if 'echo' in json_obj:
           try:
