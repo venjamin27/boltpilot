@@ -374,7 +374,6 @@ struct CarControl {
     speed @6: Float32; # m/s
     accel @4: Float32; # m/s^2
     longControlState @5: LongControlState;
-    speed @6: Float32; # m/s
     #BOLT EV things.
     commaPedal @7: Float32;
     regenPaddle @8: Bool;
@@ -465,8 +464,8 @@ struct CarParams {
   notCar @66 :Bool;  # flag for non-car robotics platforms
 
   #BoltEV things.
-  restartForceAccel  @84 :Bool;
-  keepLatWhenBrake  @83 :Bool;
+  restartForceAccel  @82 :Bool;
+  keepLatWhenBrake  @81 :Bool;
 
   enableGasInterceptor @2 :Bool;
   pcmCruise @3 :Bool;        # is openpilot's state tied to the PCM's cruise state?
