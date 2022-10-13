@@ -172,7 +172,6 @@ struct CarState {
   standstill @18 :Bool;
   wheelSpeeds @2 :WheelSpeeds;
 
-
   # gas pedal, 0.0-1.0
   gas @3 :Float32;        # this is user pedal only
   gasPressed @4 :Bool;    # this is user pedal only
@@ -182,7 +181,6 @@ struct CarState {
   brakePressed @6 :Bool;  # this is user pedal only
   parkingBrake @39 :Bool;
   brakeHoldActive @38 :Bool;
-
 
   # steering wheel
   steeringAngleDeg @7 :Float32;
@@ -200,7 +198,6 @@ struct CarState {
 
   # cruise state
   cruiseState @10 :CruiseState;
-
 
   # gear
   gearShifter @14 :GearShifter;
@@ -364,8 +361,6 @@ struct CarControl {
     cruiseMaxSpeed @2 :Float32;
     logMessage @3 :Text;
     autoTrGap @4 :UInt32;
-    slowByCurve @5 :Bool;
-    slowByCamera @6 :Bool;
   }
 
   struct Actuators {
@@ -376,10 +371,11 @@ struct CarControl {
     steer @2: Float32;
     steeringAngleDeg @3: Float32;
 
-
+    speed @6: Float32; # m/s
     accel @4: Float32; # m/s^2
     longControlState @5: LongControlState;
     speed @6: Float32; # m/s
+    #BOLT EV things.
     commaPedal @7: Float32;
     regenPaddle @8: Bool;
     commaPedalOrigin @9: Float32;
@@ -446,7 +442,7 @@ struct CarControl {
       prompt @6;
       promptRepeat @7;
       promptDistracted @8;
-      
+
       slowingDownSpeed @9;
     }
   }
@@ -546,7 +542,7 @@ struct CarParams {
     safetyParamDEPRECATED @1 :Int16;
     safetyParam2DEPRECATED @2 :UInt32;
   }
-  
+
   mdpsBus @72: Int8;
   sasBus @73: Int8;
   sccBus @74: Int8;
