@@ -25,7 +25,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Python Linter
-        uses: ricardochaves/python-lint@v1.4.0
+        uses: ricardochaves/python-lint
         with:
           python-root-list: selfdrive/car/gm/** selfdrive/car/*.py selfdrive/controls/*.py
           use-pylint: true
@@ -39,7 +39,7 @@ jobs:
 
       - name: Python Linter
         if: always()
-        uses: ricardochaves/python-lint@v1.4.0
+        uses: ricardochaves/python-lint
         with:
           python-root-list: selfdrive/controls/lib/*.py
           use-pylint: true
@@ -60,19 +60,20 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - name: Get number of CPU cores
-        uses: SimenB/github-actions-cpu-cores@v1
+        uses: SimenB/github-actions-cpu-cores
         id: cpu-cores
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
 
       - name: Get current date
         id: date
-        run: echo "::set-output name=date::$(expr $(date +'%d') % 5  )"
+        run: echo  "date=$(expr $(date +'%d') % 5  )" >> $GITHUB_ENV
+
         
       - uses: actions/checkout@v3
 
       - name: Set outputs
         id: vars
-        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
+        run: echo  "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
       - name: Cache apt binaries
         uses: actions/cache@v3
