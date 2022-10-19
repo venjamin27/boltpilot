@@ -13,6 +13,7 @@ from cereal import messaging, log
 from common.numpy_fast import clip
 from common.realtime import sec_since_boot
 from common.conversions import Conversions as CV
+import traceback
 
 CAMERA_SPEED_FACTOR = 1.05
 
@@ -171,13 +172,16 @@ class RoadLimitSpeedServer:
           print("request_gps , json : " + json.dumps(json_obj))
           try:
             if json_obj['request_gps'] == 1:
+              print("remote_addr:...")
+              print("remote_addr:" + self.remote_addr)
               self.remote_gps_addr = self.remote_addr
-              print("remote_addr:" +self.remote_addr)
             else:
               print("request_gps : else , json : " + json.dumps(json_obj))
               self.remote_gps_addr = None
             ret = False
           except Exception as err:
+            print("Except..")
+            traceback.print_exc()
             print("request_gps except: "+err)
             # pass
 
