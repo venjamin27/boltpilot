@@ -178,6 +178,7 @@ class RoadLimitSpeedServer:
             else:
               print("request_gps : else , json : " + json.dumps(json_obj))
               self.remote_gps_addr = None
+            print("ret false")
             ret = False
           except Exception as err:
             print("Except..")
