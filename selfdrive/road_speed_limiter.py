@@ -97,6 +97,8 @@ class RoadLimitSpeedServer:
             print("json timer print : " + json_location)
             address = (self.remote_gps_addr[0], Port.LOCATION_PORT)
             self.gps_socket.sendto(json_location.encode(), address)
+        else:
+          print("self.gps_sm.updated['gpsLocationExternal'] is false")
       else:
         print("self.remote_gps_addr is None")
     except Exception as err:
@@ -173,7 +175,8 @@ class RoadLimitSpeedServer:
           try:
             if json_obj['request_gps'] == 1:
               print("remote_addr:...")
-              print("remote_addr:" + self.remote_addr)
+              result = f'{self.remote_addr}'
+              print("remote_addr:" + result)
               self.remote_gps_addr = self.remote_addr
             else:
               print("request_gps : else , json : " + json.dumps(json_obj))
@@ -183,7 +186,6 @@ class RoadLimitSpeedServer:
           except Exception as err:
             print("Except..")
             traceback.print_exc()
-            print("request_gps except: "+err)
             # pass
 
         if 'echo' in json_obj:
