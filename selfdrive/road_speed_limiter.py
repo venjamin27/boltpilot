@@ -72,12 +72,13 @@ class RoadLimitSpeedServer:
 
   def gps_timer(self):
     try:
+      print("gps_timer called")
       if self.remote_gps_addr is not None:
         self.gps_sm.update(0)
         if self.gps_sm.updated['gpsLocationExternal']:
           location = self.gps_sm['gpsLocationExternal']
-
-          if location.accuracy < 10.:
+          print("location.accuracy :  " + location.accuracy)
+          if location.accuracy < 20.:
             json_location = json.dumps({"location": [
               location.latitude,
               location.longitude,
@@ -167,7 +168,7 @@ class RoadLimitSpeedServer:
             pass
 
         if 'request_gps' in json_obj:
-          print("request_gps")
+          print("request_gps , json : " + json.dumps(json_obj))
           try:
             if json_obj['request_gps'] == 1:
               self.remote_gps_addr = self.remote_addr
