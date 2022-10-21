@@ -68,8 +68,10 @@ class RoadLimitSpeedServer:
         wait_time = clip(wait_time, 0.8, 1.0)
         frame += 1
 
-    except:
-      pass
+    except Exception as e:
+      print("gps_thread except :  ..")
+      traceback.print_exc()
+
 
   def gps_timer(self):
     try:
@@ -102,7 +104,8 @@ class RoadLimitSpeedServer:
       else:
         print("self.remote_gps_addr is None")
     except Exception as err:
-      print("gps_timer exception:" + err)
+      print("gps_timer except : ... ")
+      traceback.print_exc()
       self.remote_gps_addr = None
 
   def get_broadcast_address(self):
