@@ -80,7 +80,7 @@ class RoadLimitSpeedServer:
         self.gps_sm.update(0)
         if self.gps_sm.updated['gpsLocationExternal']:
           location = self.gps_sm['gpsLocationExternal']
-          print("location.accuracy :  " + location.accuracy)
+          print("location.accuracy :  " + str(location.accuracy))
           if location.accuracy < 20.:
             json_location = json.dumps({"location": [
               location.latitude,
