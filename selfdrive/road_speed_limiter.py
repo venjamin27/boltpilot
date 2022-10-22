@@ -89,7 +89,7 @@ class RoadLimitSpeedServer:
               location.speed,
               location.bearingDeg,
               location.accuracy,
-              location.timestamp,
+              location.unixTimestampMillis,
               # location.source,
               # location.vNED,
               location.verticalAccuracy,
