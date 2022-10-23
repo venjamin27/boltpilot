@@ -56,7 +56,6 @@ class RoadLimitSpeedServer:
       i = 0.
       frame = 1
       start_time = sec_since_boot()
-      print("gps_thread_start")
       while True:
         self.gps_event.wait(wait_time)
         self.gps_timer()
@@ -68,19 +67,16 @@ class RoadLimitSpeedServer:
         wait_time = clip(wait_time, 0.8, 1.0)
         frame += 1
 
-    except Exception as e:
-      print("gps_thread except :  ..")
+    except Exception as err:
       traceback.print_exc()
 
 
   def gps_timer(self):
     try:
-      print("gps_timer called")
       if self.remote_gps_addr is not None:
         self.gps_sm.update(0)
         if self.gps_sm.updated['gpsLocationExternal']:
           location = self.gps_sm['gpsLocationExternal']
-          print("location.unixTimestampMillis :  " + str(location.unixTimestampMillis))
           if location.accuracy < 20.:
             json_location = json.dumps({"location": [
               location.latitude,
@@ -96,15 +92,9 @@ class RoadLimitSpeedServer:
               location.bearingAccuracyDeg,
               location.speedAccuracy,
             ]})
-            print("json timer print : " + json_location)
             address = (self.remote_gps_addr[0], Port.LOCATION_PORT)
             self.gps_socket.sendto(json_location.encode(), address)
-        else:
-          print("self.gps_sm.updated['gpsLocationExternal'] is false")
-      else:
-        print("self.remote_gps_addr is None")
     except Exception as err:
-      print("gps_timer except : ... ")
       traceback.print_exc()
       self.remote_gps_addr = None
 
@@ -174,22 +164,14 @@ class RoadLimitSpeedServer:
             pass
 
         if 'request_gps' in json_obj:
-          print("request_gps , json : " + json.dumps(json_obj))
           try:
             if json_obj['request_gps'] == 1:
-              print("remote_addr:...")
-              result = f'{self.remote_addr}'
-              print("remote_addr:" + result)
               self.remote_gps_addr = self.remote_addr
             else:
-              print("request_gps : else , json : " + json.dumps(json_obj))
               self.remote_gps_addr = None
-            print("ret false")
             ret = False
           except Exception as err:
-            print("Except..")
             traceback.print_exc()
-            # pass
 
         if 'echo' in json_obj:
           try:
