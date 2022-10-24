@@ -51,7 +51,7 @@ class RoadLimitSpeedServer:
 
   def gps_thread(self):
     try:
-      period = 0.1
+      period = 0.2
       wait_time = period
       i = 0.
       frame = 1
@@ -62,9 +62,9 @@ class RoadLimitSpeedServer:
 
         now = sec_since_boot()
         error = (frame * period - (now - start_time))
-        i += error * 0.05
-        wait_time = period + error * 0.05 + i
-        wait_time = clip(wait_time, 0.05, 1.0)
+        i += error * 0.1
+        wait_time = period + error * 0.1 + i
+        wait_time = clip(wait_time, 0.15, 1.0)
         frame += 1
         if frame > 1000000000:
           frame = 0
