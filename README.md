@@ -1,3 +1,9 @@
+# For foreign users (non Korean.)
+### 2022-10-07
+- full clean wipe & factory reset the device when you read this first time.
+- (especially, delete /data/ntune directory. )
+
+=======================
 ![boltpilot](https://i.imgur.com/azNrGqZ.gif)
 
 Table of Contents
@@ -25,7 +31,7 @@ This "boltpilot" fork is a community supported fork of the open source driver as
 
 Currently, boltpilot performs the functions of Adaptive Cruise Control (ACC) and Automated Lane Centering (ALC). It will control your steering wheel to keep your vehicle centred in the lane and can optionally also control your vehicle's speed. The system does not offer full self-driving capabilities and will not, for example, stop for red lights or stop signs, although some of these features are currently under development by Comma.ai. The driver must remain alert and able to take control at all times. 
 
-This is an experimental application used for research and development. It is not a product and carries no warranty exporessed or implied. Use at your own risk. Issue reports are welcome via github, or contact kjnice@gmail.com.
+This is an experimental application used for research and development. It is not a product and carries no warranty exporessed or implied. Use at your own risk. Issue reports are welcome via github, or contact rkjnice@gmail.com.
 
 
 Hardware requirements

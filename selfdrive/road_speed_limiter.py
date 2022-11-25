@@ -13,6 +13,7 @@ from cereal import messaging, log
 from common.numpy_fast import clip
 from common.realtime import sec_since_boot
 from common.conversions import Conversions as CV
+import traceback
 
 CAMERA_SPEED_FACTOR = 1.05
 
@@ -50,7 +51,7 @@ class RoadLimitSpeedServer:
 
   def gps_thread(self):
     try:
-      period = 1.0
+      period = 0.4
       wait_time = period
       i = 0.
       frame = 1
@@ -62,12 +63,15 @@ class RoadLimitSpeedServer:
         now = sec_since_boot()
         error = (frame * period - (now - start_time))
         i += error * 0.1
-        wait_time = period + error * 0.5 + i
-        wait_time = clip(wait_time, 0.8, 1.0)
+        wait_time = period + error * 0.1 + i
+        wait_time = clip(wait_time, 0.15, 1.0)
         frame += 1
+        if frame > 1000000000:
+          frame = 0
 
-    except:
-      pass
+    except Exception as err:
+      traceback.print_exc()
+
 
   def gps_timer(self):
     try:
@@ -75,8 +79,7 @@ class RoadLimitSpeedServer:
         self.gps_sm.update(0)
         if self.gps_sm.updated['gpsLocationExternal']:
           location = self.gps_sm['gpsLocationExternal']
-
-          if location.accuracy < 10.:
+          if location.accuracy < 20.:
             json_location = json.dumps({"location": [
               location.latitude,
               location.longitude,
@@ -84,17 +87,17 @@ class RoadLimitSpeedServer:
               location.speed,
               location.bearingDeg,
               location.accuracy,
-              location.timestamp,
+              location.unixTimestampMillis,
               # location.source,
               # location.vNED,
               location.verticalAccuracy,
               location.bearingAccuracyDeg,
               location.speedAccuracy,
             ]})
-
             address = (self.remote_gps_addr[0], Port.LOCATION_PORT)
             self.gps_socket.sendto(json_location.encode(), address)
-    except:
+    except Exception as err:
+      traceback.print_exc()
       self.remote_gps_addr = None
 
   def get_broadcast_address(self):
@@ -169,8 +172,8 @@ class RoadLimitSpeedServer:
             else:
               self.remote_gps_addr = None
             ret = False
-          except:
-            pass
+          except Exception as err:
+            traceback.print_exc()
 
         if 'echo' in json_obj:
           try:
@@ -264,24 +267,10 @@ def main():
         dat.roadLimitSpeed.camLimitSpeed = server.get_limit_val("cam_limit_speed", 0)
         dat.roadLimitSpeed.sectionLimitSpeed = server.get_limit_val("section_limit_speed", 0)
         dat.roadLimitSpeed.sectionLeftDist = server.get_limit_val("section_left_dist", 0)
+        dat.roadLimitSpeed.sectionAvgSpeed = server.get_limit_val("section_avg_speed", 0)
+        dat.roadLimitSpeed.sectionLeftTime = server.get_limit_val("section_left_time", 0)
+        dat.roadLimitSpeed.sectionAdjustSpeed = server.get_limit_val("section_adjust_speed", False)
         dat.roadLimitSpeed.camSpeedFactor = server.get_limit_val("cam_speed_factor", CAMERA_SPEED_FACTOR)
-
-        try:
-          json = server.json_road_limit
-          if json is not None and "rest_area" in json:
-
-            restAreaList = []
-            for rest_area in json["rest_area"]:
-              restArea = log.RoadLimitSpeed.RestArea.new_message()
-              restArea.image = server.get_json_val(rest_area, "image")
-              restArea.title = server.get_json_val(rest_area, "title")
-              restArea.oilPrice = server.get_json_val(rest_area, "oilPrice")
-              restArea.distance = server.get_json_val(rest_area, "distance")
-              restAreaList.append(restArea)
-
-            dat.roadLimitSpeed.restArea = restAreaList
-        except:
-          pass
 
         roadLimitSpeed.send(dat.to_bytes())
         server.send_sdp(sock)
@@ -333,6 +322,10 @@ class RoadSpeedLimiter:
 
       section_limit_speed = self.roadLimitSpeed.sectionLimitSpeed
       section_left_dist = self.roadLimitSpeed.sectionLeftDist
+      section_avg_speed = self.roadLimitSpeed.sectionAvgSpeed
+      section_left_time = self.roadLimitSpeed.sectionLeftTime
+      section_adjust_speed = self.roadLimitSpeed.sectionAdjustSpeed
+
       camSpeedFactor = clip(self.roadLimitSpeed.camSpeedFactor, 1.0, 1.1)
 
       if is_highway is not None:
@@ -373,7 +366,7 @@ class RoadSpeedLimiter:
           td = self.started_dist - safe_dist
           d = cam_limit_speed_left_dist - safe_dist
 
-          if d > 0. and td > 0. and diff_speed > 0. and (section_left_dist is None or section_left_dist < 10):
+          if d > 0. and td > 0. and diff_speed > 0. and (section_left_dist is None or section_left_dist < 10 or cam_type == 2):
             pp = (d / td) ** 0.6
           else:
             pp = 0
@@ -393,7 +386,11 @@ class RoadSpeedLimiter:
           else:
             first_started = False
 
-          return section_limit_speed * camSpeedFactor, section_limit_speed, section_left_dist, first_started, log
+          speed_diff = 0
+          if section_adjust_speed is not None and section_adjust_speed:
+            speed_diff = (section_limit_speed - section_avg_speed) / 2.
+
+          return section_limit_speed * camSpeedFactor + speed_diff, section_limit_speed, section_left_dist, first_started, log
 
         self.slowing_down = False
         return 0, section_limit_speed, section_left_dist, False, log
