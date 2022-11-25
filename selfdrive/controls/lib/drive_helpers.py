@@ -23,7 +23,7 @@ V_CRUISE_MIN = 30
 V_CRUISE_PADDLE_MIN = 15
 V_CRUISE_DELTA_MI = 5 * CV.MPH_TO_KPH
 V_CRUISE_DELTA_KM = 10
-V_CRUISE_ENABLE_MIN = 30
+V_CRUISE_ENABLE_MIN = 50
 V_CRUISE_INITIAL = 255  # kph
 
 LAT_MPC_N = 16
@@ -32,7 +32,7 @@ CONTROL_N = 17
 CAR_ROTATION_RADIUS = 0.0
 
 # EU guidelines
-MAX_LATERAL_JERK = 10.0
+MAX_LATERAL_JERK = 20.0
 
 ButtonType = car.CarState.ButtonEvent.Type
 CRUISE_LONG_PRESS = 50
@@ -46,12 +46,6 @@ CRUISE_INTERVAL_SIGN = {
 }
 
 REGEN_THRESHOLD = 5
-
-
-class MPC_COST_LAT:
-  PATH = 1.0
-  HEADING = 1.0
-  STEER_RATE = 0.4
 
 
 def apply_deadzone(error, deadzone):
@@ -167,10 +161,10 @@ def get_lag_adjusted_curvature(CP, v_ego, psis, curvatures, curvature_rates):
   desired_curvature_rate = curvature_rates[0]
   max_curvature_rate = MAX_LATERAL_JERK / (v_ego**2) # inexact calculation, check https://github.com/commaai/openpilot/pull/24755
   safe_desired_curvature_rate = clip(desired_curvature_rate,
-                                          -max_curvature_rate,
-                                          max_curvature_rate)
+                                     -max_curvature_rate,
+                                     max_curvature_rate)
   safe_desired_curvature = clip(desired_curvature,
-                                     current_curvature_desired - max_curvature_rate * DT_MDL,
-                                     current_curvature_desired + max_curvature_rate * DT_MDL)
+                                current_curvature_desired - max_curvature_rate * DT_MDL,
+                                current_curvature_desired + max_curvature_rate * DT_MDL)
 
   return safe_desired_curvature, safe_desired_curvature_rate

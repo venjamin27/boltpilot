@@ -1,3 +1,9 @@
+# For foreign users (non Korean.)
+### 2022-10-07
+- full clean wipe & factory reset the device when you read this first time.
+- (especially, delete /data/ntune directory. )
+
+=======================
 ![boltpilot](https://i.imgur.com/azNrGqZ.gif)
 
 Table of Contents
@@ -25,7 +31,7 @@ This "boltpilot" fork is a community supported fork of the open source driver as
 
 Currently, boltpilot performs the functions of Adaptive Cruise Control (ACC) and Automated Lane Centering (ALC). It will control your steering wheel to keep your vehicle centred in the lane and can optionally also control your vehicle's speed. The system does not offer full self-driving capabilities and will not, for example, stop for red lights or stop signs, although some of these features are currently under development by Comma.ai. The driver must remain alert and able to take control at all times. 
 
-This is an experimental application used for research and development. It is not a product and carries no warranty exporessed or implied. Use at your own risk. Issue reports are welcome via github, or contact kjnice@gmail.com.
+This is an experimental application used for research and development. It is not a product and carries no warranty exporessed or implied. Use at your own risk. Issue reports are welcome via github, or contact rkjnice@gmail.com.
 
 
 Hardware requirements
@@ -132,7 +138,7 @@ To use openpilot in a car, you need four things
 * A supported device to run this software: a [comma three](https://comma.ai/shop/products/three).
 * This software. The setup procedure of the comma three allows the user to enter a URL for custom software.
 The URL, openpilot.comma.ai will install the release version of openpilot. To install openpilot master, you can use installer.comma.ai/commaai/master, and replacing commaai with another GitHub username can install a fork.
-* One of [the 150+ supported cars](docs/CARS.md). We support Honda, Toyota, Hyundai, Nissan, Kia, Chrysler, Lexus, Acura, Audi, VW, and more. If your car is not supported but has adaptive cruise control and lane-keeping assist, it's likely able to run openpilot.
+* One of [the 200+ supported cars](docs/CARS.md). We support Honda, Toyota, Hyundai, Nissan, Kia, Chrysler, Lexus, Acura, Audi, VW, and more. If your car is not supported but has adaptive cruise control and lane-keeping assist, it's likely able to run openpilot.
 * A [car harness](https://comma.ai/shop/products/car-harness) to connect to your car.
 
 We have detailed instructions for [how to mount the device in a car](https://comma.ai/setup).
@@ -140,7 +146,7 @@ We have detailed instructions for [how to mount the device in a car](https://com
 Running on PC
 ------
 
-All of openpilot's services can run as normal on a PC, even without special hardware or a car. To develop or experiment with openpilot you can run openpilot on recorded or simulated data.
+All openpilot services can run as usual on a PC without requiring special hardware or a car. You can also run openpilot on recorded or simulated data to develop or experiment with openpilot.
 
 With openpilot's tools, you can plot logs, replay drives, and watch the full-res camera streams. See [the tools README](tools/README.md) for more information.
 
@@ -209,7 +215,7 @@ Directory Structure
         ├── debug           # Tools to help you debug and do car ports
         ├── locationd       # Precise localization and vehicle parameter estimation
         ├── loggerd         # Logger and uploader of car data
-        ├── manager         # Deamon that starts/stops all other daemons as needed
+        ├── manager         # Daemon that starts/stops all other daemons as needed
         ├── modeld          # Driving and monitoring model runners
         ├── monitoring      # Daemon to determine driver attention
         ├── navd            # Turn-by-turn navigation

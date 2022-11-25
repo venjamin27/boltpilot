@@ -7,10 +7,11 @@ from common.numpy_fast import clip, interp, mean
 from cereal import car
 from common.realtime import DT_CTRL
 from common.conversions import Conversions as CV
-from selfdrive.car.hyundai.values import Buttons
+from selfdrive.car.hyundai import hyundaicanfd
+from selfdrive.car.hyundai.values import Buttons, CANFD_CAR
 from common.params import Params
 from selfdrive.controls.lib.drive_helpers import V_CRUISE_MAX, V_CRUISE_MIN, V_CRUISE_DELTA_KM, V_CRUISE_DELTA_MI, CONTROL_N
-from selfdrive.controls.lib.lane_planner import TRAJECTORY_SIZE
+from selfdrive.controls.lib.lateral_planner import TRAJECTORY_SIZE
 #from selfdrive.controls.lib.longitudinal_mpc_lib.long_mpc import AUTO_TR_CRUISE_GAP
 
 from selfdrive.ntune import ntune_scc_get
@@ -75,12 +76,12 @@ class SccSmoother(SingletonInstance):
   def kph_to_clu(self, kph):
     return int(kph * CV.KPH_TO_MS * self.speed_conv_to_clu)
 
-  def __init__(self):
+  def __init__(self, CP):
 
-    self.longcontrol = Params().get_bool('LongControlEnabled')
-    self.slow_on_curves = Params().get_bool('SccSmootherSlowOnCurves')
-    self.sync_set_speed_while_gas_pressed = Params().get_bool('SccSmootherSyncGasPressed')
-    self.is_metric = Params().get_bool('IsMetric')
+    self.params = Params()
+    self.read_param()
+
+    self.param_read_counter = 0
 
     self.speed_conv_to_ms = CV.KPH_TO_MS if self.is_metric else CV.MPH_TO_MS
     self.speed_conv_to_clu = CV.MS_TO_KPH if self.is_metric else CV.MS_TO_MPH
@@ -109,6 +110,15 @@ class SccSmoother(SingletonInstance):
 
     self.curve_speed_ms = 0.
     self.stock_weight = 0.
+
+    self.can_fd = CP.carFingerprint in CANFD_CAR
+
+  def read_param(self):
+    self.longcontrol = self.params.get_bool('LongControlEnabled')
+    self.slow_on_curves = self.params.get_bool('SccSmootherSlowOnCurves')
+    self.sync_set_speed_while_gas_pressed = self.params.get_bool('SccSmootherSyncGasPressed')
+    self.is_metric = self.params.get_bool('IsMetric')
+    self.e2e_long = self.params.get_bool('EndToEndLong')
 
   def reset(self):
 
@@ -141,13 +151,13 @@ class SccSmoother(SingletonInstance):
     elif self.slowing_down_alert:
       events.add(EventName.slowingDownSpeed)
 
-  def cal_max_speed(self, frame, CC, CS, sm, clu11_speed, controls):
+  def cal_max_speed(self, frame, CC, CS, sm, clu_speed, controls):
 
     # kph
 
     road_speed_limiter = get_road_speed_limiter()
     apply_limit_speed, road_limit_speed, left_dist, first_started, max_speed_log = \
-      road_speed_limiter.get_max_speed(clu11_speed, self.is_metric)
+      road_speed_limiter.get_max_speed(clu_speed, self.is_metric)
 
     curv_limit = 0
     self.cal_curve_speed(sm, CS.out.vEgo, frame)
@@ -162,7 +172,7 @@ class SccSmoother(SingletonInstance):
     if road_speed_limiter.roadLimitSpeed is not None:
       camSpeedFactor = clip(road_speed_limiter.roadLimitSpeed.camSpeedFactor, 1.0, 1.1)
       self.over_speed_limit = road_speed_limiter.roadLimitSpeed.camLimitSpeedLeftDist > 0 and \
-                              0 < road_limit_speed * camSpeedFactor < clu11_speed + 2
+                              0 < road_limit_speed * camSpeedFactor < clu_speed + 2
     else:
       self.over_speed_limit = False
 
@@ -175,11 +185,11 @@ class SccSmoother(SingletonInstance):
     if apply_limit_speed >= self.kph_to_clu(10):
 
       if first_started:
-        self.max_speed_clu = clu11_speed
+        self.max_speed_clu = clu_speed
 
       max_speed_clu = min(max_speed_clu, apply_limit_speed)
 
-      if clu11_speed > apply_limit_speed:
+      if clu_speed > apply_limit_speed:
 
         if not self.slowing_down_alert and not self.slowing_down:
           self.slowing_down_sound_alert = True
@@ -194,14 +204,14 @@ class SccSmoother(SingletonInstance):
       self.slowing_down_alert = False
       self.slowing_down = False
 
-    lead_speed = self.get_long_lead_speed(CS, clu11_speed, sm)
+    lead_speed = self.get_long_lead_speed(CS, clu_speed, sm)
 
     if lead_speed >= self.min_set_speed_clu:
       if lead_speed < max_speed_clu:
         max_speed_clu = min(max_speed_clu, lead_speed)
 
         if not self.limited_lead:
-          self.max_speed_clu = clu11_speed + 3.
+          self.max_speed_clu = clu_speed + 3.
           self.limited_lead = True
     else:
       self.limited_lead = False
@@ -212,6 +222,17 @@ class SccSmoother(SingletonInstance):
     return road_limit_speed, left_dist, max_speed_log
 
   def update(self, enabled, can_sends, packer, CC, CS, frame, controls):
+
+    if self.param_read_counter % 100 == 0:
+      self.read_param()
+    self.param_read_counter += 1
+
+    #if self.is_metric == CS.is_set_speed_in_mph:
+    #  self.is_metric = not CS.is_set_speed_in_mph
+    #  self.speed_conv_to_ms = CV.KPH_TO_MS if self.is_metric else CV.MPH_TO_MS
+    #  self.speed_conv_to_clu = CV.MS_TO_KPH if self.is_metric else CV.MS_TO_MPH
+    #  self.min_set_speed_clu = self.kph_to_clu(MIN_SET_SPEED_KPH)
+    #  self.max_set_speed_clu = self.kph_to_clu(MAX_SET_SPEED_KPH)
 
     # mph or kph
     # clu11_speed = CS.clu11["CF_Clu_Vanz"]
@@ -294,19 +315,19 @@ class SccSmoother(SingletonInstance):
 
     return None
 
-  def get_long_lead_speed(self, CS, clu11_speed, sm):
+  def get_long_lead_speed(self, CS, clu_speed, sm):
 
     if self.longcontrol:
       lead = self.get_lead(sm)
       if lead is not None:
         d = lead.dRel - 5.
-        if 0. < d < -lead.vRel * (9. + 3.) * 2. and lead.vRel < -1.:
+        if 0. < d < -lead.vRel * (9. + 3.) * 2. and lead.vRel < -2.5:
           t = d / lead.vRel
           accel = -(lead.vRel / t) * self.speed_conv_to_clu
           accel *= 0.825
 
           if accel < 0.:
-            target_speed = clu11_speed + accel
+            target_speed = clu_speed + accel
             target_speed = max(target_speed, self.min_set_speed_clu)
             return target_speed
 
@@ -339,12 +360,12 @@ class SccSmoother(SingletonInstance):
       else:
         self.curve_speed_ms = 255.
 
-  def cal_target_speed(self, CS, clu11_speed, controls):
+  def cal_target_speed(self, CS, clu_speed, controls):
 
     if not self.longcontrol:
-      if CS.gas_pressed and self.sync_set_speed_while_gas_pressed and CS.cruise_buttons == Buttons.NONE:
-        if clu11_speed + SYNC_MARGIN > self.kph_to_clu(controls.v_cruise_kph):
-          set_speed = clip(clu11_speed + SYNC_MARGIN, self.min_set_speed_clu, self.max_set_speed_clu)
+      if CS.out.gasPressed and self.sync_set_speed_while_gas_pressed and CS.cruise_buttons[-1] == Buttons.NONE:
+        if clu_speed + SYNC_MARGIN > self.kph_to_clu(controls.v_cruise_kph):
+          set_speed = clip(clu_speed + SYNC_MARGIN, self.min_set_speed_clu, self.max_set_speed_clu)
           controls.v_cruise_kph = set_speed * self.speed_conv_to_ms * CV.MS_TO_KPH
 
       self.target_speed = self.kph_to_clu(controls.v_cruise_kph)
@@ -352,10 +373,10 @@ class SccSmoother(SingletonInstance):
       if self.max_speed_clu > self.min_set_speed_clu:
         self.target_speed = clip(self.target_speed, self.min_set_speed_clu, self.max_speed_clu)
 
-    elif CS.cruiseState_enabled:
-      if CS.gas_pressed and self.sync_set_speed_while_gas_pressed and CS.cruise_buttons == Buttons.NONE:
-        if clu11_speed + SYNC_MARGIN > self.kph_to_clu(controls.v_cruise_kph):
-          set_speed = clip(clu11_speed + SYNC_MARGIN, self.min_set_speed_clu, self.max_set_speed_clu)
+    elif CS.out.cruiseState.enabledAcc:
+      if CS.out.gasPressed and self.sync_set_speed_while_gas_pressed and CS.cruise_buttons[-1] == Buttons.NONE:
+        if clu_speed + SYNC_MARGIN > self.kph_to_clu(controls.v_cruise_kph):
+          set_speed = clip(clu_speed + SYNC_MARGIN, self.min_set_speed_clu, self.max_set_speed_clu)
           self.target_speed = set_speed
 
   def update_max_speed(self, max_speed, limited_curv):
@@ -372,16 +393,12 @@ class SccSmoother(SingletonInstance):
     gas_factor = ntune_scc_get("sccGasFactor")
     brake_factor = ntune_scc_get("sccBrakeFactor")
 
-    #lead = self.get_lead(sm)
-    #if lead is not None:
-    #  if not lead.radar:
-    #    brake_factor *= 0.975
+    boost_v = 0.2 if self.e2e_long else 0.5
 
-    start_boost = interp(CS.out.vEgo, [0.0, CREEP_SPEED, 2 * CREEP_SPEED], [0.6, 0.6, 0.0])
+    start_boost = interp(CS.out.vEgo, [CREEP_SPEED, 2 * CREEP_SPEED], [boost_v, 0.0])
     is_accelerating = interp(accel, [0.0, 0.2], [0.0, 1.0])
     boost = start_boost * is_accelerating
-
-    boost =0  #for supressing default boost logic, from @neokii
+    boost = 0 #for supressing default boost logic, from @neokii
     accel += boost
 
     if accel > 0:
@@ -407,7 +424,7 @@ class SccSmoother(SingletonInstance):
   def update_cruise_buttons(controls, CS, longcontrol):  # called by controlds's state_transition
 
     car_set_speed = CS.cruiseState.speed * CV.MS_TO_KPH
-    is_cruise_enabled = car_set_speed != 0 and car_set_speed != 255 and CS.cruiseState.enabled and controls.CP.pcmCruise
+    is_cruise_enabled = car_set_speed != 0 and car_set_speed != 255 and CS.cruiseState.enabledAcc and controls.CP.pcmCruise
 
     if is_cruise_enabled:
       if longcontrol:
