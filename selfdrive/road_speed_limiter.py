@@ -51,7 +51,7 @@ class RoadLimitSpeedServer:
 
   def gps_thread(self):
     try:
-      period = 0.2
+      period = 0.4
       wait_time = period
       i = 0.
       frame = 1
