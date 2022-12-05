@@ -1,4 +1,4 @@
-import json
+Ćimport json
 import os
 import random
 
@@ -51,7 +51,7 @@ class RoadLimitSpeedServer:
 
   def gps_thread(self):
     try:
-      period = 1.0
+      period = 0.5
       wait_time = period
       i = 0.
       frame = 1
@@ -61,13 +61,15 @@ class RoadLimitSpeedServer:
         self.gps_timer()
 
         now = sec_since_boot()
-        error = (frame * period - (now - start_time))
-        i += error * 0.5
-        wait_time = period + error * 0.5 + i
-        wait_time = clip(wait_time, 0.5, 1.0)
+        error = (frame * period *2 - (now - start_time))
+        i += error * 0.05
+        wait_time = period + error * 0.25 + i
+        wait_time = clip(wait_time, 0.333, 1.25)
         frame += 1
         if frame > 1000000000:
           frame = 0
+          start_time = sec_since_boot()
+
 
     except Exception as err:
       traceback.print_exc()
