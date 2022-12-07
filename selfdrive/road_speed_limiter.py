@@ -56,8 +56,6 @@ class RoadLimitSpeedServer:
       rk.keep_time()
 
 
-    except Exception as err:
-      traceback.print_exc()
 
 
   def gps_timer(self):
