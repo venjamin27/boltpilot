@@ -14,7 +14,7 @@ GearShifter = car.CarState.GearShifter
 ButtonType = car.CarState.ButtonEvent.Type
 EventName = car.CarEvent.EventName
 
-def torque_tune(tune, lat_accel_factor=2.4, friction=0.175, steering_angle_deadzone_deg=0.03):
+def torque_tune(tune, lat_accel_factor=2.35, friction=0.175, steering_angle_deadzone_deg=0.03):
   tune.init('torque')
   tune.torque.useSteeringAngle = True
   tune.torque.kp = 1.0
@@ -192,7 +192,7 @@ class CarInterface(CarInterfaceBase):
     ret.longitudinalTuning.kpBP = [0., 18.0 * CV.KPH_TO_MS, 80. * CV.KPH_TO_MS]
     ret.longitudinalTuning.kpV = [1.10, 1.0, 0.76]
     ret.longitudinalTuning.kiBP = [0., 18.0 * CV.KPH_TO_MS, 80. * CV.KPH_TO_MS]
-    ret.longitudinalTuning.kiV = [0.145, 0.115, 0.11]
+    ret.longitudinalTuning.kiV = [0.14, 0.125, 0.115]
 
     ret.longitudinalTuning.deadzoneBP = [0., 30. * CV.KPH_TO_MS]
     ret.longitudinalTuning.deadzoneV = [0., 0.10]
