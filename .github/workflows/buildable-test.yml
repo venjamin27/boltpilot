@@ -34,7 +34,7 @@ jobs:
           use-black: false
           use-mypy: false
           use-isort: false
-          extra-pylint-options: --disable=C,R,E0401,W0612,W0101,W0611,W0613,W0511,W0311,W0954,W0703,W0621,W0201,W0109,W0235,W0603,W0212
+          extra-pylint-options: --disable=C,R,E0401,W0612,W0101,W0611,W0613,W0511,W0311,W0954,W0703,W0621,W0201,W0109,W0235,W0603,W0212,W0107,W0702
           extra-flake8-options: --select=F21,F822,F823,F831,F811,F812,E999
 
       - name: Python Linter
@@ -48,7 +48,7 @@ jobs:
           use-black: false
           use-mypy: false
           use-isort: false
-          extra-pylint-options: --disable=C,R,E0401,W0612,W0101,W0611,W0613,W0511,W0311,W0954,W0703,W0621,W0201,W0109,W0235,W0603,W0106
+          extra-pylint-options: --disable=C,R,E0401,W0612,W0101,W0611,W0613,W0511,W0311,W0954,W0703,W0621,W0201,W0109,W0235,W0603,W0106,W0107,W0702
           extra-flake8-options: --select=F21,F822,F823,F831,F811,F812,E999
 
   build:
