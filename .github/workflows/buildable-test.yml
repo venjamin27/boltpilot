@@ -55,10 +55,12 @@ jobs:
     name: Build
     # The type of runner that the job will run on
     runs-on: ubuntu-20.04
-    needs: lint
     if: always() && github.repository == 'jc01rho-openpilot-BoltEV2019-KoKr/boltpilot'
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
+      - uses: szenius/set-timezone@v1.0
+        with:
+          timezoneLinux: "Asia/Seoul"
       - name: Get number of CPU cores
         uses: SimenB/github-actions-cpu-cores@v1
         id: cpu-cores
@@ -68,25 +70,25 @@ jobs:
         id: date
         run: echo  "date=$(expr $(date +'%d') % 5  )" >> $GITHUB_ENV
 
-        
+
       - uses: actions/checkout@v3
 
       - name: Set outputs
         id: vars
         run: echo  "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
-      - name: Cache apt binaries
-        uses: actions/cache@v3
-        with:
-          path: |
-            /home/runner/.cache/apt
-#            !/var/cache/apt/archives/partial
-#            !/var/cache/apt/archives/lock
-#            !/var/lib/apt/lists
-#            !/var/lib/apt/lists/lock
-          key: ${{ runner.os }}-apt-cache-${{ steps.vars.outputs.sha_short }}
-          restore-keys: |
-            ${{ runner.os }}-apt-cache
+#      - name: Cache apt binaries
+#        uses: actions/cache@v3
+#        with:
+#          path: |
+#            /home/runner/.cache/apt
+##            !/var/cache/apt/archives/partial
+##            !/var/cache/apt/archives/lock
+##            !/var/lib/apt/lists
+##            !/var/lib/apt/lists/lock
+#          key: ${{ runner.os }}-apt-cache-${{ steps.vars.outputs.sha_short }}
+#          restore-keys: |
+#            ${{ runner.os }}-apt-cache
 
       - name: Cache scons binaries
         uses: actions/cache@v3
@@ -97,13 +99,15 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-scons-cache
 
-      - uses: actions/cache@v3
-        name: Cache pip binaries
-        with:
-          path: /home/runner/.cache/pip
-          key: ${{ runner.os }}-pip-cache-${{ steps.vars.outputs.sha_short }}
-          restore-keys: |
-            ${{ runner.os }}-pip-cache
+#      - uses: actions/cache@v3
+#        name: Cache pip binaries
+#        with:
+#          path: /home/runner/.cache/pip
+#          key: ${{ runner.os }}-pip-cache-${{ steps.vars.outputs.sha_short }}
+#          restore-keys: |
+#            ${{ runner.os }}-pip-cache
+
+
       - name: disable-man-db
         run : |
           sudo mv /usr/bin/mandb /usr/bin/mandb-OFF
@@ -131,11 +135,6 @@ jobs:
         if: steps.date.outputs.date == '1'
         run : scons -c
 
-      - name: Set up python
-        id: setup-python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.8.10'
       - name: Install Poetry
         uses: snok/install-poetry@v1
         with:
@@ -143,16 +142,33 @@ jobs:
           virtualenvs-in-project: true
           installer-parallel: true
 
-      - name: scons-env
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v2
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Set up python
+        id: setup-python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8.10'
+          cache: 'poetry' # caching pip dependencies
+
+
+      - uses: awalsh128/cache-apt-pkgs-action@latest
+        name: apt caching install
+        with:
+          packages: autoconf build-essential ca-certificates casync clang cmake make cppcheck libtool gcc-arm-none-eabi bzip2 liblzma-dev libarchive-dev libbz2-dev capnproto libcapnp-dev curl libcurl4-openssl-dev git git-lfs ffmpeg libavformat-dev libavcodec-dev libavdevice-dev libavutil-dev libavfilter-dev libeigen3-dev libffi-dev libglew-dev libgles2-mesa-dev libglfw3-dev libglib2.0-0 libomp-dev libopencv-dev libpng16-16 libportaudio2 libssl-dev libsqlite3-dev libusb-1.0-0-dev libzmq3-dev libsystemd-dev locales opencl-headers ocl-icd-libopencl1 ocl-icd-opencl-dev clinfo qml-module-qtquick2 qtmultimedia5-dev qtlocation5-dev qtpositioning5-dev qttools5-dev-tools libqt5sql5-sqlite libqt5svg5-dev libqt5charts5-dev libqt5x11extras5-dev libreadline-dev libdw1 valgrind libavresample-dev qt5-default
+          version: 1.0
+
+      - name: apt setup
         run : tools/ubuntu_setup.sh;
 
       - name: Install dependencies
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
         run: poetry install --no-interaction --no-root
 
-      - name: poetry
+      - name: Scons Build
         run : poetry run scons -u -j${{ steps.cpu-cores.outputs.count }} ;
-
-      - name: apt-chmod
-        run : sudo chmod 777 -R /home/runner/.cache/apt/
-
