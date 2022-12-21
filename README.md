@@ -1,7 +1,7 @@
 # For foreign users (non Korean.)
-### 2022-10-07
+### 2022-12-21
 - full clean wipe & factory reset the device when you read this first time.
-- (especially, delete /data/ntune directory. )
+- try fine tuning with "https://github.com/jc01rho-openpilot-BoltEV2019-KoKr/boltpilot/blob/release/nTune-1.7.1-legacy-minSDK23.apk"
 
 =======================
 ![boltpilot](https://i.imgur.com/azNrGqZ.gif)
