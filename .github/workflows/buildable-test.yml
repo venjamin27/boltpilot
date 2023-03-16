@@ -142,6 +142,7 @@ jobs:
           virtualenvs-in-project: true
           installer-parallel: true
 
+
       - name: Load cached venv
         id: cached-poetry-dependencies
         uses: actions/cache@v2
@@ -173,6 +174,7 @@ jobs:
       - name: Install dependencies
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
         run: poetry install --no-interaction --no-root
+
 
       - name: Scons Build
         run : poetry run scons -u -j${{ steps.cpu-cores.outputs.count }} ;
