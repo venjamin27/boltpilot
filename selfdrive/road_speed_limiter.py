@@ -50,7 +50,7 @@ class RoadLimitSpeedServer:
     gps_thread.start()
 
   def gps_thread(self):
-    rk = Ratekeeper(5, print_delay_threshold=None)
+    rk = Ratekeeper(3, print_delay_threshold=None)
     while True:
       self.gps_timer()
       rk.keep_time()
