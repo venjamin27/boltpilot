@@ -352,17 +352,7 @@ void DrawApilot::drawLaneLines(const UIState* s) {
             show_path_mode = s->show_path_mode_cruise_off;
         }
         if (show_path_mode == 0) {
-#if 1
             ui_draw_line(s, scene.track_vertices, &colors[show_path_color % 10], nullptr,(show_path_color >= 10) ? 2.0 : 0.0);
-#else
-            NVGpaint track_bg;
-            float torque_scale = 0.0;
-            int red_lvl = fmin(255, torque_scale);
-            int green_lvl = fmin(255, 255 - torque_scale);
-            track_bg = nvgLinearGradient(s->vg, s->fb_w, s->fb_h, s->fb_w, s->fb_h * .4,
-                nvgRGBA(red_lvl, 150, green_lvl, 160), nvgRGBA((int)(0.7 * red_lvl), 150, (int)(0.7 * green_lvl), 30));
-            ui_draw_line(s, scene.track_vertices, nullptr, &track_bg);
-#endif
         }
         else if (show_path_mode >= 9) {
             int     track_vertices_len = scene.track_vertices.length();
@@ -623,37 +613,38 @@ void ui_draw_radar_info(const UIState* s) {
     if (s->show_radar_info) {
         bool disp = false;
         int wStr = 40;
+        if (s->show_radar_info >= 3) {
+            for (auto const& vrd : s->scene.lead_vertices_stopped) {
+                auto [rx, ry, rd, rv, ry_rel] = vrd;
+                strcpy(str, "*");
+                ui_draw_text(s, rx, ry, str, 40, COLOR_WHITE, BOLD);
+                //wStr = 35;
+                //if (true) {
+                //    ui_fill_rect(s->vg, { (int)rx - wStr / 2, (int)ry - 35, wStr, 42 }, COLOR_BLACK, 15);
+                //}
+            }
+        }
         for (auto const& vrd : s->scene.lead_vertices_ongoing) {
             auto [rx, ry, rd, rv, ry_rel] = vrd;
             disp = true;
             sprintf(str, "%.0f", rv * 3.6);
-            wStr = 35 * (strlen(str) + 1);
+            wStr = 35 * (strlen(str) + 0);
             ui_fill_rect(s->vg, { (int)(rx - wStr / 2), (int)(ry - 35), wStr, 42 }, COLOR_GREEN, 15);
             ui_draw_text(s, rx, ry, str, 40, COLOR_WHITE, BOLD);
-            if (s->show_radar_info == 2) {
+            if (s->show_radar_info >= 2) {
                 sprintf(str, "%.1f", ry_rel);
-                ui_draw_text(s, rx, ry + 40, str, 40, COLOR_WHITE, BOLD);
+                ui_draw_text(s, rx, ry - 40, str, 30, COLOR_WHITE, BOLD);
             }
         }
         for (auto const& vrd : s->scene.lead_vertices_oncoming) {
             auto [rx, ry, rd, rv, ry_rel] = vrd;
             sprintf(str, "%.0f", rv * 3.6);
-            wStr = 35 * (strlen(str) + 1);
+            wStr = 35 * (strlen(str) + 0);
             ui_fill_rect(s->vg, { (int)rx - wStr / 2, (int)ry - 35, wStr, 42 }, COLOR_RED, 15);
             ui_draw_text(s, rx, ry, str, 40, COLOR_WHITE, BOLD);
-            if (s->show_radar_info == 2) {
+            if (s->show_radar_info >= 2) {
                 sprintf(str, "%.1f", ry_rel);
-                ui_draw_text(s, rx, ry + 40, str, 40, COLOR_WHITE, BOLD);
-            }
-        }
-        if (s->show_radar_info == 2) {
-            for (auto const& vrd : s->scene.lead_vertices_stopped) {
-                auto [rx, ry, rd, rv, ry_rel] = vrd;
-                strcpy(str, "*");
-                wStr = 35;
-                if (true) {
-                    ui_fill_rect(s->vg, { (int)rx - wStr / 2, (int)ry - 35, wStr, 42 }, COLOR_BLACK, 15);
-                }
+                ui_draw_text(s, rx, ry - 40, str, 30, COLOR_WHITE, BOLD);
             }
         }
     }
@@ -667,13 +658,12 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
     const UIScene& scene = s->scene;
     auto leads = model.getLeadsV3();
 #ifndef __TEST
-    const cereal::ModelDataV2::LeadDataV3::Reader& lead_data = leads[0];
+    //const cereal::ModelDataV2::LeadDataV3::Reader& lead_data = leads[0];
 #endif
-    const QPointF& vd = s->scene.lead_vertices[0];
+    //const QPointF& vd = s->scene.lead_vertices[0];
     //bool is_radar = s->scene.lead_radar[0];
     bool no_radar = leads[0].getProb() < .5;
     bool    uiDrawSteeringRotate = s->show_steer_rotate;
-    bool    uiDrawPathEnd = s->show_path_end;   // path끝에 표시를 넣을건지..
 
 #ifndef __TEST
     if (!sm.alive("controlsState") || !sm.alive("radarState") || !sm.alive("carControl")) return;
@@ -725,6 +715,41 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
 
 
     // Path의 끝위치를 계산 및 표시
+#if 1
+    int len = scene.path_end_vertices.length();
+    static float path_fx = s->fb_w / 2;
+    static float path_fy = s->fb_h - 400;
+    static float path_fwidth = 160;
+    int path_bx = (int)path_fx;
+    if (len == 4) {
+        float x1, y1, x2, y2;
+        float sx1, sy1, sx2, sy2;
+        x1 = scene.path_end_vertices[1].x();
+        y1 = scene.path_end_vertices[1].y();
+        x2 = scene.path_end_vertices[2].x();
+        y2 = scene.path_end_vertices[2].y();
+        sx1 = scene.path_end_vertices[0].x();
+        sy1 = scene.path_end_vertices[0].y();
+        sx2 = scene.path_end_vertices[3].x();
+        sy2 = scene.path_end_vertices[3].y();
+        float _path_x = (x1 + x2) / 2.;
+        float _path_y = (y1 + y2) / 2.;
+        if (_path_y > s->fb_h - 100) _path_y = s->fb_h - 100;
+        float _path_width = x2 - x1;
+        float alpha = 0.95;
+        path_fx = path_fx * alpha + _path_x * (1. - alpha);
+        path_fy = path_fy * alpha + _path_y * (1. - alpha);
+        path_fwidth = path_fwidth * alpha + _path_width * (1. - alpha);
+        path_bx = (sx1 + sx2) / 2;
+
+        //printf("(%.1f,%.1f,%.1f,%.1f)(%.1f,%.1f,%.1f,%.1f)\n", x1, y1, x2, y2, sx1, sy1, sx2, sy2);
+    }
+    int path_x = (int)path_fx;
+    int path_y = (int)path_fy;
+    int path_width = (int)path_fwidth;
+    //if(s->show_path_end>0) ui_fill_rect(s->vg, { path_x - path_width / 2, path_y, path_width, -4 }, COLOR_RED, 5);
+
+#else
     int     track_vertices_len = scene.track_vertices.length();
     int path_x = s->fb_w / 2;
     int path_y = s->fb_h - 400;
@@ -744,23 +769,39 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
                 //path_bwidth = scene.track_vertices[0].x() - scene.track_vertices[track_vertices_len -1].x();
                 path_bx = (scene.track_vertices[0].x() + scene.track_vertices[track_vertices_len - 1].x()) / 2.;
                 //path_by = scene.track_vertices[0].y();
-                if (uiDrawPathEnd) {
-                    ui_fill_rect(s->vg, { path_x - path_width / 2, path_y, path_width, -10 }, COLOR_RED, 5);
-                }
+                //if (s->show_path_end) {
+                //    ui_fill_rect(s->vg, { path_x - path_width / 2, path_y, path_width, -10 }, COLOR_RED, 5);
+                //}
             }
         }
     }
+#endif
     // 과녁을 표시할 위치를 계산
     int icon_size = 256;
 #ifdef __TEST
-    const int d_rel = 0;
+    //const int d_rel = 0;
     static int test_seq = 0;
     if (++test_seq > 100) test_seq = 0;
 #else
-    const int d_rel = lead_data.getX()[0];
+    //const int d_rel = lead_data.getX()[0];
 #endif
     int x = path_x;
     int y = path_y;
+#if 1
+    y = path_y - 135;
+    if (y > s->fb_h - 400) y = s->fb_h - 400;
+
+    if (s->show_mode == 2) {
+        y = s->fb_h - 400;
+        x = path_bx;
+    }
+
+    x = std::clamp((float)x, 550.f, s->fb_w - 550.f);
+
+    filter_x = x;
+    filter_y = y;
+
+#else
     if (!no_radar) {
         x = std::clamp((float)vd.x(), 550.f, s->fb_w - 550.f);
         y = std::clamp((float)vd.y(), 300.f, s->fb_h - 180.f);
@@ -772,6 +813,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
         x = std::clamp((float)path_x, 300.f, s->fb_w - 300.f);
         y = path_y; // height() - 250;
     }
+    y = path_y - 135;
     if (y > s->fb_h - 400) y = s->fb_h - 400;
 
     if (s->show_mode == 2) {
@@ -783,6 +825,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
     filter_y = filter_y * 0.96 + y * 0.04;
     x = filter_x;
     y = filter_y;
+#endif
     // 신호등(traffic)그리기.
     // 신호등내부에는 레이더거리, 비젼거리, 정지거리, 신호대기 표시함.
     int circle_size = 160;
@@ -799,6 +842,12 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
     bool radar_detected = lead_radar.getStatus() && lead_radar.getRadar();
     float radar_dist = radar_detected ? lead_radar.getDRel() : 0;
     float vision_dist = lead_one.getProb() > .5 ? (lead_one.getX()[0] - 0) : 0;
+#endif
+#ifdef __TEST
+    float radar_rel_speed = 20.0;
+    if (test_seq > 50) radar_rel_speed = -20.0;
+#else
+    float radar_rel_speed = lead_radar.getVRel();
 #endif
     float disp_dist = (radar_detected) ? radar_dist : vision_dist;
     int brake_hold = car_state.getBrakeHoldActive();
@@ -993,12 +1042,6 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
         NVGcolor borderColor = COLOR_BLACK;
 
         if (radar_detected) {
-#ifdef __TEST
-            float radar_rel_speed = 20.0;
-            if (test_seq > 50) radar_rel_speed = -20.0;
-#else
-            float radar_rel_speed = lead_radar.getVRel();
-#endif
             sprintf(str, "%.1f km/h", cur_speed + radar_rel_speed * 3.6);
             if (radar_rel_speed < -0.1) {
                 textColor = COLOR_RED; 
@@ -1010,21 +1053,24 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
             }
 
             nvgFontSize(s->vg, 40);
+#if 0
             if (s->show_steer_mode == 2) {
                 int radar_y = (y > s->fb_h - 550) ? s->fb_h - 550 : y - 40;
                 if (s->show_mode >= 3) radar_y = y - 145;
-                //ui_fill_rect(s->vg, { x - 250 / 2, radar_y - 35, 250, 45 }, bgColor, 15);
-                //textColor = COLOR_WHITE;
                 ui_draw_text(s, x, radar_y, str, 40, textColor, BOLD, 1.0, 3.0, borderColor, COLOR_BLACK);
             }
             else {
                 int radar_y = y - 140;
-                //ui_fill_rect(s->vg, { x - 250 / 2, radar_y - 35, 250, 45 }, bgColor, 15);
-                //textColor = COLOR_WHITE;
                 ui_draw_text(s, x, radar_y, str, 40, textColor, BOLD, 1.0, 3.0, borderColor, COLOR_BLACK);
             }
+#else
+            //ui_draw_text(s, x, y + 210, str, 40, COLOR_WHITE, BOLD, 1.0, 3.0, borderColor, COLOR_BLACK);
+#endif
         }
-        ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2, icon_size, icon_size }, (no_radar) ? "ic_radar_no" : (radar_detected) ? "ic_radar" : "ic_radar_vision", 1.0f);
+        if (s->show_mode >= 4) {
+            if(!no_radar) ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2, icon_size, icon_size }, (radar_detected) ? "ic_radar" : "ic_radar_vision", 1.0f);
+        }
+        else ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2, icon_size, icon_size }, (no_radar) ? "ic_radar_no" : (radar_detected) ? "ic_radar" : "ic_radar_vision", 1.0f);
 
         if (no_radar) {
             if (stop_dist > 0.5 && stopping) {
@@ -1048,6 +1094,10 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
             ui_draw_text(s, x, y + 120.0, str, 45, textColor, BOLD);
         }
     }
+    if (s->show_path_end) {
+        if(path_y < s->fb_h - 200) ui_fill_rect(s->vg, { path_x - path_width / 2, path_y, path_width, -10 }, (radar_rel_speed > -0.1) ? COLOR_GREEN : COLOR_RED, 5);
+    }
+
     // 타겟좌측 : 갭표시
     int myDrivingMode = controls_state.getMyDrivingMode();
     //const auto lp = sm["longitudinalPlan"].getLongitudinalPlan();
@@ -1157,7 +1207,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
         else x = 950;
     }
     else if (s->show_mode == 4) {
-        y = 330;
+        y = 380;
         x = 150;
     }
     else if (s->show_mode == 5) {
