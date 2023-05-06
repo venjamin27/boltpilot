@@ -493,7 +493,7 @@ void update_model(UIState *s,
 
   max_idx = get_path_length_idx(plan_position, max_distance);
   if (show_path_mode == 0) {
-      update_line_data(s, plan_position, s->show_path_width, 0.8, s->show_z_offset, &scene.track_vertices, max_idx, false);
+      update_line_data(s, plan_position, s->show_path_width, s->show_z_offset, s->show_z_offset, &scene.track_vertices, max_idx, false);
   }
   else if(show_path_mode >= 9) 
     update_line_data_dist3(s, plan_position, s->show_path_width, 0.8, s->show_z_offset, &scene.track_vertices, max_distance, false);
