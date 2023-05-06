@@ -613,13 +613,13 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
   toggleLayout->addWidget(new CValueControl("AutoNaviSpeedCtrl", tr("SpeedCameraControl(1)"), tr("0:Not used, 1:NDA"), "../assets/offroad/icon_road.png", 0, 1, 1));
   toggleLayout->addWidget(new CValueControl("AutoNaviSpeedCtrlStart", tr("SpeedCameraDecelStart(22s)"), "감속시작시점을 설정합니다. 값이 크면 감속을 카메라에서 멀리 시작", "../assets/offroad/icon_road.png", 10, 50, 1));
   toggleLayout->addWidget(new CValueControl("AutoNaviSpeedCtrlEnd", tr("SpeedCameraDecelEnd(6s)"), "감속완료시점을 설정합니다.값이 크면 카메라에서 멀리 감속 완료", ".. / assets / offroad / icon_road.png", 3, 20, 1));
-  toggleLayout->addWidget(new CValueControl("LongControlActiveSound", "크루즈 소리 0:OFF,1:Half, 2:ON", "크루즈 소리를 켭니다.", "../assets/offroad/icon_road.png", 0, 2, 1));
+  toggleLayout->addWidget(new CValueControl("LongControlActiveSound", "Notify sound 0:OFF,1:Half, 2:ON", "", "../assets/offroad/icon_road.png", 0, 2, 1));
   toggleLayout->addWidget(new ParamControl("CustomMapbox", "CustomMapBox입력", "http://IP주소:8082 에 접속하여 mapbox token을 입력하면 자동으로 켜집니다. 끄면, 초기화됩니다.", "../assets/offroad/icon_road.png", this));
   toggleLayout->addWidget(new ParamControl("KeepEngage", "Keep Enagage mode", "", "../assets/offroad/icon_shell.png", this));
   toggleLayout->addWidget(new CValueControl("UseLaneLineSpeed", "Auto LaneMode change speed(0)", "0: Always laneless, 으로 하면 안함", "../assets/offroad/icon_road.png", 0, 200, 10));
   toggleLayout->addWidget(new CValueControl("PathOffset", "PathOffset", "(-)Left, (+)Right", "../assets/offroad/icon_road.png", -200, 200, 1));
   toggleLayout->addWidget(new CValueControl("HapticFeedbackWhenSpeedCamera", "Haptic handle function", "0:사용안함,1:진동,2:계기판,3:HUD표시", "../assets/offroad/icon_road.png", 0, 3, 1));
-  toggleLayout->addWidget(new CValueControl("SoftHoldMode", "SoftHold(1)", "0:사용안함,1:사용,2:SCC제어와함께사용(단,사이드가 걸리는 차량이 있음)", "../assets/offroad/icon_road.png", 0, 2, 1));
+  toggleLayout->addWidget(new CValueControl("SoftHoldMode", "SoftHold(1)", "0:Not used,1:Use,2: with SCC(단,사이드가 걸리는 차량이 있음)", "../assets/offroad/icon_road.png", 0, 2, 1));
   toggleLayout->addWidget(horizontal_line());
   toggleLayout->addWidget(new CValueControl("ShowHudMode", "DISP:Display Mode", "0:Normal,1:APilot,2:Bottom,3:Top,4:Left,5:Left-Bottom", "../assets/offroad/icon_shell.png", 0, 5, 1));
   toggleLayout->addWidget(horizontal_line());
@@ -746,21 +746,21 @@ CruisePanel::CruisePanel(QWidget* parent) : QWidget(parent) {
     vlayout->addWidget(scroller, 1);
 
     // 크루즈
-    toggleLayout->addWidget(new CValueControl("CruiseControlMode", "CRUISE: Eco control(4km/h)", "목표속도를 일시적으로 올림", "../assets/offroad/icon_road.png", 0, 10, 1));
-    toggleLayout->addWidget(new CValueControl("CruiseOnDist", "CRUISE: Auto ON distance(0cm)", "엑셀/브레이크OFF시, 전방차량이 설정거리만큰 가까와지면 크루즈ON", "../assets/offroad/icon_road.png", -500, 500, 50));
-    toggleLayout->addWidget(new CValueControl("AutoSyncCruiseSpeedMax", "CRUISE: Auto sync speed limit (120km/h)", "가속시 크루즈속도보다 높아지면 지정 속도를 올려줍니다.", "../assets/offroad/icon_road.png", 0, 200, 10));
+    toggleLayout->addWidget(new CValueControl("CruiseControlMode", "CRUISE: Eco control(4km/h)", "Temporarily increasing the set speed to improve fuel efficiency.", "../assets/offroad/icon_road.png", 0, 10, 1));
+    toggleLayout->addWidget(new CValueControl("CruiseOnDist", "CRUISE: Auto ON distance(0cm)", "When GAS/Brake is OFF, Cruise ON when the lead car gets closer or warning (- value).", "../assets/offroad/icon_road.png", -500, 500, 50));
+    toggleLayout->addWidget(new CValueControl("AutoSyncCruiseSpeedMax", "CRUISE: Auto sync speed limit (120km/h)", "Driving speed exceeds target during acceleration, sync. target speed.", "../assets/offroad/icon_road.png", 0, 200, 10));
     toggleLayout->addWidget(new CValueControl("AutoSpeedUptoRoadSpeedLimit", "CRUISE: Auto speed up (100%)", "Auto speed up based on the lead car upto RoadSpeedLimit.", "../assets/offroad/icon_road.png", 0, 200, 10));
     toggleLayout->addWidget(new CValueControl("AutoSpeedAdjustWithLeadCar", "CRUISE: Auto speed set to lead Car(+0)", "useless, 선행차량의 속도에 옵셋속도를 더한 속도를 설정합니다.", "../assets/offroad/icon_road.png", 0, 100, 5));
     toggleLayout->addWidget(new CValueControl("InitMyDrivingMode", "DRIVEMODE: On boot(3)", "1:ECO,2:SAFE,3:NORMAL,4:HIGH(non E2E mode)", "../assets/offroad/icon_road.png", 1, 4, 1));
-    toggleLayout->addWidget(new CValueControl("MyEcoModeFactor", "DRIVEMODE: ECO Accel ratio(80%)", "일반모드대비 가속비율을 지정합니다.", "../assets/offroad/icon_road.png", 10, 95, 5));
+    toggleLayout->addWidget(new CValueControl("MyEcoModeFactor", "DRIVEMODE: ECO Accel ratio(80%)", "Acceleartion ratio in ECO mode", "../assets/offroad/icon_road.png", 10, 95, 5));
     toggleLayout->addWidget(new CValueControl("MySafeModeFactor", "DRIVEMODE: SAFE ratio(80%)", "Accel/StopDistance/DecelRatio/Gap control ratio", "../assets/offroad/icon_road.png", 10, 90, 10));
     toggleLayout->addWidget(new CValueControl("CruiseButtonMode", "Button: Cruise Speed Mode", "0:Normal,1:User1, 2:User2, 3:User3, 4:User4", "../assets/offroad/icon_road.png", 0, 4, 1));
     toggleLayout->addWidget(new CValueControl("GapButtonMode", "Button: Cruise Gap Mode", "0:1,2,3,4(Auto),1:1,2,3,4(Auto),5(Cruise OFF),2:4(Auto),5(Cruise OFF),3:Cruise ON/OFF(Auto)", "../assets/offroad/icon_road.png", 0, 3, 1));
     toggleLayout->addWidget(new CValueControl("PrevCruiseGap", "CruiseGap: On boot(4)", "1,2,3,4(Auto)", "../assets/offroad/icon_road.png", 1, 4, 1));
-    toggleLayout->addWidget(new CValueControl("CruiseSpeedMin", "Cruise Speed: Lower limit(10)", "크루즈제어의 최저속도", "../assets/offroad/icon_road.png", 5, 50, 1));
+    toggleLayout->addWidget(new CValueControl("CruiseSpeedMin", "Cruise Speed: Lower limit(10)", "Cruise control MIN speed", "../assets/offroad/icon_road.png", 5, 50, 1));
     toggleLayout->addWidget(horizontal_line());
     toggleLayout->addWidget(new ParamControl("AutoResumeFromGas", "GAS CRUISE ON: Use", "Auto Cruise on when GAS pedal released, 60% Gas Cruise On automatically", "../assets/offroad/icon_road.png", this));
-    toggleLayout->addWidget(new CValueControl("AutoResumeFromGasSpeed", "GAS CRUISE ON: Speed(30)", "설정속도이상이 되면 자동으로 크루즈를 켭니다.", "../assets/offroad/icon_road.png", 20, 140, 5));
+    toggleLayout->addWidget(new CValueControl("AutoResumeFromGasSpeed", "GAS CRUISE ON: Speed(30)", "Driving speed exceeds the set value, Cruise ON", "../assets/offroad/icon_road.png", 20, 140, 5));
     toggleLayout->addWidget(new CValueControl("AutoResumeFromGasSpeedMode", "GAS CRUISE ON: Set Speed option(0)", "0:Current Speed, 1:Prev. speed, 2: Lead car speed, 3: 60M이상상직진시 이전속도", "../assets/offroad/icon_road.png", 0, 3, 1));
     toggleLayout->addWidget(new CValueControl("AutoCancelFromGasMode", "GAS CRUISE OFF: Mode", "Cruise OFF below speed(GAS CRUISE ON: speed). 1:Always, 2:No lear car", "../assets/offroad/icon_road.png", 0, 140, 1));
     toggleLayout->addWidget(horizontal_line());
