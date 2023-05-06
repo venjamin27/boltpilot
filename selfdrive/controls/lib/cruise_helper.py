@@ -666,7 +666,7 @@ class CruiseHelper:
         if self.v_ego_kph > 3.0 and self.dRel > 0 and self.vRel < 0:          
           v_cruise_kph = self.v_ego_kph_set
           longActiveUser = 3
-        elif self.v_ego_kph > 20.0 and self.xState == XState.e2eStop and abs(self.position_y) < 3.0:
+        elif self.v_ego_kph > 20.0 and self.xState == XState.e2eStop: # and abs(self.position_y) < 3.0:
           v_cruise_kph = self.v_ego_kph_set
           longActiveUser = 3
         pass
