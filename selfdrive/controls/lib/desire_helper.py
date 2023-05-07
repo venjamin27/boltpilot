@@ -219,7 +219,7 @@ class DesireHelper:
               self.lane_change_state = LaneChangeState.laneChangeStarting
             elif self.desireEvent == 0:
               if self.desireEvent_prev > 0:
-                self.desireEvent = self.desireEvent
+                self.desireEvent = self.desireEvent_prev
               else:
                 self.desireEvent = EventName.preLaneChangeLeft if self.lane_change_direction == LaneChangeDirection.left else EventName.preLaneChangeRight
             self.desireEvent_prev = self.desireEvent
