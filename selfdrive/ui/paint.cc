@@ -1164,7 +1164,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
             else qstr = tr("MANUAL");
         }
         //ui_fill_rect(s->vg, { x - 250 / 2, y + 140, 250, 45 }, brake_valid? COLOR_RED : COLOR_GREEN, 15);
-        if(brake_valid) ui_draw_text(s, x, y + 175, qstr.toStdString().c_str(), 40, COLOR_RED, BOLD, 1.0, 3.0, COLOR_BLACK, COLOR_BLACK);
+        if(brake_valid) ui_draw_text(s, x, y + 175, qstr.toStdString().c_str(), 40, COLOR_WHITE, BOLD, 1.0, 3.0, COLOR_RED, COLOR_RED);
         else            ui_draw_text(s, x, y + 175, qstr.toStdString().c_str(), 40, COLOR_WHITE, BOLD, 1.0, 3.0, COLOR_BLACK, COLOR_BLACK);
 
     }

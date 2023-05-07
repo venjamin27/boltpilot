@@ -72,7 +72,8 @@ class DesireHelper:
     self.autoLaneChangeSpeed = int(Params().get("AutoLaneChangeSpeed", encoding="'utf8"))
 
     self.desireEvent = 0
-    self.waitTorqueApplied = False
+    self.desireEvent_prev = 0
+    self.waitTorqueApply = False
 
 
   def update(self, carstate, lateral_active, lane_change_prob, md, turn_prob):
@@ -125,6 +126,7 @@ class DesireHelper:
       #   - 고속
       if self.lane_change_state == LaneChangeState.off:
         self.desireEvent = 0
+        self.desireEvent_prev = 0
         self.lane_change_direction = LaneChangeDirection.none
         self.turnControlState = False
         if one_blinker and (not self.prev_one_blinker or v_ego_kph < 4 or (checkAutoTurnEnabled and steering_pressed)):  ##깜박이가 켜진시점에 검사, 정지상태에서는 lat_active가 아님. 
@@ -181,7 +183,7 @@ class DesireHelper:
 
           if self.lane_change_state == LaneChangeState.preLaneChange:
               self.lane_change_ll_prob = 1.0
-              self.waitTorqueApplied = False
+              self.waitTorqueApply = False
 
       # 1. 대기단계: LaneChangeState.preLaneChange: 
       elif self.lane_change_state == LaneChangeState.preLaneChange:        
@@ -205,18 +207,22 @@ class DesireHelper:
           elif self.lane_change_pulse_timer > 0.2:
             if blindspot_detected:
               self.desireEvent = EventName.laneChangeBlocked
-              self.waitTorqueApplied = True
+              self.waitTorqueApply = True
             elif road_edge_detected: # BSD 또는 road_edge검출이 안되면 차선변경 시작.
               self.desireEvent = EventName.laneChangeRoadEdge
-            elif not self.waitTorqueApplied:
+            elif not self.waitTorqueApply:
               self.lane_change_state = LaneChangeState.laneChangeStarting
 
           # BSD검출시 torque힘을 기다려야 함.
-          if self.waitTorqueApplied:
+          if self.waitTorqueApply:
             if torque_applied:
               self.lane_change_state = LaneChangeState.laneChangeStarting
             elif self.desireEvent == 0:
-              self.desireEvent = EventName.preLaneChangeLeft if self.lane_change_direction == LaneChangeDirection.left else EventName.preLaneChangeRight
+              if self.desireEvent_prev > 0:
+                self.desireEvent = self.desireEvent
+              else:
+                self.desireEvent = EventName.preLaneChangeLeft if self.lane_change_direction == LaneChangeDirection.left else EventName.preLaneChangeRight
+            self.desireEvent_prev = self.desireEvent
 
       # 2. LaneChangeState.laneChangeStarting
       elif self.lane_change_state == LaneChangeState.laneChangeStarting:
@@ -264,7 +270,7 @@ class DesireHelper:
               self.lane_change_direction = LaneChangeDirection.none
             if one_blinker:
               self.lane_change_state = LaneChangeState.preLaneChange
-              self.waitTorqueApplied = True
+              self.waitTorqueApply = True
             else:
               self.lane_change_state = LaneChangeState.off
 
@@ -283,7 +289,7 @@ class DesireHelper:
     # Send keep pulse once per second during LaneChangeStart.preLaneChange
     if self.lane_change_state in (LaneChangeState.off, LaneChangeState.laneChangeStarting):
       self.keep_pulse_timer = 0.0
-      self.waitTorqueApplied = False
+      self.waitTorqueApply = False
     elif self.lane_change_state == LaneChangeState.preLaneChange:
       self.keep_pulse_timer += DT_MDL
       if self.keep_pulse_timer > 1.0:

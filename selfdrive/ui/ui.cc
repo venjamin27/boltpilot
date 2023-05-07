@@ -187,14 +187,15 @@ void update_path_end(const UIState* s, const cereal::XYZTData::Reader& line,
         points.push_front(left);
         points.push_back(right);
     }
-    else printf("path_end... err\n");
+    else printf("path_end_x,y = (%.1f,%.1f)\n", path_end_x, path_end_y);
+
     l = calib_frame_to_full_frame(s, path_start_x, path_start_y - 0.5, path_start_z + z_off, &left);
     r = calib_frame_to_full_frame(s, path_start_x, path_start_y + 0.5, path_start_z + z_off, &right);
     if (l && r) {
         points.push_front(left);
         points.push_back(right);
     }
-    else printf("path_start... err\n");
+    else printf("path_start_x,y = (%.1f,%.1f)\n", path_start_x, path_start_y);
     *pvd = points;
 }
 void update_line_data2(const UIState* s, const cereal::XYZTData::Reader& line,
@@ -207,7 +208,7 @@ void update_line_data2(const UIState* s, const cereal::XYZTData::Reader& line,
     for (int i = 0; i <= max_idx; i++) {
         // highly negative x positions  are drawn above the frame and cause flickering, clip to zy plane of camera
         if (line_x[i] < 0) continue;
-        float z_off = interp<float>((float)i, { 0.0f, (float)max_idx }, { z_off_start, z_off_end }, false);
+        float z_off = interp<float>((float)line_x[i], { 0.0f, 100.0 }, { z_off_start, z_off_end }, false);
         float y_off = interp<float>(z_off, { -3.0f, 0.0f, 3.0f }, { 1.5f, 0.5f, 1.5f }, false);
         y_off *= width_apply;
 
@@ -255,7 +256,7 @@ void update_line_data_dist(const UIState* s, const cereal::XYZTData::Reader& lin
             exit = true;
         }
         //printf("%.0f ", dist);
-        float z_off = interp<float>(dist, { 0.0f, max_dist }, { z_off_start, z_off_end }, false);
+        float z_off = interp<float>(dist, { 0.0f, 100.0 }, { z_off_start, z_off_end }, false);
         float y_off = interp<float>(z_off, { -3.0f, 0.0f, 3.0f }, { 1.5f, 0.5f, 1.5f }, false);
         y_off *= width_apply;
         float  idx = interp<float>(dist, line_xs, idxs, 33, false);
@@ -401,7 +402,7 @@ void update_line_data_dist3(const UIState* s, const cereal::XYZTData::Reader& li
         for (int j = 2; j >= 0; j--) {
             if (exit) dist = dist_function(100, max_dist);
             else dist = dist_function(t - j * 1.0, max_dist);
-            float z_off = interp<float>(dist, { 0.0f, max_dist }, { z_off_start, z_off_end }, false);
+            float z_off = interp<float>(dist, { 0.0f, 100.0 }, { z_off_start, z_off_end }, false);
             float y_off = interp<float>(z_off, { -3.0f, 0.0f, 3.0f }, { 1.5f, 0.5f, 1.5f }, false);
             y_off *= width_apply;
             float  idx = interp<float>(dist, line_xs, idxs, 33, false);
@@ -493,7 +494,8 @@ void update_model(UIState *s,
 
   max_idx = get_path_length_idx(plan_position, max_distance);
   if (show_path_mode == 0) {
-      update_line_data(s, plan_position, s->show_path_width, s->show_z_offset, s->show_z_offset, &scene.track_vertices, max_idx, false);
+      //update_line_data(s, plan_position, s->show_path_width, s->show_z_offset, s->show_z_offset, &scene.track_vertices, max_idx, false);
+      update_line_data2(s, plan_position, s->show_path_width, 0.8, s->show_z_offset, &scene.track_vertices, max_idx);
   }
   else if(show_path_mode >= 9) 
     update_line_data_dist3(s, plan_position, s->show_path_width, 0.8, s->show_z_offset, &scene.track_vertices, max_distance, false);
