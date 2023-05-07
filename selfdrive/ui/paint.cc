@@ -1067,7 +1067,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
             //ui_draw_text(s, x, y + 210, str, 40, COLOR_WHITE, BOLD, 1.0, 3.0, borderColor, COLOR_BLACK);
 #endif
         }
-        if (s->show_mode >= 4) {
+        if (s->show_mode >= 2) {
             if(!no_radar) ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2, icon_size, icon_size }, (radar_detected) ? "ic_radar" : "ic_radar_vision", 1.0f);
         }
         else ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2, icon_size, icon_size }, (no_radar) ? "ic_radar_no" : (radar_detected) ? "ic_radar" : "ic_radar_vision", 1.0f);
@@ -1153,6 +1153,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
             else if (xState == cereal::LongitudinalPlan::XState::SOFT_HOLD) qstr = "SOFTHOLD";
             else if (xState == cereal::LongitudinalPlan::XState::LEAD) qstr = "LEAD";
             else if (xState == cereal::LongitudinalPlan::XState::E2E_CRUISE) qstr = (v_ego_kph < 80) ? tr("E2ECRUISE") : tr("CRUISE");
+            else if (xState == cereal::LongitudinalPlan::XState::E2E_CRUISE_PREPARE) qstr = "E2EPREPARE";
             else if (xState == cereal::LongitudinalPlan::XState::CRUISE) qstr = tr("CRUISE");
             else qstr = "UNKNOWN";
         }
@@ -1443,27 +1444,27 @@ void DrawApilot::drawDebugText(UIState* s) {
     char  str[128];
     QString qstr;
 
-    int y = 150, dy = 80;
+    int y = 150, dy = 40;
 
     const int text_x = 1600;
     const auto live_torque_params = sm["liveTorqueParameters"].getLiveTorqueParameters();
     
     sprintf(str, "LT[%.0f]:%s (%.4f/%.4f)", live_torque_params.getTotalBucketPoints(), live_torque_params.getLiveValid() ? "ON" : "OFF", live_torque_params.getLatAccelFactorFiltered(), live_torque_params.getFrictionCoefficientFiltered());
-    ui_draw_text(s, text_x, y, str, 40, COLOR_WHITE, BOLD, 0.0f, 0.0f);
+    ui_draw_text(s, text_x, y, str, 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
 
     qstr = QString::fromStdString(live_torque_params.getDebugText().cStr());
     y += dy;
-    ui_draw_text(s, text_x, y, qstr.toStdString().c_str(), 40, COLOR_WHITE, BOLD, 0.0f, 0.0f);
+    ui_draw_text(s, text_x, y, qstr.toStdString().c_str(), 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
 
     const auto lp = sm["longitudinalPlan"].getLongitudinalPlan();
     qstr = QString::fromStdString(lp.getDebugLongText1().cStr());
     y += dy;
-    ui_draw_text(s, text_x, y, qstr.toStdString().c_str(), 40, COLOR_WHITE, BOLD, 0.0f, 0.0f);
+    ui_draw_text(s, text_x, y, qstr.toStdString().c_str(), 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
     const auto live_params = sm["liveParameters"].getLiveParameters();
     float   liveSteerRatio = live_params.getSteerRatio();
     sprintf(str, "LiveSR = %.2f", liveSteerRatio);
     y += dy;
-    ui_draw_text(s, text_x, y, str, 40, COLOR_WHITE, BOLD, 0.0f, 0.0f);
+    ui_draw_text(s, text_x, y, str, 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
 
     //auto controls_state = sm["controlsState"].getControlsState();
     //p.drawText(text_x, y + 160, QString::fromStdString(controls_state.getDebugText2().cStr()));

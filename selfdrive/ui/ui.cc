@@ -176,9 +176,10 @@ void update_path_end(const UIState* s, const cereal::XYZTData::Reader& line,
         path_start_z = line_z[idx];
     }
     // 카메라높이부터 100미터전방 z높이 interp... 이렇게 하는것이 맞는지...
-    float z_off = z_off_end;// interp<float>(path_end_x, { 0.0f, 100.0f }, { z_off_start, z_off_end }, false);
+    float z_off = interp<float>(path_end_x, { 0.0f, 100.0f }, { z_off_start, z_off_end }, false);
     // 차선폭은 가까우면
-    float y_off = interp<float>(path_end_x, { 0.0f, 100.0f }, { 1.0f, 2.3f }, false);
+    //float y_off = interp<float>(path_end_x, { 0.0f, 100.0f }, { 1.0f, 2.3f }, false);
+    float y_off = interp<float>(path_end_x, { -3.0f, 0.0f, 3.0f }, { 1.5f, 0.5f, 1.5f }, false);
     //printf("x=%.0f, %.0f, %.0f,,,, %.1f,%.1f\n", path_end_x, path_end_y, path_end_z, y_off, z_off);
     QPointF left, right;
     bool l = calib_frame_to_full_frame(s, path_end_x, path_end_y - y_off, path_end_z+z_off, &left);

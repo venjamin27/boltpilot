@@ -236,7 +236,6 @@ class LongitudinalMpc:
     self.applyLongDynamicCost = False
     self.trafficStopAccel = 1.
     self.trafficStopModelSpeed = True
-    self.e2eDecelSpeed = 0
     self.applyDynamicTFollow = 1.0
     self.applyDynamicTFollowApart = 1.0
     self.applyDynamicTFollowDecel = 1.0
@@ -249,9 +248,10 @@ class LongitudinalMpc:
     self.xStopFilter = StreamingMovingAverage(3)  #11
     self.xStopFilter2 = StreamingMovingAverage(15) #3
     self.vFilter = StreamingMovingAverage(7)
-    self.buttonStopDist = 0
     self.applyCruiseGap = 1.
     self.applyModelDistOrder = 32
+    self.fakeCruiseDistance = 0.0
+    self.stopDist = 0.0
 
     self.t_follow = T_FOLLOW
     self.comfort_brake = COMFORT_BRAKE
@@ -287,7 +287,6 @@ class LongitudinalMpc:
     self.xState = XState.cruise
     self.startSignCount = 0
     self.stopSignCount = 0
-    self.longActiveUser_prev = 0
 
     for i in range(N+1):
       self.solver.set(i, 'x', np.zeros(X_DIM))
@@ -407,89 +406,26 @@ class LongitudinalMpc:
     self.max_a = max_a
 
   def update(self, carstate, radarstate, model, controls, v_cruise, x, v, a, j, y, prev_accel_constraint):
+
+    self.update_params()
     v_ego = self.x0[1]
     a_ego = carstate.aEgo
 
-    model_x = model.position.x[-1]
-    model_stop_x = model.position.x[self.applyModelDistOrder]
-    self.lo_timer += 1
-    if self.lo_timer > 200:
-      self.lo_timer = 0
-      self.XEgoObstacleCost = float(int(Params().get("XEgoObstacleCost", encoding="utf8")))
-      self.JEgoCost = float(int(Params().get("JEgoCost", encoding="utf8")))
-    elif self.lo_timer == 20:
-      self.AChangeCost = float(int(Params().get("AChangeCost", encoding="utf8")))
-      self.DangerZoneCost = float(int(Params().get("DangerZoneCost", encoding="utf8")))
-    elif self.lo_timer == 40:
-      self.leadDangerFactor = float(int(Params().get("LeadDangerFactor", encoding="utf8"))) * 0.01
-      self.trafficStopDistanceAdjust = float(int(Params().get("TrafficStopDistanceAdjust", encoding="utf8"))) / 100.
-    elif self.lo_timer == 60:
-      self.applyLongDynamicCost = Params().get_bool("ApplyLongDynamicCost")
-      self.trafficStopAccel = float(int(Params().get("TrafficStopAccel", encoding="utf8"))) / 100.
-    elif self.lo_timer == 80:
-      self.trafficStopModelSpeed = Params().get_bool("TrafficStopModelSpeed")
-      self.stopDistance = float(int(Params().get("StopDistance", encoding="utf8"))) / 100.
-    elif self.lo_timer == 100:
-      self.e2eDecelSpeed = float(int(Params().get("E2eDecelSpeed", encoding="utf8")))
-      self.applyDynamicTFollow = float(int(Params().get("ApplyDynamicTFollow", encoding="utf8"))) / 100.
-    elif self.lo_timer == 120:
-      self.applyDynamicTFollowApart = float(int(Params().get("ApplyDynamicTFollowApart", encoding="utf8"))) / 100.
-      self.applyDynamicTFollowDecel = float(int(Params().get("ApplyDynamicTFollowDecel", encoding="utf8"))) / 100.
-    elif self.lo_timer == 140:
-      self.tFollowRatio = float(int(Params().get("TFollowRatio", encoding="utf8"))) / 100.     
-      self.softHoldMode = int(Params().get("SoftHoldMode", encoding="utf8"))
-    elif self.lo_timer == 160:
-      self.applyModelDistOrder = int(Params().get("ApplyModelDistOrder", encoding="utf8"))
-
     #self.trafficState = 0
     self.debugLongText1 = ""
-    mySafeModeFactor = clip(controls.mySafeModeFactor, 0.5, 1.0)
+    self.mySafeModeFactor = clip(controls.mySafeModeFactor, 0.5, 1.0)
 
     self.status = radarstate.leadOne.status or radarstate.leadTwo.status
 
     lead_xv_0 = self.process_lead(radarstate.leadOne)
     lead_xv_1 = self.process_lead(radarstate.leadTwo)
 
-    v_ego_kph = v_ego * CV.MS_TO_KPH
-
-    if controls.longCruiseGap >= 4:
-      self.applyCruiseGap = interp(v_ego_kph, [0, 45, 60, 100, 120, 140], [1,1,2,2,3,4])
-      cruiseGapRatio = interp(self.applyCruiseGap, [1,2,3,4], [1.1, 1.2, 1.3, 1.45])
-      self.applyCruiseGap = clip(self.applyCruiseGap, 1, 4)
-    else:
-      self.applyCruiseGap = float(controls.longCruiseGap)
-      cruiseGapRatio = interp(controls.longCruiseGap, [1,2,3], [1.1, 1.3, 1.6])
-
-    self.t_follow = max(0.9, cruiseGapRatio * self.tFollowRatio * (2.0 - mySafeModeFactor)) # 0.9아래는 위험하니 적용안함.
-
-
-    # lead값을 고의로 줄여주면, 빨리 감속, lead값을 늘려주면 빨리가속,
-    if radarstate.leadOne.status:
-      self.t_follow *= interp(radarstate.leadOne.vRel*3.6, [-100., 0, 100.], [self.applyDynamicTFollow, 1.0, self.applyDynamicTFollowApart])
-      #self.t_follow *= interp(self.prev_a[0], [-4, 0], [self.applyDynamicTFollowDecel, 1.0])
-      # 선행차감속도* 내차감속도 : 둘다감속이 심하면 더 t_follow를 크게..
-      self.t_follow *= interp(radarstate.leadOne.aLeadK, [-4, 0], [self.applyDynamicTFollowDecel, 1.0]) # 선행차의 accel텀은 이미 사용하고 있지만(aLeadK).... 그러나, t_follow에 추가로 적용시험
-      self.t_follow *= interp(a_ego, [-4, 0], [self.applyDynamicTFollowDecel, 1.0]) # 내차의 감속도에 추가 적용
-
-      if not self.openpilotLongitudinalControl:
-        if v_ego < 0.1:
-          self.applyCruiseGap = 1
-        elif v_ego_kph < 60:
-          self.applyCruiseGap = int(interp(radarstate.leadOne.vRel*3.6, [-5.0, -2.0, -1.0], [4, self.applyCruiseGap, 1]))
-        elif v_ego_kph < 120:
-          self.applyCruiseGap = int(interp(radarstate.leadOne.vRel*3.6, [-10.0, -5.0, -1.0], [4, self.applyCruiseGap, 2]))
-        else:
-          self.applyCruiseGap = int(interp(radarstate.leadOne.vRel*3.6, [-20.0, -10.0, -1.0], [4, self.applyCruiseGap, 3]))
-      
-        #elif a_ego < 0.1:
-        #  self.applyCruiseGap = int(interp(a_ego, [-2.0, 0.0], [4, self.applyCruiseGap]))
-        #else:
-        #  self.applyCruiseGap = int(interp(radarstate.leadOne.vRel*3.6, [0, 10.0], [self.applyCruiseGap, 1]))
+    self.update_gap_tf(controls, radarstate, v_ego, a_ego)
 
     self.comfort_brake = COMFORT_BRAKE
     self.set_weights(prev_accel_constraint=prev_accel_constraint, v_lead0=lead_xv_0[0,1], v_lead1=lead_xv_1[0,1])
 
-    applyStopDistance = self.stopDistance * (2.0 - mySafeModeFactor)
+    applyStopDistance = self.stopDistance * (2.0 - self.mySafeModeFactor)
 
     # To estimate a safe distance from a moving lead, we calculate how much stopping
     # distance that lead needs as a minimum. We can add that to the current distance
@@ -503,154 +439,7 @@ class LongitudinalMpc:
     if self.mode == 'acc':
       self.params[:,5] = self.leadDangerFactor #LEAD_DANGER_FACTOR
 
-      cruiseButtonCounterDiff = controls.cruiseButtonCounter - self.cruiseButtonCounter
-      #active_mode => -3(OFF auto), -2(OFF brake), -1(OFF user), 0(OFF), 1(ON user), 2(ON gas), 3(ON auto)
-      if controls.longActiveUser <= 0:
-        self.e2ePaused = False
-      if self.e2ePaused and cruiseButtonCounterDiff != 0: #신호감지무시중 버튼이 눌리면 다시 재개함.
-        self.e2ePaused = False
-      #if v_ego_kph > 50.0 or self.xState in [XState.lead, XState.cruise] or (v_ego_kph > 30.0 and (model_x > 60.0 and abs(y[-1])<2.0)):
-      if self.xState in [XState.lead, XState.cruise] or (v_ego_kph > 30.0 and (model_x > 60.0 and abs(y[-1])<2.0)):
-        self.e2ePaused = False
-
-      if controls.myDrivingMode <= 3: #cruiseGap이 1,2,3일때 신호감속.. 4일때는 일반주행.
-
-        #1단계: 모델값을 이용한 신호감지
-        model_v = self.vFilter.process(v[-1])
-        startSign = model_v > 5.0 or model_v > (v[0]+2)
-        if v_ego < 1.0: #정지상태인경우
-          stopSign = model_x < 20.0 and model_v < 10.0
-        elif v_ego_kph<80.0: # 80키로 이하, 
-          stopSign = model_x < 130.0 and ((model_v < 3.0) or (model_v < v[0]*0.70)) and abs(y[N]) < 5.0 #10초후 정지, 70%감속, 직선도로에서 감지 정지...
-        else:
-          stopSign = False
-
-        ## 현재속도로 정지가 가능한경우에만 신호인식하도록 해보자~, stop_distance는 신호정지시 model_x가 0이므로... 이것도 인지하도록 함.
-        self.stopSignCount = self.stopSignCount + 1 if (stopSign and (model_x > get_safe_obstacle_distance(v_ego,t_follow=0, comfort_brake=COMFORT_BRAKE, stop_distance=-1.0))) else 0 
-        #self.stopSignCount = self.stopSignCount + 1 if stopSign else 0 
-
-        # cruise_helper에서 깜박이 켜고 신호감지, 브레이크 크루즈ON을 기동하면... 신호오류와 같이, 크루즈버튼으로 출발해야함.
-        if self.longActiveUser_prev != controls.longActiveUser:
-          if controls.longActiveUser > 10:
-            self.trafficError = True
-          self.longActiveUser_prev = controls.longActiveUser
-
-        ## 방금 startSign이 잠깐들어오고 StopSign이 들어오면.... 신호감지 오류...
-        if 0.0 < self.startSignCount*DT_MDL < 0.1 and stopSign:
-          if v_ego < 0.1 and self.xState == XState.e2eStop and not self.e2ePaused:
-            #self.trafficError = True  # Traffic Error잠시멈춤..
-            pass
-        self.startSignCount = self.startSignCount + 1 if startSign else 0
-
-        # trafficState: 2:StartSign, 1:StopSign, 0: Ignore
-        # self.trafficState = 1 if self.stopSignCount * DT_MDL > 0.3 else 2 if self.startSignCount * DT_MDL > 0.3 else 0
-        # 신호등의 상태를 과거값을 기억하고 있으면 어떨까?
-
-        if self.stopSignCount * DT_MDL > 0.0 and carstate.rightBlinker == False:
-           self.trafficState = 1 
-        elif self.startSignCount * DT_MDL > 0.1:
-           self.trafficState = 2 
-
-        if self.xState == XState.e2eStop: # and abs(self.xStop - model_x) < 20.0:
-          stopFilterX = self.xStopFilter.process(model_stop_x, median = True)  # -v_ego는 longitudinalPlan에서 v_ego만큼 더해서 나옴.. 마지막에 급감속하는 문제가 발생..
-          self.xStop = self.xStopFilter2.process(stopFilterX)
-        else:
-          self.xStop = model_stop_x
-          self.xStopFilter.set(model_stop_x)
-          self.xStopFilter2.set(model_stop_x)
-          
-        model_x = self.xStop
-
-        if self.e2ePaused:
-          self.trafficState |= 100  # 이렇게하면.... 이벤트발생이 안됨...
-          self.trafficError = False
-
-        # SOFT_HOLD: 기능
-        if carstate.brakePressed and v_ego < 0.1 and self.softHoldMode > 0:  
-          self.softHoldTimer += 1
-          if self.softHoldTimer*DT_MDL >= 0.7: 
-            self.xState = XState.softHold
-            self.e2ePaused = False
-            self.trafficError = 0
-        else:
-          self.softHoldTimer = 0
-
-        #2단계: 신호감지조건과 주행조건과의 관계로 상태 결정.
-        if self.xState == XState.e2eStop and not self.e2ePaused: 
-          if v_ego < 0.1: # 정지상태이면...
-            model_x = 0.0
-            v_cruise = 0.0
-          if radarstate.leadOne.status and (radarstate.leadOne.dRel - model_x) < 2.0:
-            self.xState = XState.lead
-          elif self.trafficState == 2:
-            if not self.trafficError or (self.trafficError and cruiseButtonCounterDiff > 0):  # 출발신호
-              self.xState = XState.e2eCruise
-              self.e2ePaused = True #출발신호가 나오면 이때부터 신호무시하자... 출발후 정지하는 경우가 생김..
-              self.trafficError = False
-          if carstate.gasPressed: # or cruiseButtonCounterDiff>0:       #예외: 정지중 accel을 밟으면 강제주행모드로 변경
-            self.xState = XState.e2eCruise
-            self.e2ePaused = True
-        #SOFT_HOLD: 정지 유지상태: 신호오류등 상황발생시 정지유지.
-        elif self.xState == XState.softHold: 
-          model_x = 0.0
-          if carstate.gasPressed:
-            self.xState = XState.e2eCruise
-            self.e2ePaused = True
-          if cruiseButtonCounterDiff > 0:
-            self.xState = XState.e2eStop if self.trafficState == 1 else XState.e2eCruise
-            self.e2ePaused = False
-        #E2E_CRUISE: 주행상태.
-        else:
-          self.trafficError = False
-          if self.status:
-            self.xState = XState.lead
-          elif self.trafficState == 1 and not self.e2ePaused and not carstate.gasPressed:                 #신호인식이 되면 정지모드
-            self.buttonStopDist = 0
-            self.xState = XState.e2eStop
-          else:
-            self.xState = XState.e2eCruise
-            if carstate.brakePressed and v_ego_kph < 1.0:  #예외: 정지상태에서 브레이크를 밟으면 강제정지모드.. E2E오류.. SOFT_HOLD
-              self.xState = XState.softHold
-      else:
-        self.xState = XState.cruise
-        self.trafficState = 0
-        self.trafficError = False
-
-      fakeCruiseDistance = 0.0  #신호정지시: 뒤쪽에서는 문제....
-
-      #3단계: 조건에 따른. 감속및 주행.
-      if self.xState in [XState.lead, XState.cruise] or self.e2ePaused or controls.longActiveUser<=0:
-        model_x = 1000.0
-      elif self.xState == XState.e2eCruise:
-        if carstate.gasPressed:
-          self.e2ePaused = True
-        if model_x > 150.0 or self.e2ePaused or v_ego_kph > self.e2eDecelSpeed:                # 속도가 빠른경우 cruise_obstacle값보다 model_x값이 적어 속도증가(약80키로전후)를 차단함~
-          model_x = 1000.0
-        #elif self.trafficStopModelSpeed:
-        #  v_cruise = v[0]
-      elif self.xState == XState.softHold:
-        #model_x = stopline_x
-        v_cruise = 0
-        model_x = 0.0
-        pass
-      elif self.xState == XState.e2eStop:
-        self.comfort_brake = COMFORT_BRAKE * self.trafficStopAccel
-        fakeCruiseDistance = 10.0
-
-        #if cruiseButtonCounterDiff > 0:
-        #  self.buttonStopDist += 1.0
-        #model_x += self.buttonStopDist
-        if False: #self.trafficStopModelSpeed:
-          v_cruise = v[0]
-
-      self.comfort_brake *= mySafeModeFactor
-      self.longActiveUser = controls.longActiveUser
-      self.cruiseButtonCounter = controls.cruiseButtonCounter
-
-      stop_x = model_x
-      # 급격히 정지하는 걸 막아보자~ 시험.
-      #if self.xState == XState.e2eStop and model_x < 3.0: # 신호정지이고 3M이내이면.. 급정거... 최소거리확보해야할... test
-      #  stop_x = max(v_ego * v_ego / (1.0 * 2), model_x)  # -1 m/s^2으로 감속할때 정지거리..
+      v_cruise, stop_x = self.update_apilot(controls, carstate, radarstate, model, v_ego, v_cruise)
 
       x2 = stop_x * np.ones(N+1) + self.trafficStopDistanceAdjust
 
@@ -662,14 +451,7 @@ class LongitudinalMpc:
                                  v_lower,
                                  v_upper)
 
-      ## 시험코드: 왜 앞차는 가속하는데... 내차는 가속을 안하냐구...
-      ## 결론은 long_mpc에 입력하는 cruise_obstacle값이 작음... 크게하여 가속도를 늘려야함.
-      # 레이더있고, 내차보다 빠르면.. 유효거리 50M이내.. 
-      # 값을 크게하면... lead_obstacle값으로 가겠지..
-      comfort_brake = self.comfort_brake
-      if radarstate.leadOne.status and self.applyLongDynamicCost and radarstate.leadOne.dRel < 50:
-        comfort_brake *= interp(radarstate.leadOne.vRel*3.6, [0, 2.], [1.0, self.applyDynamicTFollowApart])
-      cruise_obstacle = np.cumsum(T_DIFFS * v_cruise_clipped) + get_safe_obstacle_distance(v_cruise_clipped, self.t_follow, comfort_brake, applyStopDistance + fakeCruiseDistance)
+      cruise_obstacle = np.cumsum(T_DIFFS * v_cruise_clipped) + get_safe_obstacle_distance(v_cruise_clipped, self.t_follow, self.comfort_brake, applyStopDistance + self.fakeCruiseDistance)
       
       x_obstacles = np.column_stack([lead_0_obstacle, lead_1_obstacle, cruise_obstacle, x2])
 
@@ -678,9 +460,6 @@ class LongitudinalMpc:
       self.debugLongText1 = "A{:3.2f},L0{:5.1f},L1{:5.1f},C{:5.1f},X{:5.1f}".format(self.max_a, lead_0_obstacle[0], lead_1_obstacle[0], cruise_obstacle[0], x2[0])
 
       self.source = SOURCES[np.argmin(x_obstacles[0])]
-
-      if self.source == 'e2e' and model_x < 20.0: #신호감속인경우 그리고 20M이내에는 감속도 제한함.. 정지선 x를 지나가더라도.... 급격한 x값의 변화로 인한 감속정지를 막기위해.... 되려나?
-        self.params[:,0] = -COMFORT_BRAKE #MIN_ACCEL  
 
       # These are not used in ACC mode
       x[:], v[:], a[:], j[:] = 0.0, 0.0, 0.0, 0.0
@@ -776,6 +555,204 @@ class LongitudinalMpc:
       # reset = 1
     # print(f"long_mpc timings: total internal {self.solve_time:.2e}, external: {(sec_since_boot() - t0):.2e} qp {self.time_qp_solution:.2e}, lin {self.time_linearization:.2e} qp_iter {qp_iter}, reset {reset}")
 
+
+  def update_params(self):
+    self.lo_timer += 1
+    if self.lo_timer > 200:
+      self.lo_timer = 0
+      self.XEgoObstacleCost = float(int(Params().get("XEgoObstacleCost", encoding="utf8")))
+      self.JEgoCost = float(int(Params().get("JEgoCost", encoding="utf8")))
+    elif self.lo_timer == 20:
+      self.AChangeCost = float(int(Params().get("AChangeCost", encoding="utf8")))
+      self.DangerZoneCost = float(int(Params().get("DangerZoneCost", encoding="utf8")))
+    elif self.lo_timer == 40:
+      self.leadDangerFactor = float(int(Params().get("LeadDangerFactor", encoding="utf8"))) * 0.01
+      self.trafficStopDistanceAdjust = float(int(Params().get("TrafficStopDistanceAdjust", encoding="utf8"))) / 100.
+    elif self.lo_timer == 60:
+      self.applyLongDynamicCost = Params().get_bool("ApplyLongDynamicCost")
+      self.trafficStopAccel = float(int(Params().get("TrafficStopAccel", encoding="utf8"))) / 100.
+    elif self.lo_timer == 80:
+      self.trafficStopModelSpeed = Params().get_bool("TrafficStopModelSpeed")
+      self.stopDistance = float(int(Params().get("StopDistance", encoding="utf8"))) / 100.
+    elif self.lo_timer == 100:
+      self.applyDynamicTFollow = float(int(Params().get("ApplyDynamicTFollow", encoding="utf8"))) / 100.
+    elif self.lo_timer == 120:
+      self.applyDynamicTFollowApart = float(int(Params().get("ApplyDynamicTFollowApart", encoding="utf8"))) / 100.
+      self.applyDynamicTFollowDecel = float(int(Params().get("ApplyDynamicTFollowDecel", encoding="utf8"))) / 100.
+    elif self.lo_timer == 140:
+      self.tFollowRatio = float(int(Params().get("TFollowRatio", encoding="utf8"))) / 100.     
+      self.softHoldMode = int(Params().get("SoftHoldMode", encoding="utf8"))
+    elif self.lo_timer == 160:
+      self.applyModelDistOrder = int(Params().get("ApplyModelDistOrder", encoding="utf8"))
+
+  def update_gap_tf(self, controls, radarstate, v_ego, a_ego):
+    v_ego_kph = v_ego * CV.MS_TO_KPH
+    if controls.longCruiseGap >= 4:
+      self.applyCruiseGap = interp(v_ego_kph, [0, 45, 60, 100, 120, 140], [1,1,2,2,3,4])
+      cruiseGapRatio = interp(self.applyCruiseGap, [1,2,3,4], [1.1, 1.2, 1.3, 1.45])
+      self.applyCruiseGap = clip(self.applyCruiseGap, 1, 4)
+    else:
+      self.applyCruiseGap = float(controls.longCruiseGap)
+      cruiseGapRatio = interp(controls.longCruiseGap, [1,2,3], [1.1, 1.3, 1.6])
+
+    self.t_follow = max(0.9, cruiseGapRatio * self.tFollowRatio * (2.0 - self.mySafeModeFactor)) # 0.9아래는 위험하니 적용안함.
+
+
+    # lead값을 고의로 줄여주면, 빨리 감속, lead값을 늘려주면 빨리가속,
+    if radarstate.leadOne.status:
+      self.t_follow *= interp(radarstate.leadOne.vRel*3.6, [-100., 0, 100.], [self.applyDynamicTFollow, 1.0, self.applyDynamicTFollowApart])
+      #self.t_follow *= interp(self.prev_a[0], [-4, 0], [self.applyDynamicTFollowDecel, 1.0])
+      # 선행차감속도* 내차감속도 : 둘다감속이 심하면 더 t_follow를 크게..
+      self.t_follow *= interp(radarstate.leadOne.aLeadK, [-4, 0], [self.applyDynamicTFollowDecel, 1.0]) # 선행차의 accel텀은 이미 사용하고 있지만(aLeadK).... 그러나, t_follow에 추가로 적용시험
+      self.t_follow *= interp(a_ego, [-4, 0], [self.applyDynamicTFollowDecel, 1.0]) # 내차의 감속도에 추가 적용
+
+      if not self.openpilotLongitudinalControl:
+        if v_ego_kph < 0.1:
+          self.applyCruiseGap = 1
+        elif v_ego_kph < 60:
+          self.applyCruiseGap = int(interp(radarstate.leadOne.vRel*3.6, [-5.0, -2.0, -1.0], [4, self.applyCruiseGap, 1]))
+        elif v_ego_kph < 120:
+          self.applyCruiseGap = int(interp(radarstate.leadOne.vRel*3.6, [-10.0, -5.0, -1.0], [4, self.applyCruiseGap, 2]))
+        else:
+          self.applyCruiseGap = int(interp(radarstate.leadOne.vRel*3.6, [-20.0, -10.0, -1.0], [4, self.applyCruiseGap, 3]))
+      
+        #elif a_ego < 0.1:
+        #  self.applyCruiseGap = int(interp(a_ego, [-2.0, 0.0], [4, self.applyCruiseGap]))
+        #else:
+        #  self.applyCruiseGap = int(interp(radarstate.leadOne.vRel*3.6, [0, 10.0], [self.applyCruiseGap, 1]))
+
+  def update_stop_dist(self, stop_x):
+    stop_x = self.xStopFilter.process(stop_x, median = True)
+    stop_x = self.xStopFilter2.process(stop_x)
+    return stop_x
+
+  def check_model_stopping(self, carstate, v, v_ego, model_x, y):
+    v_ego_kph = v_ego * CV.MS_TO_KPH
+    model_v = self.vFilter.process(v[-1])
+    startSign = model_v > 5.0 or model_v > (v[0]+2)
+    if v_ego_kph < 1.0: 
+      stopSign = model_x < 20.0 and model_v < 10.0
+    elif v_ego_kph < 80.0:
+      stopSign = model_x < 130.0 and ((model_v < 3.0) or (model_v < v[0]*0.7)) and abs(y[-1]) < 5.0
+    else:
+      stopSign = False
+
+    self.stopSignCount = self.stopSignCount + 1 if (stopSign and (model_x > get_safe_obstacle_distance(v_ego, t_follow=0, comfort_brake=COMFORT_BRAKE, stop_distance=-1.0))) else 0
+    self.startSignCount = self.startSignCount + 1 if startSign else 0
+
+    if self.stopSignCount * DT_MDL > 0.0 and carstate.rightBlinker == False:
+      self.trafficState = 1
+    elif self.startSignCount * DT_MDL > 0.3:
+      self.trafficState = 2  
+
+  def update_apilot(self, controls, carstate, radarstate, model, v_ego, v_cruise):
+    v_ego_kph = v_ego * CV.MS_TO_KPH
+    x = model.position.x
+    y = model.position.y
+    v = model.velocity.x
+
+    self.fakeCruiseDistance = 0.0
+
+    ## 모델의 정지거리 필터링
+    self.xStop = self.update_stop_dist(x[-1])
+    stop_x = self.xStop
+    ## 모델의 신호정지 검사
+    self.check_model_stopping(carstate, v, v_ego, self.xStop, y)
+
+    cruiseButtonCounterDiff = controls.cruiseButtonCounter - self.cruiseButtonCounter
+
+    # cruise_helper에서 깜박이 켜고 신호감지, 브레이크 크루즈ON을 기동하면... 신호오류와 같이, 크루즈버튼으로 출발해야함.
+    if self.longActiveUser != controls.longActiveUser:
+      if controls.longActiveUser > 10:
+        self.trafficError = True
+
+    # SOFT_HOLD: 검사
+    if carstate.brakePressed and v_ego < 0.1 and self.softHoldMode > 0:  
+      self.softHoldTimer += 1
+      if self.softHoldTimer*DT_MDL >= 0.7: 
+        self.xState = XState.softHold
+    else:
+      self.softHoldTimer = 0
+
+    ## 소프트홀드중
+    if self.xState == XState.softHold:
+      stop_x = 0.0
+      self.trafficError = 0
+      if carstate.gasPressed:
+        self.xState = XState.e2eCruisePrepare
+      if cruiseButtonCounterDiff > 0:
+        self.xState = XState.e2eStop if self.trafficState == 1 else XState.e2eCruise
+    #고속모드 또는 신호감지 일시정지: 신호정지 사용안함.
+    elif controls.myDrivingMode == 4: 
+      if self.status:
+        self.xState = XState.lead
+      else:
+        self.xState = XState.cruise
+      self.trafficState = 0
+      self.trafficError = False
+      stop_x = 1000.0
+    ## 신호감속정지중
+    elif self.xState == XState.e2eStop:
+      if carstate.gasPressed:
+        self.xState = XState.e2eCruisePrepare
+        stop_x = 1000.0
+      elif radarstate.leadOne.status and (radarstate.leadOne.dRel - stop_x) < 2.0: # 레이더감지, 정지라인보다 선행차가 가까이있다면..
+        self.xState = XState.lead
+        stop_x = 1000.0
+      elif self.trafficState == 2:
+        if not self.trafficError or (self.trafficError and cruiseButtonCounterDiff > 0):
+          self.xState = XState.e2eCruise
+          self.trafficError = False
+      elif v_ego < 0.1:
+        if cruiseButtonCounterDiff > 0:
+          self.stopDist += 5.0
+          pass
+        else:
+          stop_x = 0.0
+          v_cruise = 0.0
+      else:
+        self.comfort_brake = COMFORT_BRAKE * self.trafficStopAccel
+        self.fakeCruiseDistance = 10.0
+        if controls.longActiveUser > 0 and self.longActiveUser <= 0:  # longActive된경우
+          stop_dist = v_ego * v_ego / (2.3 * 2) # 2.3m/s^2 으로 감속할경우 필요한 거리.
+          if stop_x < stop_dist:  #서야할 거리가 짧은경우
+            self.stopDist = stop_dist
+    ## e2eCruisePrepare 일시정지중
+    elif self.xState == XState.e2eCruisePrepare:
+      ## 신호정지 일시정지 해제 검사
+      if cruiseButtonCounterDiff != 0: #신호감지무시중 버튼이 눌리면 다시 재개함.
+        self.xState = XState.e2eCruise
+      elif (v_ego_kph > 30.0 and (stop_x > 60.0 and abs(y[-1])<2.0)):
+        self.xState = XState.e2eCruise
+      else:
+        self.trafficState = 0
+        self.trafficError = False
+        stop_x = 1000.0
+    ## 신호감지주행중
+    else: # e2eCruise, lead, cruise 상태
+      self.trafficError = False
+      if self.status:
+        self.xState = XState.lead
+        stop_x = 1000.0
+      elif self.trafficState == 1 and not carstate.gasPressed:
+        self.xState = XState.e2eStop
+      else:
+        self.xState = XState.e2eCruise
+        if carstate.brakePressed and v_ego_kph < 1.0:
+          self.xState = XState.softHold
+      if stop_x > 100.0:
+        stop_x = 1000.0
+
+    self.comfort_brake *= self.mySafeModeFactor
+    self.longActiveUser = controls.longActiveUser
+    self.cruiseButtonCounter = controls.cruiseButtonCounter
+
+    self.stopDist -= (v_ego * DT_MDL)
+    if self.stopDist < 0:
+      self.stopDist = 0.
+    else:
+      self.fakeCruiseDistance += self.stopDist
+    return v_cruise, stop_x+self.stopDist
 
 if __name__ == "__main__":
   ocp = gen_long_ocp()
