@@ -214,7 +214,7 @@ static int hyundai_rx_hook(CANPacket_t *to_push) {
   // SCC11 is on bus 2
   if (valid && (addr == 1056) && (((bus == 0 || bus == 2) && !hyundai_camera_scc) || ((bus == 2) && hyundai_camera_scc))) {
       // 1 bits: 0
-      int cruise_engaged = (GET_BYTES_04(to_push) >> 0) & 0x1U;
+      int cruise_engaged = (GET_BYTES(to_push, 0, 4) >> 0) & 0x1U;
       static int cruise_engaged_pre = 0;
       if (cruise_engaged_pre != cruise_engaged) {
           print("CruiseSet...: "); puth2(cruise_engaged); print("\n");
