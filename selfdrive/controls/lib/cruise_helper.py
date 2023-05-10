@@ -424,8 +424,8 @@ class CruiseHelper:
       elif self.v_ego_kph < v_cruise_kph and abs(CS.steeringAngleDeg) > 7.0 and 0 < self.dRel < 30: 
           v_cruise_kph = self.v_ego_kph_set
       #  5. 페달을 0.6초이내 뗀경우: 속도증가 autoSyncCruiseSpeedMax까지: 가속페달로 속도를 증가시킴
-      elif self.gasPressedCount * DT_CTRL < 0.6:
-        if self.v_ego_kph > 30.0 and v_cruise_kph < self.autoSyncCruiseSpeedMax:  
+      elif self.gasPressedCount * DT_CTRL < 0.6 and self.preGasPressedMax > 0.03:
+        if self.v_ego_kph > self.autoResumeFromGasSpeed + 5.0 and v_cruise_kph < self.autoSyncCruiseSpeedMax:  
           v_cruise_kph = self.v_cruise_speed_up(v_cruise_kph, self.roadSpeed)
           if self.autoSyncCruiseSpeedMax > 0 and v_cruise_kph > self.autoSyncCruiseSpeedMax:
             v_cruise_kph = self.autoSyncCruiseSpeedMax
@@ -634,7 +634,7 @@ class CruiseHelper:
       elif self.xState == XState.e2eStop and self.xState_prev in [XState.e2eCruise, XState.lead]: # and self.longControlActiveSound >= 2:
         self.send_apilot_event(controls, EventName.trafficStopping, 20.0)
       elif trafficError:
-        self.send_apilot_event(controls, EventName.trafficError, 10.0)
+        self.send_apilot_event(controls, EventName.trafficError, 20.0)
 
 
     self.trafficState = trafficState

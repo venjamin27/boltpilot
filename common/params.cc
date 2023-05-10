@@ -220,6 +220,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     { "ShowGapInfo", PERSISTENT },
     { "ShowDmInfo", PERSISTENT },
     { "ShowRadarInfo", PERSISTENT },
+    { "MixRadarInfo", PERSISTENT },
     { "ShowZOffset", PERSISTENT },
     { "ShowPathMode", PERSISTENT },
     { "ShowPathColor", PERSISTENT },

@@ -233,7 +233,7 @@ class LongitudinalPlanner:
     longitudinalPlan.xState = self.mpc.xState
     if self.mpc.trafficError:
       longitudinalPlan.trafficState = self.mpc.trafficState + 1000
-    longitudinalPlan.xStop = float(self.mpc.xStop)
+    longitudinalPlan.xStop = float(self.mpc.stopDist) #float(self.mpc.xStop)
     longitudinalPlan.tFollow = float(self.mpc.t_follow)
     longitudinalPlan.cruiseGap = float(self.mpc.applyCruiseGap)
     longitudinalPlan.xObstacle = float(self.mpc.x_obstacle_min[0])

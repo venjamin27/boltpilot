@@ -8,7 +8,7 @@
       "descr": "(-)좌측,(+)우측",
       "egroup": "LAT",
       "etitle": "PathOffset (0)",
-      "edescr":  "(-)Left,(+)Right",
+      "edescr": "(-)Left,(+)Right",
       "min": -200,
       "max": 200,
       "default": 0,
@@ -355,11 +355,11 @@
     {
       "group": "감속제어",
       "name": "ApplyModelDistOrder",
-      "title": "신호정지 감속모델선택 (32)",
+      "title": "신호정지 감속모델선택 (30)",
       "descr": "숫자가 작을수록 감속을 미리합니다.",
       "min": 1,
       "max": 32,
-      "default": 32,
+      "default": 30,
       "unit": 1
     },
     {
@@ -859,6 +859,16 @@
       "descr": "SCC배선개조, 레이터트랙사용시 이용가능",
       "min": 0,
       "max": 1,
+      "default": 0,
+      "unit": 1
+    },
+    {
+      "group": "시작",
+      "name": "MixRadarInfo",
+      "title": "SCC레이더 비젼 MIX",
+      "descr": "0:안함,1:사용함",
+      "min": 0,
+      "max": 2,
       "default": 0,
       "unit": 1
     },

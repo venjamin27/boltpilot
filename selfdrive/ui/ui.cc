@@ -188,7 +188,7 @@ void update_path_end(const UIState* s, const cereal::XYZTData::Reader& line,
         points.push_front(left);
         points.push_back(right);
     }
-    else printf("path_end_x,y = (%.1f,%.1f)\n", path_end_x, path_end_y);
+    //else printf("path_end_x,y = (%.1f,%.1f)\n", path_end_x, path_end_y);
 
     l = calib_frame_to_full_frame(s, path_start_x, path_start_y - 0.5, path_start_z + z_off, &left);
     r = calib_frame_to_full_frame(s, path_start_x, path_start_y + 0.5, path_start_z + z_off, &right);
@@ -196,7 +196,7 @@ void update_path_end(const UIState* s, const cereal::XYZTData::Reader& line,
         points.push_front(left);
         points.push_back(right);
     }
-    else printf("path_start_x,y = (%.1f,%.1f)\n", path_start_x, path_start_y);
+    //else printf("path_start_x,y = (%.1f,%.1f)\n", path_start_x, path_start_y);
     *pvd = points;
 }
 void update_line_data2(const UIState* s, const cereal::XYZTData::Reader& line,
