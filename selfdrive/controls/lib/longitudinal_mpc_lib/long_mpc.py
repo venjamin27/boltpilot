@@ -750,8 +750,10 @@ class LongitudinalMpc:
         else:
           if not self.trafficError and self.trafficState == 1 and self.xStop > self.trafficStopUpdateDist:  # 정지조건에만 update함. 20M이상에서만 Update하자. 이후에는 너무 급격히 정지함. 시험..
             self.stopDist = self.xStop
-          elif self.trafficState == 2:
-            self.trafficError = True
+          elif self.trafficState == 2: ## 감속도중 파란불이면 그냥출발
+            #self.trafficError = True
+            self.xState = XState.e2eCruisePrepare
+            stop_x = 1000.0
         self.fakeCruiseDistance = 0 if self.stopDist > 10.0 else 10.0
     ## e2eCruisePrepare 일시정지중
     elif self.xState == XState.e2eCruisePrepare:
