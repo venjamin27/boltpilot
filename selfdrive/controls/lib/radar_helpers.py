@@ -63,7 +63,7 @@ class Track():
 class Cluster():
   def __init__(self):
     self.tracks = set()
-    self.aLeadKFilter = StreamingMovingAverage(3)
+    self.aLeadKFilter = StreamingMovingAverage(5)
 
   def add(self, t):
     # add the first track
