@@ -74,7 +74,7 @@ static void ui_draw_text(const UIState* s, float x, float y, const char* string,
     nvgText(s->vg, x, y, string, NULL);
 }
 
-static void ui_draw_line(const UIState* s, const QPolygonF& vd, NVGcolor* color, NVGpaint* paint, float stroke=0.0) {
+static void ui_draw_line(const UIState* s, const QPolygonF& vd, NVGcolor* color, NVGpaint* paint, float stroke=0.0, NVGcolor strokeColor=COLOR_WHITE) {
     if (vd.size() == 0) return;
 
     nvgBeginPath(s->vg);
@@ -91,12 +91,12 @@ static void ui_draw_line(const UIState* s, const QPolygonF& vd, NVGcolor* color,
     }
     nvgFill(s->vg);
     if (stroke > 0.0) {
-        nvgStrokeColor(s->vg, COLOR_WHITE);
+        nvgStrokeColor(s->vg, strokeColor);
         nvgStrokeWidth(s->vg, stroke);
         nvgStroke(s->vg);
     }
 }
-static void ui_draw_line2(const UIState* s, float x[], float y[], int size, NVGcolor* color, NVGpaint* paint, float stroke=0.0) {
+static void ui_draw_line2(const UIState* s, float x[], float y[], int size, NVGcolor* color, NVGpaint* paint, float stroke=0.0, NVGcolor strokeColor=COLOR_WHITE) {
 
     nvgBeginPath(s->vg);
     nvgMoveTo(s->vg, x[0], y[0]);
@@ -113,7 +113,7 @@ static void ui_draw_line2(const UIState* s, float x[], float y[], int size, NVGc
     nvgFill(s->vg);
 
     if (stroke > 0.0) {
-        nvgStrokeColor(s->vg, COLOR_WHITE);
+        nvgStrokeColor(s->vg, strokeColor);
         nvgStrokeWidth(s->vg, stroke);
         nvgStroke(s->vg);
     }
@@ -294,6 +294,8 @@ void DrawApilot::drawLaneLines(const UIState* s) {
     const UIScene& scene = s->scene;
     SubMaster& sm = *(s->sm);
     NVGcolor color;
+    auto    car_state = sm["carState"].getCarState();
+    bool brake_valid = car_state.getBrakeLights();
 
     bool left_blindspot = sm["carState"].getCarState().getLeftBlindspot();
     bool right_blindspot = sm["carState"].getCarState().getRightBlindspot();
@@ -352,7 +354,7 @@ void DrawApilot::drawLaneLines(const UIState* s) {
             show_path_mode = s->show_path_mode_cruise_off;
         }
         if (show_path_mode == 0) {
-            ui_draw_line(s, scene.track_vertices, &colors[show_path_color % 10], nullptr,(show_path_color >= 10) ? 2.0 : 0.0);
+            ui_draw_line(s, scene.track_vertices, &colors[show_path_color % 10], nullptr,(show_path_color >= 10 || brake_valid) ? 2.0 : 0.0, (brake_valid)?COLOR_RED:COLOR_WHITE);
         }
         else if (show_path_mode >= 9) {
             int     track_vertices_len = scene.track_vertices.length();
@@ -376,7 +378,7 @@ void DrawApilot::drawLaneLines(const UIState* s) {
                 x[5] = (x[1] + x[3]) / 2;
                 y[5] = (y[1] + y[3]) / 2;
                 //ui_draw_line2(s, x, y, 6, &colors[color_n], nullptr, (show_path_color >= 10) ? 2.0 : 0.0);
-                ui_draw_line2(s, x, y, 6, &colors[show_path_color % 10], nullptr, (show_path_color >= 10) ? 2.0 : 0.0);
+                ui_draw_line2(s, x, y, 6, &colors[show_path_color % 10], nullptr, (show_path_color >= 10 || brake_valid) ? 2.0 : 0.0, (brake_valid) ? COLOR_RED : COLOR_WHITE);
 
                 if (++color_n > 6) color_n = 0;
             }
@@ -385,7 +387,6 @@ void DrawApilot::drawLaneLines(const UIState* s) {
 
             int     track_vertices_len = scene.track_vertices.length();
             //color = nvgRGBA(0, 150, 0, 30);
-            auto    car_state = sm["carState"].getCarState();
             float   accel = car_state.getAEgo();
             float   v_ego = car_state.getVEgoCluster();
             float   v_ego_kph = v_ego * MS_TO_KPH;
@@ -441,8 +442,8 @@ void DrawApilot::drawLaneLines(const UIState* s) {
 
                     if (draw) {
                         switch (show_path_mode) {
-                        case 2: case 6: ui_draw_line2(s, x, y, 4, &colors[color_n], nullptr, (show_path_color >= 10) ? 2.0 : 0.0); break;
-                        default:        ui_draw_line2(s, x, y, 4, &colors[show_path_color % 10], nullptr, (show_path_color >= 10) ? 2.0 : 0.0); break;
+                        case 2: case 6: ui_draw_line2(s, x, y, 4, &colors[color_n], nullptr, (show_path_color >= 10 || brake_valid) ? 2.0 : 0.0, (brake_valid) ? COLOR_RED : COLOR_WHITE); break;
+                        default:        ui_draw_line2(s, x, y, 4, &colors[show_path_color % 10], nullptr, (show_path_color >= 10 || brake_valid) ? 2.0 : 0.0, (brake_valid) ? COLOR_RED : COLOR_WHITE); break;
                         }
                     }
 
@@ -474,8 +475,8 @@ void DrawApilot::drawLaneLines(const UIState* s) {
 
                     if (draw) {
                         switch (show_path_mode) {
-                        case 4: case 8:     ui_draw_line2(s, x, y, 6, &colors[color_n], nullptr, (show_path_color >= 10) ? 2.0 : 0.0); break;
-                        default:            ui_draw_line2(s, x, y, 6, &colors[show_path_color % 10], nullptr, (show_path_color >= 10) ? 2.0 : 0.0); break;
+                        case 4: case 8:     ui_draw_line2(s, x, y, 6, &colors[color_n], nullptr, (show_path_color >= 10 || brake_valid) ? 2.0 : 0.0, (brake_valid) ? COLOR_RED : COLOR_WHITE); break;
+                        default:            ui_draw_line2(s, x, y, 6, &colors[show_path_color % 10], nullptr, (show_path_color >= 10 || brake_valid) ? 2.0 : 0.0, (brake_valid) ? COLOR_RED : COLOR_WHITE); break;
 
                         }
                     }
