@@ -364,6 +364,16 @@
     },
     {
       "group": "감속제어",
+      "name": "TrafficStopUpdateDist",
+      "title": "신호정지선 갱신 거리 (10M)",
+      "descr": "숫자가 작을수록 정확히(모델의 위치) 감속합니다. 하지만 정지충격이 발생할수 있습니다.",
+      "min": 1,
+      "max": 30,
+      "default": 10,
+      "unit": 1
+    },
+    {
+      "group": "감속제어",
       "name": "AutoCurveSpeedFactor",
       "title": "커브속도조절비율(130%)",
       "descr": "높으면 커브속도가 느려집니다.",

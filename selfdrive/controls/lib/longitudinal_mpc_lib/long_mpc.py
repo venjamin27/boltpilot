@@ -250,6 +250,7 @@ class LongitudinalMpc:
     self.vFilter = StreamingMovingAverage(4)
     self.applyCruiseGap = 1.
     self.applyModelDistOrder = 32
+    self.trafficStopUpdateDist = 10.0
     self.fakeCruiseDistance = 0.0
     self.stopDist = 0.0
     self.e2eCruiseCount = 0
@@ -585,6 +586,7 @@ class LongitudinalMpc:
       self.softHoldMode = int(Params().get("SoftHoldMode", encoding="utf8"))
     elif self.lo_timer == 160:
       self.applyModelDistOrder = int(Params().get("ApplyModelDistOrder", encoding="utf8"))
+      self.trafficStopUpdateDist = int(Params().get("TrafficStopUpdateDist", encoding="utf8"))
 
   def update_gap_tf(self, controls, radarstate, v_ego, a_ego):
     v_ego_kph = v_ego * CV.MS_TO_KPH
@@ -746,7 +748,7 @@ class LongitudinalMpc:
         if controls.longActiveUser > 0 and self.longActiveUser <= 0:  # longActive된경우
           self.stopDist = 2 if self.xStop < 2 else self.xStop
         else:
-          if not self.trafficError and self.trafficState == 1 and self.xStop > 20.0:  # 정지조건에만 update함. 20M이상에서만 Update하자. 이후에는 너무 급격히 정지함. 시험..
+          if not self.trafficError and self.trafficState == 1 and self.xStop > self.trafficStopUpdateDist:  # 정지조건에만 update함. 20M이상에서만 Update하자. 이후에는 너무 급격히 정지함. 시험..
             self.stopDist = self.xStop
           elif self.trafficState == 2:
             self.trafficError = True
