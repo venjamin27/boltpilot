@@ -152,7 +152,7 @@ class Cluster():
       "fcw": self.is_potential_fcw(model_prob),
       "modelProb": model_prob,
       "radar": True,
-      "aLeadTau": _vision_lead_aTau[lead_index] if useVisionMix and mixRadarInfo==2 else float(self.aLeadTau)
+      "aLeadTau": _vision_lead_aTau[lead_index] if useVisionMix else float(self.aLeadTau)
     }
 
   def get_RadarState_from_vision(self, lead_msg, lead_index, v_ego):

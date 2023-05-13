@@ -866,9 +866,9 @@
       "group": "시작",
       "name": "MixRadarInfo",
       "title": "SCC레이더 비젼 MIX",
-      "descr": "0:안함,1:사용함",
+      "descr": "SCC레이더의 부족한 성능을 비젼거리측정데이터와 MIX하여 주행",
       "min": 0,
-      "max": 2,
+      "max": 1,
       "default": 0,
       "unit": 1
     },
