@@ -138,9 +138,9 @@ static int gm_rx_hook(CANPacket_t *to_push) {
     if (addr == 513) {
       gas_interceptor_detected = 1;
       gm_pcm_cruise = false;
-      int gas_interceptor = GM_GET_INTERCEPTOR(to_push);
-      gas_pressed = gas_interceptor > GM_GAS_INTERCEPTOR_THRESHOLD;
-      gas_interceptor_prev = gas_interceptor;
+//      int gas_interceptor = GM_GET_INTERCEPTOR(to_push);
+//      gas_pressed = gas_interceptor > GM_GAS_INTERCEPTOR_THRESHOLD;
+//      gas_interceptor_prev = gas_interceptor;
     }
 
     bool stock_ecu_detected = (addr == 384);  // ASCMLKASteeringCmd
