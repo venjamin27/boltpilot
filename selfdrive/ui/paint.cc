@@ -737,7 +737,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
         float _path_y = (y1 + y2) / 2.;
         if (_path_y > s->fb_h - 100) _path_y = s->fb_h - 100;
         float _path_width = x2 - x1;
-        float alpha = 0.95;
+        float alpha = 0.92;
         path_fx = path_fx * alpha + _path_x * (1. - alpha);
         path_fy = path_fy * alpha + _path_y * (1. - alpha);
         path_fwidth = path_fwidth * alpha + _path_width * (1. - alpha);
@@ -822,8 +822,8 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
         x = path_bx;
     }
 
-    filter_x = filter_x * 0.96 + x * 0.04;
-    filter_y = filter_y * 0.96 + y * 0.04;
+    filter_x = filter_x * 0.92 + x * 0.08;
+    filter_y = filter_y * 0.92 + y * 0.08;
     x = filter_x;
     y = filter_y;
 #endif
@@ -1101,6 +1101,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
 
     // 타겟좌측 : 갭표시
     int myDrivingMode = controls_state.getMyDrivingMode();
+    int active = controls_state.getActive();
     //const auto lp = sm["longitudinalPlan"].getLongitudinalPlan();
     float gap = lp.getCruiseGap();
     //float tFollow = lp.getTFollow();
@@ -1149,6 +1150,9 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
         auto xState = lp.getXState();
         QString qstr;
         if (brake_hold) qstr = "AUTOHOLD";
+        else if (active < 0) {
+            qstr = "NOT ACTIVE";
+        }
         else if (longActiveUser > 0) {
             if (xState == cereal::LongitudinalPlan::XState::E2E_STOP) qstr = tr("SIGN DETECTED");
             else if (xState == cereal::LongitudinalPlan::XState::SOFT_HOLD) qstr = "SOFTHOLD";

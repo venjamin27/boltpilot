@@ -179,7 +179,7 @@ void update_path_end(const UIState* s, const cereal::XYZTData::Reader& line,
     float z_off = interp<float>(path_end_x, { 0.0f, 100.0f }, { z_off_start, z_off_end }, false);
     // 차선폭은 가까우면
     //float y_off = interp<float>(path_end_x, { 0.0f, 100.0f }, { 1.0f, 2.3f }, false);
-    float y_off = interp<float>(path_end_x, { -3.0f, 0.0f, 3.0f }, { 1.5f, 0.5f, 1.5f }, false);
+    float y_off = interp<float>(path_end_x, { -3.0f, 0.0f, 3.0f }, { 1.0f, 0.7f, 1.0f }, false);
     //printf("x=%.0f, %.0f, %.0f,,,, %.1f,%.1f\n", path_end_x, path_end_y, path_end_z, y_off, z_off);
     QPointF left, right;
     bool l = calib_frame_to_full_frame(s, path_end_x, path_end_y - y_off, path_end_z+z_off, &left);
@@ -446,8 +446,10 @@ void update_model(UIState *s,
 
   auto lead_one = (*s->sm)["radarState"].getRadarState().getLeadOne();
   if (lead_one.getStatus()) {
-      const float lead_d = lead_one.getDRel() * 2.;
-      max_distance = std::clamp((float)(lead_d - fmin(lead_d * 0.35, 10.)), 0.0f, max_distance);
+      //const float lead_d = lead_one.getDRel() * 2.;
+      //max_distance = std::clamp((float)(lead_d - fmin(lead_d * 0.35, 10.)), 0.0f, max_distance);
+      const float lead_d = lead_one.getDRel() - 5.0;  /// 일부러 약깐 짧게 하여 패쓰엔드가 차아래쪽에 위치하게?? 패쓰를 낮추면 좋겠지만...
+      max_distance = std::clamp((float)lead_d, 0.0f, max_distance);
   }
 
   // update lane lines

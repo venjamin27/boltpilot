@@ -72,6 +72,7 @@ class CruiseHelper:
     self.trafficState = 0
     self.xState_prev = XState.cruise
     self.xState = XState.cruise
+    self.mpcEvent_prev = 0
     self.xStop = 0
     self.v_ego_kph = 0
     self.v_ego_kph_set = 0
@@ -623,20 +624,24 @@ class CruiseHelper:
     
     trafficState = (controls.sm['longitudinalPlan'].trafficState % 100)
     trafficError = controls.sm['longitudinalPlan'].trafficState >= 1000
+    mpcEvent = controls.sm['longitudinalPlan'].mpcEvent
     if self.longActiveUser>0:
-      if self.xState != self.xState_prev and self.xState == XState.softHold:
-        controls.events.add(EventName.autoHold)
-      if self.xState == XState.softHold and self.trafficState != 2 and trafficState == 2:
-        self.send_apilot_event(controls, EventName.trafficSignChanged)
-        #self.radarAlarmCount = 2000 if self.radarAlarmCount == 0 else self.radarAlarmCount
-      elif self.xState == XState.e2eCruise and self.trafficState != 2 and trafficState == 2 and CS.vEgo < 0.1:
-        controls.events.add(EventName.trafficSignGreen)
-      elif self.xState == XState.e2eStop and self.xState_prev in [XState.e2eCruise, XState.lead]: # and self.longControlActiveSound >= 2:
-        self.send_apilot_event(controls, EventName.trafficStopping, 20.0)
-      elif trafficError:
-        self.send_apilot_event(controls, EventName.trafficError, 20.0)
+      if mpcEvent != self.mpcEvent_prev and mpcEvent>0:
+        controls.events.add(mpcEvent)
+      #if self.xState != self.xState_prev and self.xState == XState.softHold:
+      #  controls.events.add(EventName.autoHold)
+      #if self.xState == XState.softHold and self.trafficState != 2 and trafficState == 2:
+      #  self.send_apilot_event(controls, EventName.trafficSignChanged)
+      #  #self.radarAlarmCount = 2000 if self.radarAlarmCount == 0 else self.radarAlarmCount
+      #elif self.xState == XState.e2eCruise and self.trafficState != 2 and trafficState == 2 and CS.vEgo < 0.1:
+      #  controls.events.add(EventName.trafficSignGreen)
+      #elif self.xState == XState.e2eStop and self.xState_prev in [XState.e2eCruise, XState.lead]: # and self.longControlActiveSound >= 2:
+      #  self.send_apilot_event(controls, EventName.trafficStopping, 20.0)
+      #elif trafficError:
+      #  self.send_apilot_event(controls, EventName.trafficError, 20.0)
 
 
+    self.mpcEvent_prev = mpcEvent
     self.trafficState = trafficState
     self.dRel = dRel
     self.vRel = vRel

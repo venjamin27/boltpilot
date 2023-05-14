@@ -124,6 +124,36 @@
     },
     {
       "group": "조향튜닝",
+      "name": "LateralTorqueKp",
+      "title": "_LateralTorqueKp(100)",
+      "descr": "",
+      "min": 0,
+      "max": 200,
+      "default": 100,
+      "unit": 1
+    },
+    {
+      "group": "조향튜닝",
+      "name": "LateralTorqueKi",
+      "title": "_LateralTorqueKi(10)",
+      "descr": "",
+      "min": 0,
+      "max": 100,
+      "default": 10,
+      "unit": 1
+    },
+    {
+      "group": "조향튜닝",
+      "name": "LateralTorqueKd",
+      "title": "_LateralTorqueKd(0)",
+      "descr": "",
+      "min": 0,
+      "max": 100,
+      "default": 1,
+      "unit": 1
+    },
+    {
+      "group": "조향튜닝",
       "name": "SteerActuatorDelay",
       "title": "SteerActuatorDelay(30)",
       "descr": "값이크면 조향을 좀더 미리함(일반,10msec)",
@@ -370,6 +400,16 @@
       "min": 1,
       "max": 30,
       "default": 10,
+      "unit": 1
+    },
+    {
+      "group": "감속제어",
+      "name": "TrafficDetectBrightness",
+      "title": "신호정지 조도 제한 (100)",
+      "descr": "신호인식이 잘안되는경우 값을 내립니다.",
+      "min": 0,
+      "max": 3000,
+      "default": 300,
       "unit": 1
     },
     {
