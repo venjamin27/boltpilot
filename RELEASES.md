@@ -1,10 +1,120 @@
-Version 0.8.17 (2022-XX-XX)
+230405a - APILOT
+========================
+* 주요변경내용
+  * 롱컨버그fix
+  * 엑셀크루즈ON/OFF, 브레이크크루즈ON: 기능정리 및 변경
+  * 커브속도제어: apilot방식으로 변경
+* 주요설정변경
+  * 롱컨튜닝 변경 및 시험
+    * FF게인: 100
+    * KiV게인: 500
+    * LADLowerBound: 10
+    * LADUppowerBound: 70
+
+230312 - APILOT
+========================
+* AutoCancelFromGasMode 설정
+  * 자동크루즈ON속도보다 낮을때 악셀을 밟으면 크루즈해제함.
+  * 주차장과 같은 복잡한도로나, 선회구간에서 사용함.
+  * 레이더트랙을 사용하는경우 레이더검출이 심해서, 예외를 넣음.
+
+221216 - APILOT
+========================
+* 안전주행모드(겨울철)
+* 각 모드별 가속기능 정리
+* 차간거리 1,2,3 오토단계
+* 순정 브레이크홀드 사용
+* 기타 UI수정
+
+221210 - APILOT
+========================
+* 크루즈 버튼모드3,4
+* 오토홀드기능 혼합사용
+* 순정네비 차량감속기능
+
+221203 - APILOT
+========================
+* startAccel, stopAccel 설정
+* 신호정지 개선
+
+221201 - APILOT
+========================
+* 차량각격제어를 3가지로 나눔.
+  * 차량간격제어: 상대속도+
+  * 차량간격제어: 상대속도-
+  * 차량간격제어: 감속
+
+
+221120 - APILOT
+========================
+* ExperimentalMode: 핸들(GPS) 아이콘을 누르면 토글, 다음 쿠루즈 인게이지시 작동시작함.
+
+221119 - APILOT
+========================
+* GAP버튼: 선행차와의 거리조정으로 수정
+* 신호정지선 filtering: 갑자기 바뀌면 리셋.. 필터리 1.0초
+* Dynamic T follow지원 : 범위수정
+* 소프트홀드상태에서 신호바뀌면: 전방주의 알림 띄우기기능.
+* 기타 버그수정.
+
+221118 - APILOT
+========================
+* 신호정지선 filtering
+* Dynamic T follow지원 : 선행차와의속도, 감속도에 따라 선행차와의 거리 자동조정
+* 신호감지조건 일부수정
+* 신호감지시 모델속도 추종기능 삭제
+* 기타 버그수정.
+
+221115 - APILOT
+========================
+* EnableRadarTracks: SANTAFE_HEV, NEXO 지원
+* EnableRadarTracks: 차량등록만하면 지원하도록 수정함.
+* WifiAddress표시
+* 위험: 선행차량 간격 조절 설정 (차량간격 동적제어기능과 같이 사용할것!)
+* Model: vq_driving
+
+221114 - APILOT
+========================
+* 차량간격(t_follow)동적제어 기능
+* Albert Einstein Model 적용
+* 롱컨배선개조 자동인식기능 삭제: 설정해야함.
+* Vision Curve속도조절기능 수정
+* HUD및 계기판 선행차량 표시기능 수정
+* 가속페달 크루즈ON조건 0인경우: 악셀을 40%이상 밟으면 이전 크루즈속도 복원, 그외는 현재속도.
+* 크루즈버튼모드: 1,2인경우 악셀을 잠깐씩밟으면 속도가 10씩증가(최초 스피드리밋까지 한번에증가), 30KM/H이상 주행시
+
+221107 - APILOT
+========================
+* 초기가속제한속도 설정(20km/h)
+
+221107 - APILOT
+========================
+* pcmCruise 순정SCC모듈을 사용한 크루즈 기능 사용가능
+* 크루즈셋을 이용한 인게이지 방식 (크루즈셋버튼: SCC모듈을 셋하고 인게이지, +-버튼: SCC모듈을 사용안하고 인게이지): 별로 차이는 없어보임.
+
+221105 - APILOT
+========================
+* EnableRadarTracks메뉴: SCC11의 값을 이용하지 않고, 직접 레이더 정보를 수신(현재, SANTAFE 2022 HEV만 지원)
+* 전방주의 계기판
+* 신호감지시 감속율조정
+* SCC순정기능 (ExperimentalLonitudinal 방식사용안함): 단, 기어변속시 에러발생
+* 140키로이상 속도가 안올라는 현상 수정
+* LongDynamicCost
+
+dev221102 - APILOT
+========================
+* 신호감속정지시 모델의 속도를 참조하도록 함(설정)
+* 속도크루즈ON:속도설정방법: 엑셀을 밟아 자동인게이지가 될때, 세트속도설정방법
+* 엑셀크루즈ON: 코드반영이 안되었음: 60%이상의 엑셀을 밟으면 속도와 관계없이 크루즈ON
+
+Version 0.8.17 (2022-XX-XX) - APILOT
 ========================
 * New driving model
   * Internal feature space accuracy increased tenfold during training, this makes the model dramatically more accurate.
+* New driver monitoring model
+  * New end-to-end distracted trigger
 * Self-tuning torque lateral controller parameters
   * Parameters learned live for each car
-  * Enabled only on Toyota Corolla for now
 * UI updates
   * Multi-language in navigation
   * Matched speeds shown on car's dash
@@ -12,6 +122,8 @@ Version 0.8.17 (2022-XX-XX)
   * Border turns grey while overriding steering
   * Added button to bookmark events while driving; view them later in comma connect
 * AGNOS 6
+* tools: new and improved cabana thanks to deanlee!
+* Kia Sportage Hybrid 2023 support thanks to sunnyhaibin!
 
 Version 0.8.16 (2022-08-26)
 ========================

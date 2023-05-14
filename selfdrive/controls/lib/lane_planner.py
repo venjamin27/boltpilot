@@ -7,7 +7,6 @@ from common.realtime import DT_MDL
 TRAJECTORY_SIZE = 33
 
 ENABLE_ZORROBYTE = True
-ENABLE_INC_LANE_PROB = True
 
 
 class LanePlanner:
@@ -29,6 +28,8 @@ class LanePlanner:
 
     self.l_lane_change_prob = 0.
     self.r_lane_change_prob = 0.
+    self.l_turn_prob = 0.
+    self.r_turn_prob = 0.
 
     self.camera_offset = 0.0
 
@@ -52,6 +53,8 @@ class LanePlanner:
     if len(desire_state):
       self.l_lane_change_prob = desire_state[log.LateralPlan.Desire.laneChangeLeft]
       self.r_lane_change_prob = desire_state[log.LateralPlan.Desire.laneChangeRight]
+      self.l_turn_prob = desire_state[log.LateralPlan.Desire.turnLeft]
+      self.r_turn_prob = desire_state[log.LateralPlan.Desire.turnRight]
 
   def get_d_path(self, v_ego, path_t, path_xyz):
     # Reduce reliance on lanelines that are too far apart or
@@ -105,7 +108,7 @@ class LanePlanner:
     self.d_prob = l_prob + r_prob - l_prob * r_prob
 
     # neokii
-    if ENABLE_INC_LANE_PROB and self.d_prob > 0.65:
+    if self.d_prob > 0.65:
       self.d_prob = min(self.d_prob * 1.3, 1.0)
 
     lane_path_y = (l_prob * path_from_left_lane + r_prob * path_from_right_lane) / (l_prob + r_prob + 0.0001)

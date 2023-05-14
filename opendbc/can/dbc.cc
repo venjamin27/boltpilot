@@ -8,9 +8,10 @@
 #include <vector>
 #include <mutex>
 #include <cstring>
+#include <iterator>
 
-#include "common.h"
-#include "common_dbc.h"
+#include "opendbc/can/common.h"
+#include "opendbc/can/common_dbc.h"
 
 std::regex bo_regexp(R"(^BO_ (\w+) (\w+) *: (\w+) (\w+))");
 std::regex sg_regexp(R"(^SG_ (\w+) : (\d+)\|(\d+)@(\d+)([\+|\-]) \(([0-9.+\-eE]+),([0-9.+\-eE]+)\) \[([0-9.+\-eE]+)\|([0-9.+\-eE]+)\] \"(.*)\" (.*))");
@@ -46,16 +47,6 @@ inline std::string& trim(std::string& s, const char* t = " \t\n\r\f\v") {
   s.erase(s.find_last_not_of(t) + 1);
   return s.erase(0, s.find_first_not_of(t));
 }
-
-typedef struct ChecksumState {
-  int checksum_size;
-  int counter_size;
-  int checksum_start_bit;
-  int counter_start_bit;
-  bool little_endian;
-  SignalType checksum_type;
-  unsigned int (*calc_checksum)(uint32_t address, const Signal &sig, const std::vector<uint8_t> &d);
-} ChecksumState;
 
 ChecksumState* get_checksum(const std::string& dbc_name) {
   ChecksumState* s = nullptr;
@@ -107,17 +98,11 @@ void set_signal_type(Signal& s, ChecksumState* chk, const std::string& dbc_name,
   }
 }
 
-DBC* dbc_parse(const std::string& dbc_path) {
-  std::ifstream infile(dbc_path);
-  if (!infile) return nullptr;
-
-  const std::string dbc_name = std::filesystem::path(dbc_path).filename();
-
-  std::unique_ptr<ChecksumState> checksum(get_checksum(dbc_name));
-
+DBC* dbc_parse_from_stream(const std::string &dbc_name, std::istream &stream, ChecksumState *checksum, bool allow_duplicate_msg_name) {
   uint32_t address = 0;
   std::set<uint32_t> address_set;
   std::set<std::string> msg_name_set;
+  std::map<uint32_t, std::set<std::string>> signal_name_sets;
   std::map<uint32_t, std::vector<Signal>> signals;
   DBC* dbc = new DBC;
   dbc->name = dbc_name;
@@ -134,7 +119,7 @@ DBC* dbc_parse(const std::string& dbc_path) {
   int line_num = 0;
   std::smatch match;
   // TODO: see if we can speed up the regex statements in this loop, SG_ is specifically the slowest
-  while (std::getline(infile, line)) {
+  while (std::getline(stream, line)) {
     line = trim(line);
     line_num += 1;
     if (startswith(line, "BO_ ")) {
@@ -150,8 +135,11 @@ DBC* dbc_parse(const std::string& dbc_path) {
       // check for duplicates
       DBC_ASSERT(address_set.find(address) == address_set.end(), "Duplicate message address: " << address << " (" << msg.name << ")");
       address_set.insert(address);
-      DBC_ASSERT(msg_name_set.find(msg.name) == msg_name_set.end(), "Duplicate message name: " << msg.name);
-      msg_name_set.insert(msg.name);
+
+      if (!allow_duplicate_msg_name) {
+        DBC_ASSERT(msg_name_set.find(msg.name) == msg_name_set.end(), "Duplicate message name: " << msg.name);
+        msg_name_set.insert(msg.name);
+      }
     } else if (startswith(line, "SG_ ")) {
       // new signal
       int offset = 0;
@@ -168,7 +156,7 @@ DBC* dbc_parse(const std::string& dbc_path) {
       sig.is_signed = match[offset + 5].str() == "-";
       sig.factor = std::stod(match[offset + 6].str());
       sig.offset = std::stod(match[offset + 7].str());
-      set_signal_type(sig, checksum.get(), dbc_name, line_num);
+      set_signal_type(sig, checksum, dbc_name, line_num);
       if (sig.is_little_endian) {
         sig.lsb = sig.start_bit;
         sig.msb = sig.start_bit + sig.size - 1;
@@ -178,6 +166,10 @@ DBC* dbc_parse(const std::string& dbc_path) {
         sig.msb = sig.start_bit;
       }
       DBC_ASSERT(sig.lsb < (64 * 8) && sig.msb < (64 * 8), "Signal out of bounds: " << line);
+
+      // Check for duplicate signal names
+      DBC_ASSERT(signal_name_sets[address].find(sig.name) == signal_name_sets[address].end(), "Duplicate signal name: " << sig.name);
+      signal_name_sets[address].insert(sig.name);
     } else if (startswith(line, "VAL_ ")) {
       // new signal value/definition
       bool ret = std::regex_search(line, match, val_regexp);
@@ -211,6 +203,16 @@ DBC* dbc_parse(const std::string& dbc_path) {
     v.sigs = signals[v.address];
   }
   return dbc;
+}
+
+DBC* dbc_parse(const std::string& dbc_path) {
+  std::ifstream infile(dbc_path);
+  if (!infile) return nullptr;
+
+  const std::string dbc_name = std::filesystem::path(dbc_path).filename();
+
+  std::unique_ptr<ChecksumState> checksum(get_checksum(dbc_name));
+  return dbc_parse_from_stream(dbc_name, infile, checksum.get());
 }
 
 const std::string get_dbc_root_path() {

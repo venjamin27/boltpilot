@@ -3,10 +3,11 @@
 
 from libcpp.string cimport string
 from libcpp.vector cimport vector
+from libcpp.set cimport set
 from libc.stdint cimport uint32_t, uint64_t
 from libcpp cimport bool
 
-cdef extern from "visionbuf.h":
+cdef extern from "cereal/visionipc/visionbuf.h":
   cdef enum VisionStreamType:
     pass
 
@@ -19,13 +20,13 @@ cdef extern from "visionbuf.h":
     size_t uv_offset
     void set_frame_id(uint64_t id)
 
-cdef extern from "visionipc.h":
+cdef extern from "cereal/visionipc/visionipc.h":
   struct VisionIpcBufExtra:
     uint32_t frame_id
     uint64_t timestamp_sof
     uint64_t timestamp_eof
 
-cdef extern from "visionipc_server.h":
+cdef extern from "cereal/visionipc/visionipc_server.h":
   cdef cppclass VisionIpcServer:
     VisionIpcServer(string, void*, void*)
     void create_buffers(VisionStreamType, size_t, bool, size_t, size_t)
@@ -34,9 +35,11 @@ cdef extern from "visionipc_server.h":
     void send(VisionBuf *, VisionIpcBufExtra *, bool)
     void start_listener()
 
-cdef extern from "visionipc_client.h":
+cdef extern from "cereal/visionipc/visionipc_client.h":
   cdef cppclass VisionIpcClient:
     VisionIpcClient(string, VisionStreamType, bool, void*, void*)
     VisionBuf * recv(VisionIpcBufExtra *, int)
     bool connect(bool)
     bool is_connected()
+    @staticmethod
+    set[VisionStreamType] getAvailableStreams(string, bool)

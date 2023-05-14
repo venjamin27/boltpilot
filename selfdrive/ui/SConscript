@@ -1,4 +1,5 @@
 import os
+import json
 Import('qt_env', 'arch', 'common', 'messaging', 'visionipc',
        'cereal', 'transformations')
 
@@ -55,23 +56,18 @@ qt_env.Program("qt/text", ["qt/text.cc"], LIBS=qt_libs)
 qt_env.Program("qt/spinner", ["qt/spinner.cc"], LIBS=qt_libs)
 
 # build main UI
-qt_src = ["main.cc", "qt/sidebar.cc", "qt/onroad.cc", "qt/body.cc",
-        "qt/window.cc", "qt/home.cc", "qt/offroad/settings.cc",
-        "qt/offroad/software_settings.cc", "qt/offroad/onboarding.cc",
-          "qt/offroad/driverview.cc",
-        "qt/screenrecorder/screenrecorder.cc",
-        'qt/screenrecorder/omx_encoder.cc',]
+qt_src = ["main.cc", "paint.cc", "qt/sidebar.cc", "qt/onroad.cc", "qt/body.cc",
+          "qt/window.cc", "qt/home.cc", "qt/offroad/settings.cc",
+          "qt/offroad/software_settings.cc", "qt/offroad/onboarding.cc",
+          "qt/offroad/driverview.cc", "qt/offroad/experimental_mode.cc",
+          "#third_party/nanovg/nanovg.c",
+          "qt/screenrecorder/screenrecorder.cc",
+          'qt/screenrecorder/omx_encoder.cc',]
 
 qt_env['CPPPATH'] += ["qt/screenrecorder/openmax/include/"]
 
 ui_libs = ['OmxCore', 'gsl', 'CB', 'avformat', 'avcodec', 'swscale', 'avutil', 'yuv', 'pthread']
 
-
-if arch == "x86_64":
-  del ui_libs[ui_libs.index('OmxCore')]
-  del ui_libs[ui_libs.index('CB')]
-  del qt_src[qt_src.index('qt/screenrecorder/screenrecorder.cc')]
-  del qt_src[qt_src.index('qt/screenrecorder/omx_encoder.cc')]
 qt_env.Program("_ui", qt_src + [asset_obj], LIBS=qt_libs + ui_libs)
 if GetOption('test'):
   qt_src.remove("main.cc")  # replaced by test_runner
@@ -79,12 +75,18 @@ if GetOption('test'):
 
 
 # build translation files
-if arch != "x86_64":
-  translation_sources = Glob("#selfdrive/ui/translations/*.ts", strings=True)
-  translation_targets = [src.replace(".ts", ".qm") for src in translation_sources]
-  lrelease = 'third_party/qt5/larch64/bin/lrelease' if arch == 'larch64' else 'lrelease'
-  qt_env.Command(translation_targets, translation_sources, f"{lrelease} $SOURCES")
+with open(File("translations/languages.json").abspath) as f:
+  languages = json.loads(f.read())
+translation_sources = [f"#selfdrive/ui/translations/{l}.ts" for l in languages.values()]
+translation_targets = [src.replace(".ts", ".qm") for src in translation_sources]
+lrelease_bin = 'third_party/qt5/larch64/bin/lrelease' if arch == 'larch64' else 'lrelease'
 
+lupdate = qt_env.Command(translation_sources, qt_src, "selfdrive/ui/update_translations.py")
+lrelease = qt_env.Command(translation_targets, translation_sources, f"{lrelease_bin} $SOURCES")
+qt_env.Depends(lrelease, lupdate)
+qt_env.NoClean(translation_sources)
+qt_env.Precious(translation_sources)
+qt_env.NoCache(lupdate)
 
 # setup and factory resetter
 if GetOption('extras'):

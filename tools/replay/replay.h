@@ -7,8 +7,10 @@
 #include "tools/replay/camera.h"
 #include "tools/replay/route.h"
 
+const QString DEMO_ROUTE = "4cf7a6ad03080c90|2021-09-29--13-46-36";
+
 // one segment uses about 100M of memory
-constexpr int FORWARD_SEGS = 5;
+constexpr int MIN_SEGMENTS_CACHE = 5;
 
 enum REPLAY_FLAGS {
   REPLAY_FLAG_NONE = 0x0000,
@@ -55,17 +57,21 @@ public:
     filter_opaque = opaque;
     event_filter = filter;
   }
+  inline int segmentCacheLimit() const { return segment_cache_limit; }
+  inline void setSegmentCacheLimit(int n) { segment_cache_limit = std::max(MIN_SEGMENTS_CACHE, n); }
   inline bool hasFlag(REPLAY_FLAGS flag) const { return flags_ & flag; }
   inline void addFlag(REPLAY_FLAGS flag) { flags_ |= flag; }
   inline void removeFlag(REPLAY_FLAGS flag) { flags_ &= ~flag; }
   inline const Route* route() const { return route_.get(); }
   inline double currentSeconds() const { return double(cur_mono_time_ - route_start_ts_) / 1e9; }
+  inline QDateTime currentDateTime() const { return route_->datetime().addSecs(currentSeconds()); }
   inline uint64_t routeStartTime() const { return route_start_ts_; }
   inline int toSeconds(uint64_t mono_time) const { return (mono_time - route_start_ts_) / 1e9; }
   inline int totalSeconds() const { return segments_.size() * 60; }
   inline void setSpeed(float speed) { speed_ = speed; }
   inline float getSpeed() const { return speed_; }
   inline const std::vector<Event *> *events() const { return events_.get(); }
+  inline const std::map<int, std::unique_ptr<Segment>> &segments() const { return segments_; };
   inline const std::string &carFingerprint() const { return car_fingerprint_; }
   inline const std::vector<std::tuple<int, int, TimelineType>> getTimeline() {
     std::lock_guard lk(timeline_lock);
@@ -75,6 +81,7 @@ public:
 signals:
   void streamStarted();
   void segmentsMerged();
+  void seekedTo(double sec);
 
 protected slots:
   void segmentLoadFinished(bool success);
@@ -129,4 +136,5 @@ protected:
   float speed_ = 1.0;
   replayEventFilter event_filter = nullptr;
   void *filter_opaque = nullptr;
+  int segment_cache_limit = MIN_SEGMENTS_CACHE;
 };

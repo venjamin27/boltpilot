@@ -5,8 +5,7 @@ from cereal import log
 from common.filter_simple import FirstOrderFilter
 from common.numpy_fast import clip, interp
 from common.realtime import DT_CTRL
-from selfdrive.controls.lib.latcontrol import LatControl, MIN_STEER_SPEED
-from selfdrive.ntune import nTune
+from selfdrive.controls.lib.latcontrol import LatControl
 
 
 class LatControlINDI(LatControl):
@@ -40,7 +39,6 @@ class LatControlINDI(LatControl):
     self._outer_loop_gain = (CP.lateralTuning.indi.outerLoopGainBP, CP.lateralTuning.indi.outerLoopGainV)
     self._inner_loop_gain = (CP.lateralTuning.indi.innerLoopGainBP, CP.lateralTuning.indi.innerLoopGainV)
 
-    self.tune = nTune(CP, self)
     self.steer_filter = FirstOrderFilter(0., self.RC, DT_CTRL)
     self.reset()
 
@@ -66,7 +64,6 @@ class LatControlINDI(LatControl):
     self.speed = 0.
 
   def update(self, active, CS, VM, params, last_actuators, steer_limited, desired_curvature, desired_curvature_rate, llk):
-    self.tune.check()
     self.speed = CS.vEgo
     # Update Kalman filter
     y = np.array([[math.radians(CS.steeringAngleDeg)], [math.radians(CS.steeringRateDeg)]])
@@ -85,7 +82,7 @@ class LatControlINDI(LatControl):
     rate_des = VM.get_steer_from_curvature(-desired_curvature_rate, CS.vEgo, 0)
     indi_log.steeringRateDesiredDeg = math.degrees(rate_des)
 
-    if CS.vEgo < MIN_STEER_SPEED or not active:
+    if not active:
       indi_log.active = False
       self.steer_filter.x = 0.0
       output_steer = 0

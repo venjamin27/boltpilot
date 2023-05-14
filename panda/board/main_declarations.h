@@ -1,8 +1,9 @@
 // ******************** Prototypes ********************
-void puts(const char *a);
+void print(const char *a);
 void puth(unsigned int i);
 void puth2(unsigned int i);
 void puth4(unsigned int i);
+void hexdump(const void *a, int l);
 typedef struct board board;
 typedef struct harness_configuration harness_configuration;
 void can_flip_buses(uint8_t bus1, uint8_t bus2);
@@ -28,4 +29,6 @@ bool ignition_seen = false;
 bool siren_enabled = false;
 uint32_t siren_countdown = 0; // siren plays while countdown > 0
 uint32_t controls_allowed_countdown = 0;
+
+bool apilot_connected = false;
 

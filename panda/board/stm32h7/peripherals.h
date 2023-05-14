@@ -1,8 +1,16 @@
 void gpio_usb_init(void) {
-  // A11,A12: USB:
+  // A11,A12: USB
   set_gpio_alternate(GPIOA, 11, GPIO_AF10_OTG1_FS);
   set_gpio_alternate(GPIOA, 12, GPIO_AF10_OTG1_FS);
   GPIOA->OSPEEDR = GPIO_OSPEEDR_OSPEED11 | GPIO_OSPEEDR_OSPEED12;
+}
+
+void gpio_spi_init(void) {
+  set_gpio_alternate(GPIOE, 11, GPIO_AF5_SPI4);
+  set_gpio_alternate(GPIOE, 12, GPIO_AF5_SPI4);
+  set_gpio_alternate(GPIOE, 13, GPIO_AF5_SPI4);
+  set_gpio_alternate(GPIOE, 14, GPIO_AF5_SPI4);
+  register_set_bits(&(GPIOE->OSPEEDR), GPIO_OSPEEDR_OSPEED11 | GPIO_OSPEEDR_OSPEED12 | GPIO_OSPEEDR_OSPEED13 | GPIO_OSPEEDR_OSPEED14);
 }
 
 void gpio_usart2_init(void) {
@@ -22,12 +30,15 @@ void common_init_gpio(void) {
   /// E2,E3,E4: RGB LED
   set_gpio_pullup(GPIOE, 2, PULL_NONE);
   set_gpio_mode(GPIOE, 2, MODE_OUTPUT);
+  set_gpio_output_type(GPIOE, 2, OUTPUT_TYPE_OPEN_DRAIN);
 
   set_gpio_pullup(GPIOE, 3, PULL_NONE);
   set_gpio_mode(GPIOE, 3, MODE_OUTPUT);
+  set_gpio_output_type(GPIOE, 3, OUTPUT_TYPE_OPEN_DRAIN);
 
   set_gpio_pullup(GPIOE, 4, PULL_NONE);
   set_gpio_mode(GPIOE, 4, MODE_OUTPUT);
+  set_gpio_output_type(GPIOE, 4, OUTPUT_TYPE_OPEN_DRAIN);
 
   // F7,F8,F9,F10: BOARD ID
   set_gpio_pullup(GPIOF, 7, PULL_NONE);
@@ -82,6 +93,10 @@ void common_init_gpio(void) {
 
 void flasher_peripherals_init(void) {
   RCC->AHB1ENR |= RCC_AHB1ENR_USB1OTGHSEN;
+
+  // SPI + DMA
+  RCC->APB2ENR |= RCC_APB2ENR_SPI4EN;
+  RCC->AHB1ENR |= RCC_AHB1ENR_DMA2EN;
 }
 
 // Peripheral initialization
@@ -95,10 +110,19 @@ void peripherals_init(void) {
   RCC->AHB4ENR |= RCC_AHB4ENR_GPIOFEN;
   RCC->AHB4ENR |= RCC_AHB4ENR_GPIOGEN;
 
+  RCC->APB2ENR |= RCC_APB2ENR_SPI4EN;  // SPI
+  RCC->AHB1ENR |= RCC_AHB1ENR_DMA1EN;  // DAC DMA
+  RCC->AHB1ENR |= RCC_AHB1ENR_DMA2EN;  // SPI DMA
   RCC->APB1LENR |= RCC_APB1LENR_TIM2EN;  // main counter
+  RCC->APB1LENR |= RCC_APB1LENR_TIM3EN;  // fan pwm
   RCC->APB1LENR |= RCC_APB1LENR_TIM6EN;  // interrupt timer
-  RCC->APB2ENR |= RCC_APB2ENR_TIM8EN;  // clock source timer
+  RCC->APB1LENR |= RCC_APB1LENR_TIM7EN;  // DMA trigger timer
+  RCC->APB1LENR |= RCC_APB1LENR_UART7EN;  // SOM uart
+  RCC->APB1LENR |= RCC_APB1LENR_DAC12EN; // DAC
+  RCC->APB2ENR |= RCC_APB2ENR_TIM8EN;  // tick timer
   RCC->APB1LENR |= RCC_APB1LENR_TIM12EN;  // slow loop
+  RCC->APB1LENR |= RCC_APB1LENR_I2C5EN;  // codec I2C
+  RCC->APB2ENR |= RCC_APB2ENR_TIM1EN;  // clock source timer
 
   RCC->APB1HENR |= RCC_APB1HENR_FDCANEN; // FDCAN core enable
   RCC->AHB1ENR |= RCC_AHB1ENR_ADC12EN; // Enable ADC clocks

@@ -11,7 +11,7 @@ build_projects = {}
 build_projects["pedal"] = {
   "MAIN": "pedal/main.c",
   "STARTUP_FILE": "stm32fx/startup_stm32f205xx.s",
-  "LINKER_SCRIPT": "stm32fx/stm32fx_flash.ld",
+  "LINKER_SCRIPT": "stm32fx/stm32f2_flash.ld",
   "APP_START_ADDRESS": "0x8004000",
   "PROJECT_FLAGS": [
     "-mcpu=cortex-m3",
@@ -29,7 +29,7 @@ build_projects["pedal_usb"]["PROJECT_FLAGS"].append("-DPEDAL_USB")
 build_projects["panda"] = {
   "MAIN": "main.c",
   "STARTUP_FILE": "stm32fx/startup_stm32f413xx.s",
-  "LINKER_SCRIPT": "stm32fx/stm32fx_flash.ld",
+  "LINKER_SCRIPT": "stm32fx/stm32f4_flash.ld",
   "APP_START_ADDRESS": "0x8004000",
   "PROJECT_FLAGS": [
     "-mcpu=cortex-m4",
@@ -84,7 +84,8 @@ includes = [
 
 def get_version(builder, build_type):
   try:
-    git = "12345678" #subprocess.check_output(["git", "rev-parse", "--short=8", "HEAD"], encoding='utf8').strip()
+    #git = subprocess.check_output(["git", "rev-parse", "--short=8", "HEAD"], encoding='utf8').strip()
+    git = "1234567b" #subprocess.check_output(["git", "rev-parse", "--short=8", "HEAD"], encoding='utf8').strip()
   except subprocess.CalledProcessError:
     git = "unknown"
   return f"{builder}-{git}-{build_type}"
@@ -102,7 +103,8 @@ def get_key_header(name):
   from Crypto.PublicKey import RSA
 
   public_fn = File(f'../certs/{name}.pub').srcnode().abspath
-  rsa = RSA.importKey(open(public_fn).read())
+  with open(public_fn) as f:
+    rsa = RSA.importKey(f.read())
   assert(rsa.size_in_bits() == 1024)
 
   rr = pow(2**1024, 2, rsa.n)
@@ -151,6 +153,9 @@ for project_name in build_projects:
     f"-T{linkerscript_fn}",
     "-std=gnu11",
   ] + project["PROJECT_FLAGS"] + common_flags
+
+  if ("ENABLE_SPI" in os.environ or "h7" in project_name) and not project_name.startswith('pedal'):
+    flags.append('-DENABLE_SPI')
 
   project_env = Environment(
     ENV=os.environ,

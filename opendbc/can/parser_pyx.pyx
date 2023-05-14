@@ -26,6 +26,7 @@ cdef class CANParser:
   cdef readonly:
     dict vl
     dict vl_all
+    dict ts_nanos
     string dbc_name
 
   def __init__(self, dbc_name, signals, checks=None, bus=0, enforce_checks=True):
@@ -39,6 +40,7 @@ cdef class CANParser:
 
     self.vl = {}
     self.vl_all = {}
+    self.ts_nanos = {}
     msg_name_to_address = {}
 
     for i in range(self.dbc[0].msgs.size()):
@@ -49,8 +51,10 @@ cdef class CANParser:
       self.address_to_msg_name[msg.address] = name
       self.vl[msg.address] = {}
       self.vl[name] = self.vl[msg.address]
-      self.vl_all[msg.address] = defaultdict(list)
+      self.vl_all[msg.address] = {}
       self.vl_all[name] = self.vl_all[msg.address]
+      self.ts_nanos[msg.address] = {}
+      self.ts_nanos[name] = self.ts_nanos[msg.address]
 
     # Convert message names into addresses
     for i in range(len(signals)):
@@ -107,21 +111,30 @@ cdef class CANParser:
       # Cast char * directly to unicode
       cv_name = <unicode>cv.name
       self.vl[cv.address][cv_name] = cv.value
-      self.vl_all[cv.address][cv_name].extend(cv.all_values)
+      self.ts_nanos[cv.address][cv_name] = cv.ts_nanos
+
+      vl_all = self.vl_all[cv.address]
+      if (cv_name in vl_all):
+        vl_all[cv_name].extend(cv.all_values)
+      else:
+        vl_all[cv_name] = cv.all_values
+
       updated_addrs.insert(cv.address)
 
     return updated_addrs
 
   def update_string(self, dat, sendcan=False):
     for v in self.vl_all.values():
-      v.clear()
+      for l in v.values():
+        l.clear()
 
     self.can.update_string(dat, sendcan)
     return self.update_vl()
 
   def update_strings(self, strings, sendcan=False):
     for v in self.vl_all.values():
-      v.clear()
+      for l in v.values():
+        l.clear()
 
     updated_addrs = set()
     for s in strings:

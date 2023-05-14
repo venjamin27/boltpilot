@@ -8,16 +8,14 @@ from selfdrive.athena.registration import is_registered_device
 from system.hardware import HARDWARE, PC
 from system.swaglog import cloudlog
 from system.version import get_branch, get_commit, get_origin, get_version, \
-  is_comma_remote, is_dirty, is_tested_branch, is_jc01rho_remote
-import datetime
-import traceback
+                              is_comma_remote, is_dirty, is_tested_branch
 
 
 class SentryProject(Enum):
   # python project
-  SELFDRIVE = "https://c103933631564daca99642eb68b619d3@o346458.ingest.sentry.io/6378743"
+  SELFDRIVE = "https://6f3c7076c1e14b2aa10f5dde6dda0cc4@o33823.ingest.sentry.io/77924"
   # native project
-  SELFDRIVE_NATIVE = "https://5df56e4414db4e2897bbf0a39eb290e9@o346458.ingest.sentry.io/6378744"
+  SELFDRIVE_NATIVE = "https://3e4b586ed21a4479ad5d85083b639bc6@o33823.ingest.sentry.io/157615"
 
 
 def report_tombstone(fn: str, message: str, contents: str) -> None:
@@ -31,20 +29,13 @@ def report_tombstone(fn: str, message: str, contents: str) -> None:
 
 
 def capture_exception(*args, **kwargs) -> None:
-  #cloudlog.error("crash", exc_info=kwargs.get('exc_info', 1))
+  cloudlog.error("crash", exc_info=kwargs.get('exc_info', 1))
 
   try:
-    with open('/data/log/last_exception', 'w') as f:
-      now = datetime.datetime.now()
-      f.write(now.strftime('[%Y-%m-%d %H:%M:%S]') + "\n\n" + str(traceback.format_exc()))
+    sentry_sdk.capture_exception(*args, **kwargs)
+    sentry_sdk.flush()  # https://github.com/getsentry/sentry-python/issues/291
   except Exception:
-    pass
-
-  #try:
-  #  sentry_sdk.capture_exception(*args, **kwargs)
-  #  sentry_sdk.flush()  # https://github.com/getsentry/sentry-python/issues/291
-  #except Exception:
-  #  cloudlog.exception("sentry exception")
+    cloudlog.exception("sentry exception")
 
 
 def set_tag(key: str, value: str) -> None:
@@ -53,8 +44,8 @@ def set_tag(key: str, value: str) -> None:
 
 def init(project: SentryProject) -> None:
   # forks like to mess with this, so double check
-  jc01rho_remote = is_jc01rho_remote() and "jc01rho" in get_origin(default="")
-  if not jc01rho_remote or  PC: #or not is_registered_device()
+  comma_remote = is_comma_remote() and "commaai" in get_origin(default="")
+  if not comma_remote or not is_registered_device() or PC:
     return
 
   env = "release" if is_tested_branch() else "master"

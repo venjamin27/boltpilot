@@ -11,9 +11,8 @@ import struct
 from threading import Thread
 from cereal import messaging, log
 from common.numpy_fast import clip
-from common.realtime import sec_since_boot, Ratekeeper
+from common.realtime import sec_since_boot
 from common.conversions import Conversions as CV
-import traceback
 
 CAMERA_SPEED_FACTOR = 1.05
 
@@ -38,7 +37,7 @@ class RoadLimitSpeedServer:
     self.last_time_location = 0
 
     broadcast = Thread(target=self.broadcast_thread, args=[])
-    broadcast.daemon = True
+    broadcast.setDaemon(True)
     broadcast.start()
 
     self.gps_sm = messaging.SubMaster(['gpsLocationExternal'], poll=['gpsLocationExternal'])
@@ -46,45 +45,56 @@ class RoadLimitSpeedServer:
 
     self.gps_event = threading.Event()
     gps_thread = Thread(target=self.gps_thread, args=[])
-    gps_thread.daemon = True
+    gps_thread.setDaemon(True)
     gps_thread.start()
 
   def gps_thread(self):
-    rk = Ratekeeper(3, print_delay_threshold=None)
-    while True:
-      self.gps_timer()
-      rk.keep_time()
+    try:
+      period = 1.0
+      wait_time = period
+      i = 0.
+      frame = 1
+      start_time = sec_since_boot()
+      while True:
+        self.gps_event.wait(wait_time)
+        self.gps_timer()
 
+        now = sec_since_boot()
+        error = (frame * period - (now - start_time))
+        i += error * 0.1
+        wait_time = period + error * 0.5 + i
+        wait_time = clip(wait_time, 0.8, 1.0)
+        frame += 1
 
-
+    except:
+      pass
 
   def gps_timer(self):
     try:
       if self.remote_gps_addr is not None:
         self.gps_sm.update(0)
         if self.gps_sm.updated['gpsLocationExternal']:
-          self.location = self.gps_sm['gpsLocationExternal']
+          location = self.gps_sm['gpsLocationExternal']
 
-        if self.location is not None:
-          json_location = json.dumps({"location": [
-            self.location.latitude,
-            self.location.longitude,
-            self.location.altitude,
-            self.location.speed,
-            self.location.bearingDeg,
-            self.location.accuracy,
-            self.location.unixTimestampMillis,
-            # self.location.source,
-            # self.location.vNED,
-            self.location.verticalAccuracy,
-            self.location.bearingAccuracyDeg,
-            self.location.speedAccuracy,
-          ]})
+          if location.accuracy < 10.:
+            json_location = json.dumps({"location": [
+              location.latitude,
+              location.longitude,
+              location.altitude,
+              location.speed,
+              location.bearingDeg,
+              location.accuracy,
+              location.timestamp,
+              # location.source,
+              # location.vNED,
+              location.verticalAccuracy,
+              location.bearingAccuracyDeg,
+              location.speedAccuracy,
+            ]})
 
-          address = (self.remote_gps_addr[0], Port.LOCATION_PORT)
-          self.gps_socket.sendto(json_location.encode(), address)
-    except Exception as err:
-      traceback.print_exc()
+            address = (self.remote_gps_addr[0], Port.LOCATION_PORT)
+            self.gps_socket.sendto(json_location.encode(), address)
+    except:
       self.remote_gps_addr = None
 
   def get_broadcast_address(self):
@@ -116,7 +126,7 @@ class RoadLimitSpeedServer:
             if broadcast_address is None or frame % 10 == 0:
               broadcast_address = self.get_broadcast_address()
 
-            print('broadcast_address', broadcast_address)
+            #print('broadcast_address', broadcast_address)
 
             if broadcast_address is not None:
               address = (broadcast_address, Port.BROADCAST_PORT)
@@ -159,8 +169,8 @@ class RoadLimitSpeedServer:
             else:
               self.remote_gps_addr = None
             ret = False
-          except Exception as err:
-            traceback.print_exc()
+          except:
+            pass
 
         if 'echo' in json_obj:
           try:
@@ -289,7 +299,7 @@ class RoadSpeedLimiter:
       return self.roadLimitSpeed.active
     return 0
 
-  def get_max_speed(self, cluster_speed, is_metric):
+  def get_max_speed(self, cluster_speed, is_metric, autoNaviSpeedCtrlStart=22, autoNaviSpeedCtrlEnd=6):
 
     log = ""
     self.recv()
@@ -328,6 +338,7 @@ class RoadSpeedLimiter:
 
       if cam_type == 22:  # speed bump
         MIN_LIMIT = 10
+        print("BUMP: SP={},DIST={}", cam_limit_speed, cam_limit_speed_left_dist)
 
       if cam_limit_speed_left_dist is not None and cam_limit_speed is not None and cam_limit_speed_left_dist > 0:
 
@@ -335,12 +346,13 @@ class RoadSpeedLimiter:
         diff_speed = cluster_speed - (cam_limit_speed * camSpeedFactor)
         #cam_limit_speed_ms = cam_limit_speed * (CV.KPH_TO_MS if is_metric else CV.MPH_TO_MS)
 
-        starting_dist = v_ego * 30.
+        #starting_dist = v_ego * 30.
+        starting_dist = v_ego * autoNaviSpeedCtrlStart
 
         if cam_type == 22:
           safe_dist = v_ego * 3.
         else:
-          safe_dist = v_ego * 6.
+          safe_dist = v_ego * autoNaviSpeedCtrlEnd
 
         if MIN_LIMIT <= cam_limit_speed <= MAX_LIMIT and (self.slowing_down or cam_limit_speed_left_dist < starting_dist):
           if not self.slowing_down:

@@ -32,7 +32,6 @@ int64_t get_raw_value(const std::vector<uint8_t> &msg, const Signal &sig) {
 
 
 bool MessageState::parse(uint64_t sec, const std::vector<uint8_t> &dat) {
-
   for (int i = 0; i < parse_sigs.size(); i++) {
     auto &sig = parse_sigs[i];
 
@@ -94,7 +93,6 @@ CANParser::CANParser(int abus, const std::string& dbc_name,
           const std::vector<MessageParseOptions> &options,
           const std::vector<SignalParseOptions> &sigoptions)
   : bus(abus), aligned_buf(kj::heapArray<capnp::word>(1024)) {
-
   dbc = dbc_lookup(dbc_name);
   assert(dbc);
   init_crc_lookup_tables();
@@ -126,6 +124,7 @@ CANParser::CANParser(int abus, const std::string& dbc_name,
       assert(false);
     }
 
+    state.name = msg->name;
     state.size = msg->size;
     assert(state.size <= 64);  // max signal size is 64 bytes
 
@@ -164,6 +163,7 @@ CANParser::CANParser(int abus, const std::string& dbc_name, bool ignore_checksum
 
   for (const auto& msg : dbc->msgs) {
     MessageState state = {
+      .name = msg.name,
       .address = msg.address,
       .size = msg.size,
       .ignore_checksum = ignore_checksum,
@@ -272,6 +272,7 @@ void CANParser::UpdateCans(uint64_t sec, const capnp::DynamicStruct::Reader& cms
   state_it->second.parse(sec, data);
 }
 
+int _missingCount = 0;
 void CANParser::UpdateValid(uint64_t sec) {
   const bool show_missing = (last_sec - first_sec) > 8e9;
 
@@ -287,7 +288,8 @@ void CANParser::UpdateValid(uint64_t sec) {
     const bool missing = state.last_seen_nanos == 0;
     const bool timed_out = (sec - state.last_seen_nanos) > state.check_threshold;
     if (state.check_threshold > 0 && (missing || timed_out)) {
-      if (show_missing && !bus_timeout) {
+      if (_missingCount < 10 && show_missing && !bus_timeout) {
+          _missingCount++;
         if (missing) {
           LOGE("0x%X NOT SEEN", state.address);
         } else if (timed_out) {
@@ -310,12 +312,12 @@ std::vector<SignalValue> CANParser::query_latest() {
 
     for (int i = 0; i < state.parse_sigs.size(); i++) {
       const Signal &sig = state.parse_sigs[i];
-      ret.push_back((SignalValue){
-        .address = state.address,
-        .name = sig.name,
-        .value = state.vals[i],
-        .all_values = state.all_vals[i],
-      });
+      SignalValue &v = ret.emplace_back();
+      v.address = state.address;
+      v.ts_nanos = state.last_seen_nanos;
+      v.name = sig.name;
+      v.value = state.vals[i];
+      v.all_values = state.all_vals[i];
       state.all_vals[i].clear();
     }
   }

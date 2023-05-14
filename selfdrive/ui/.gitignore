@@ -1,8 +1,6 @@
 moc_*
 *.moc
 
-translations/main_test_en.*
-
 _mui
 watch3
 installer/installers/*

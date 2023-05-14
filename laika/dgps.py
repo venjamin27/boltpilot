@@ -5,10 +5,10 @@ from datetime import datetime
 from .gps_time import GPSTime
 from .constants import SECS_IN_YEAR
 from . import raw_gnss as raw
+from . import opt
 from .rinex_file import RINEXFile
 from .downloader import download_cors_coords
-from .helpers import get_constellation
-
+from .helpers import get_constellation, ConstellationId
 
 def mean_filter(delay):
   d2 = delay.copy()
@@ -78,7 +78,7 @@ def get_station_position(station_id, cache_dir='/tmp/gnss/', time=GPSTime.from_d
   return ((time - epoch)/SECS_IN_YEAR)*np.array(vel) + np.array(pos)
 
 
-def parse_dgps(station_id, station_obs_file_path, dog, max_distance=100000, required_constellations=['GPS']):
+def parse_dgps(station_id, station_obs_file_path, dog, max_distance=100000, required_constellations=[ConstellationId.GPS]):
   station_pos = get_station_position(station_id, cache_dir=dog.cache_dir)
   obsdata = RINEXFile(station_obs_file_path)
   measurements = raw.read_rinex_obs(obsdata)
@@ -107,8 +107,9 @@ def parse_dgps(station_id, station_obs_file_path, dog, max_distance=100000, requ
     station_delays[signal] = {}
     for i, proc_measurement in enumerate(proc_measurements):
       times.append(proc_measurement[0].recv_time)
-      Fx_pos = raw.pr_residual(proc_measurement, signal=signal)
-      residual = -np.array(Fx_pos(list(station_pos) + [0, 0]))
+      Fx_pos = opt.pr_residual(proc_measurement, signal=signal)
+      residual, _ = Fx_pos(list(station_pos) + [0,0])
+      residual = -np.array(residual)
       for j, m in enumerate(proc_measurement):
         prn = m.prn
         if prn not in station_delays[signal]:
@@ -120,7 +121,7 @@ def parse_dgps(station_id, station_obs_file_path, dog, max_distance=100000, requ
   # could this be biased? Only use GPS for convenience.
   model_delays = {}
   for prn in station_delays['C1C']:
-    if get_constellation(prn) == 'GPS':
+    if get_constellation(prn) == ConstellationId.GPS:
       model_delays[prn] = np.nan*np.zeros(n)
       for i in range(n):
         model_delays[prn][i] = dog.get_delay(prn, times[i], station_pos, no_dgps=True)

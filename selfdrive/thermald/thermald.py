@@ -18,7 +18,7 @@ from common.params import Params
 from common.realtime import DT_TRML, sec_since_boot
 from selfdrive.controls.lib.alertmanager import set_offroad_alert
 from system.hardware import HARDWARE, TICI, AGNOS
-from selfdrive.loggerd.config import get_available_percent
+from system.loggerd.config import get_available_percent
 from selfdrive.statsd import statlog
 from system.swaglog import cloudlog
 from selfdrive.thermald.power_monitoring import PowerMonitoring
@@ -192,7 +192,6 @@ def thermald_thread(end_event, hw_queue):
   thermal_config = HARDWARE.get_thermal_config()
 
   fan_controller = None
-
   restart_triggered_ts = 0.
 
   while not end_event.is_set():
@@ -287,10 +286,10 @@ def thermald_thread(end_event, hw_queue):
 
     # Ensure date/time are valid
     now = datetime.datetime.utcnow()
-    startup_conditions["time_valid"] = True #(now.year > 2020) or (now.year == 2020 and now.month >= 10)
+    startup_conditions["time_valid"] = (now.year > 2020) or (now.year == 2020 and now.month >= 10)
     set_offroad_alert_if_changed("Offroad_InvalidTime", (not startup_conditions["time_valid"]))
 
-    startup_conditions["up_to_date"] = True #params.get("Offroad_ConnectivityNeeded") is None or params.get_bool("DisableUpdates") or params.get_bool("SnoozeUpdate")
+    startup_conditions["up_to_date"] = params.get("Offroad_ConnectivityNeeded") is None or params.get_bool("DisableUpdates") or params.get_bool("SnoozeUpdate")
     startup_conditions["not_uninstalling"] = not params.get_bool("DoUninstall")
     startup_conditions["accepted_terms"] = params.get("HasAcceptedTerms") == terms_version
     startup_conditions["offroad_min_time"] = (not started_seen) or ((off_ts is not None) and (sec_since_boot() - off_ts) > 5.)
@@ -362,7 +361,8 @@ def thermald_thread(end_event, hw_queue):
         off_ts = sec_since_boot()
 
     # Offroad power monitoring
-    power_monitor.calculate(peripheralState, onroad_conditions["ignition"])
+    voltage = None if peripheralState.pandaType == log.PandaState.PandaType.unknown else peripheralState.voltage
+    power_monitor.calculate(voltage, onroad_conditions["ignition"])
     msg.deviceState.offroadPowerUsageUwh = power_monitor.get_power_used()
     msg.deviceState.carBatteryCapacityUwh = max(0, power_monitor.get_car_battery_capacity())
     current_power_draw = HARDWARE.get_current_power_draw()

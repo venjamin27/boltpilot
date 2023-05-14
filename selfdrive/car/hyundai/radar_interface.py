@@ -6,13 +6,15 @@ from opendbc.can.parser import CANParser
 from selfdrive.car.interfaces import RadarInterfaceBase
 from selfdrive.car.hyundai.values import DBC
 from common.params import Params
+from common.numpy_fast import interp
 
 RADAR_START_ADDR = 0x500
 RADAR_MSG_COUNT = 32
 
+
 def get_radar_can_parser(CP):
 
-  if False: #Params().get_bool("NewRadarInterface"):
+  if CP.openpilotLongitudinalControl and (CP.sccBus == 0 or Params().get_bool("EnableRadarTracks")):
 
     signals = []
     checks = []
@@ -27,7 +29,9 @@ def get_radar_can_parser(CP):
         ("REL_SPEED", msg),
       ]
       checks += [(msg, 50)]
-    return CANParser('hyundai_kia_mando_front_radar', signals, checks, 1)
+    print("RadarInterface: RadarTracks..")
+    #return CANParser(DBC[CP.carFingerprint]['radar'], signals, checks, 1)
+    return CANParser('hyundai_kia_mando_front_radar_generated', signals, checks, 1)
 
   else:
     signals = [
@@ -41,23 +45,27 @@ def get_radar_can_parser(CP):
     checks = [
       ("SCC11", 50),
     ]
+    print("RadarInterface: SCCRadar...")
     return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, CP.sccBus)
 
 
 class RadarInterface(RadarInterfaceBase):
   def __init__(self, CP):
     super().__init__(CP)
-    self.new_radar = False #Params().get_bool("NewRadarInterface")
+    self.new_radar = CP.openpilotLongitudinalControl and (CP.sccBus == 0 or Params().get_bool("EnableRadarTracks"))
     self.updated_messages = set()
     self.trigger_msg = 0x420 if not self.new_radar else RADAR_START_ADDR + RADAR_MSG_COUNT - 1
     self.track_id = 0
 
-    self.radar_off_can = CP.radarOffCan
+    self.radar_off_can = CP.radarUnavailable
     self.rcp = get_radar_can_parser(CP)
 
+    self.vRel_prev = 1000.0
+
   def update(self, can_strings):
-    if self.radar_off_can or (self.rcp is None):
-      return super().update(None)
+    # This one causes my radar points to not work
+    # if self.radar_off_can or (self.rcp is None):
+    #   return super().update(None)
 
     vls = self.rcp.update_strings(can_strings)
     self.updated_messages.update(vls)
@@ -82,7 +90,6 @@ class RadarInterface(RadarInterfaceBase):
     ret.errors = errors
 
     if self.new_radar:
-
       for addr in range(RADAR_START_ADDR, RADAR_START_ADDR + RADAR_MSG_COUNT):
         msg = self.rcp.vl[f"RADAR_TRACK_{addr:x}"]
 
@@ -119,14 +126,22 @@ class RadarInterface(RadarInterfaceBase):
             self.pts[ii].trackId = self.track_id
             self.track_id += 1
 
+          vRel = cpt["SCC11"]['ACC_ObjRelSpd']
           self.pts[ii].dRel = cpt["SCC11"]['ACC_ObjDist']  # from front of car
           self.pts[ii].yRel = -cpt["SCC11"]['ACC_ObjLatPos']  # in car frame's y axis, left is negative
           self.pts[ii].vRel = cpt["SCC11"]['ACC_ObjRelSpd']
-          self.pts[ii].aRel = float('nan')
+          if self.vRel_prev == 1000:
+            self.vRel_prev = self.pts[ii].vRel
+            self.pts[ii].aRel = 0.0
+          else:
+            self.pts[ii].aRel = self.pts[ii].vRel - self.vRel_prev
+            self.vRel_prev = self.pts[ii].vRel
+          #self.pts[ii].aRel = float('nan')
           self.pts[ii].yvRel = float('nan')
           self.pts[ii].measured = True
 
         else:
+          self.vRel_prev = 1000.0
           if ii in self.pts:
             del self.pts[ii]
 

@@ -8,7 +8,7 @@ from system.version import is_comma_remote, is_tested_branch
 from selfdrive.car.interfaces import get_interface_attr
 from selfdrive.car.fingerprints import eliminate_incompatible_cars, all_legacy_fingerprint_cars
 from selfdrive.car.vin import get_vin, is_valid_vin, VIN_UNKNOWN
-from selfdrive.car.fw_versions import get_fw_versions_ordered, match_fw_to_car, get_present_ecus
+from selfdrive.car.fw_versions import get_fw_versions_ordered, get_present_ecus, match_fw_to_car, set_obd_multiplexing
 from system.swaglog import cloudlog
 import cereal.messaging as messaging
 from selfdrive.car import gen_empty_fingerprint
@@ -17,8 +17,10 @@ EventName = car.CarEvent.EventName
 
 
 def get_startup_event(car_recognized, controller_available, fw_seen):
-
-  event = EventName.startup
+  if is_comma_remote() and is_tested_branch():
+    event = EventName.startup
+  else:
+    event = EventName.startupMaster
 
   if not car_recognized:
     if fw_seen:
@@ -74,16 +76,17 @@ interfaces = load_interfaces(interface_names)
 
 
 # **** for use live only ****
-def fingerprint(logcan, sendcan):
+def fingerprint(logcan, sendcan, num_pandas):
   fixed_fingerprint = os.environ.get('FINGERPRINT', "")
   skip_fw_query = os.environ.get('SKIP_FW_QUERY', False)
   ecu_rx_addrs = set()
+  params = Params()
 
   if not skip_fw_query:
-    # Vin query only reliably works thorugh OBDII
+    # Vin query only reliably works through OBDII
     bus = 1
 
-    cached_params = Params().get("CarParamsCache")
+    cached_params = params.get("CarParamsCache")
     if cached_params is not None:
       cached_params = car.CarParams.from_bytes(cached_params)
       if cached_params.carName == "mock":
@@ -96,9 +99,10 @@ def fingerprint(logcan, sendcan):
       cached = True
     else:
       cloudlog.warning("Getting VIN & FW versions")
+      set_obd_multiplexing(params, True)
       vin_rx_addr, vin = get_vin(logcan, sendcan, bus)
-      ecu_rx_addrs = get_present_ecus(logcan, sendcan)
-      car_fw = get_fw_versions_ordered(logcan, sendcan, ecu_rx_addrs)
+      ecu_rx_addrs = get_present_ecus(logcan, sendcan, num_pandas=num_pandas)
+      car_fw = get_fw_versions_ordered(logcan, sendcan, ecu_rx_addrs, num_pandas=num_pandas)
       cached = False
 
     exact_fw_match, fw_candidates = match_fw_to_car(car_fw)
@@ -111,7 +115,11 @@ def fingerprint(logcan, sendcan):
     cloudlog.event("Malformed VIN", vin=vin, error=True)
     vin = VIN_UNKNOWN
   cloudlog.warning("VIN %s", vin)
-  Params().put("CarVin", vin)
+  params.put("CarVin", vin)
+
+  # disable OBD multiplexing for potential ECU knockouts
+  set_obd_multiplexing(params, False)
+  params.put_bool("FirmwareQueryDone", True)
 
   finger = gen_empty_fingerprint()
   candidate_cars = {i: all_legacy_fingerprint_cars() for i in [0, 1]}  # attempt fingerprint on both bus 0 and 1
@@ -171,21 +179,26 @@ def fingerprint(logcan, sendcan):
   return car_fingerprint, finger, vin, car_fw, source, exact_match
 
 
-def get_car(logcan, sendcan):
-  candidate, fingerprints, vin, car_fw, source, exact_match = fingerprint(logcan, sendcan)
+def get_car(logcan, sendcan, experimental_long_allowed, num_pandas=1):
+  candidate, fingerprints, vin, car_fw, source, exact_match = fingerprint(logcan, sendcan, num_pandas)
 
   if candidate is None:
-    cloudlog.warning("car doesn't match any fingerprints: %r", fingerprints)
+    cloudlog.event("car doesn't match any fingerprints", fingerprints=fingerprints, error=True)
     candidate = "mock"
 
+  ## apilot은 롱컨만 지원하니... 항상 켜주자~
+  #Params().put_bool("ExperimentalLongitudinalEnabled", True)
+  Params().put_bool("DisengageOnAccelerator", False)
+  
   experimental_long = Params().get_bool("ExperimentalLongitudinalEnabled")
 
   selected_car = Params().get("SelectedCar")
   if selected_car:
+    print ("SelectedCar = ", selected_car)
     candidate = selected_car.decode("utf-8")
 
   CarInterface, CarController, CarState = interfaces[candidate]
-  CP = CarInterface.get_params(candidate, fingerprints, car_fw, experimental_long)
+  CP = CarInterface.get_params(candidate, fingerprints, car_fw, experimental_long_allowed, docs=False)
   CP.carVin = vin
   CP.carFw = car_fw
   CP.fingerprintSource = source

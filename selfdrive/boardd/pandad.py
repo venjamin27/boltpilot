@@ -7,8 +7,7 @@ import subprocess
 from typing import List, NoReturn
 from functools import cmp_to_key
 
-from common.spinner import Spinner
-from panda import DEFAULT_FW_FN, DEFAULT_H7_FW_FN, MCU_TYPE_H7, Panda, PandaDFU
+from panda import Panda, PandaDFU
 from common.basedir import BASEDIR
 from common.params import Params
 from system.hardware import HARDWARE
@@ -16,10 +15,8 @@ from system.swaglog import cloudlog
 
 
 def get_expected_signature(panda: Panda) -> bytes:
-  fn = DEFAULT_H7_FW_FN if (panda.get_mcu_type() == MCU_TYPE_H7) else DEFAULT_FW_FN
-
   try:
-    return Panda.get_signature_from_firmware(fn)
+    return Panda.get_signature_from_firmware(panda.get_mcu_type().config.app_path)
   except Exception:
     cloudlog.exception("Error computing expected signature")
     return b""
@@ -87,9 +84,9 @@ def main() -> NoReturn:
       params.remove("PandaSignatures")
 
       # Flash all Pandas in DFU mode
-      for p in PandaDFU.list():
-        cloudlog.info(f"Panda in DFU mode found, flashing recovery {p}")
-        PandaDFU(p).recover()
+      for serial in PandaDFU.list():
+        cloudlog.info(f"Panda in DFU mode found, flashing recovery {serial}")
+        PandaDFU(serial).recover()
       time.sleep(1)
 
       panda_serials = Panda.list()
@@ -114,9 +111,17 @@ def main() -> NoReturn:
           params.put_bool("PandaHeartbeatLost", True)
           cloudlog.event("heartbeat lost", deviceState=health, serial=panda.get_usb_serial())
 
-        #if first_run:
-        #  cloudlog.info(f"Resetting panda {panda.get_usb_serial()}")
-        #  panda.reset()
+        if first_run:
+          cloudlog.info(f"Resetting panda {panda.get_usb_serial()}")
+          panda.reset()
+
+      # Ensure internal panda is present if expected
+      internal_pandas = [panda for panda in pandas if panda.is_internal()]
+      if HARDWARE.has_internal_panda() and len(internal_pandas) == 0:
+        cloudlog.error("Internal panda is missing, resetting")
+        HARDWARE.reset_internal_panda()
+        time.sleep(2)  # wait to come back up
+        continue
 
       # sort pandas to have deterministic order
       pandas.sort(key=cmp_to_key(panda_sort_cmp))
