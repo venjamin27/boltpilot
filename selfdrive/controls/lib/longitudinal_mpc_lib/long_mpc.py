@@ -736,7 +736,7 @@ class LongitudinalMpc:
           self.stopDist = 0.0
           v_cruise = 0.0
           stop_x = 0.0
-      elif radar_detected and (radarstate.leadOne.dRel - stop_x) < 2.0: # 레이더감지, 정지라인보다 선행차가 가까이있다면..
+      elif radar_detected and (radarstate.leadOne.dRel - stop_x) < 4.0: # 레이더감지, 정지라인보다 선행차가 가까이있다면..  2->4M : 즉 정지선이 앞차보다 4M뒤에 있다면 앞차안봄..
         self.xState = XState.lead
         stop_x = 1000.0
       elif cruiseButtonCounterDiff > 0:
