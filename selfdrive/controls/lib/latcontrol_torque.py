@@ -40,7 +40,7 @@ class LatControlTorque(LatControl):
 
   def update_params(self):
     self.paramsCount += 1
-    if self.paramsCount > 100:
+    if self.paramsCount > 30:
       self.paramsCount = 0
       lateralTorqueKp = float(int(Params().get("LateralTorqueKp", encoding="utf8")))*0.01
       lateralTorqueKi = float(int(Params().get("LateralTorqueKi", encoding="utf8")))*0.01
