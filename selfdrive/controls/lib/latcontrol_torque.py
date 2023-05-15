@@ -45,9 +45,9 @@ class LatControlTorque(LatControl):
       lateralTorqueKp = float(int(Params().get("LateralTorqueKp", encoding="utf8")))*0.01
       lateralTorqueKi = float(int(Params().get("LateralTorqueKi", encoding="utf8")))*0.01
       lateralTorqueKd = float(int(Params().get("LateralTorqueKd", encoding="utf8")))*0.01
-      self.pid._k_p = lateralTorqueKp
-      self.pid._k_i = lateralTorqueKi
-      self.pid._k_d = lateralTorqueKd
+      self.pid._k_p = [lateralTorqueKp]
+      self.pid._k_i = [lateralTorqueKi]
+      self.pid._k_d = [lateralTorqueKd]
 
   def update(self, active, CS, VM, params, last_actuators, steer_limited, desired_curvature, desired_curvature_rate, llk):
     self.update_params()
