@@ -743,7 +743,12 @@ class LongitudinalMpc:
         if self.trafficDetectBrightness < self.lightSensor:
           self.trafficError = True
           self.mpcEvent = EventName.trafficError
-        if self.trafficState == 2 and (not self.trafficError or (self.trafficError and cruiseButtonCounterDiff > 0)):
+          ## 조도가 높고, 정지중, +키를 누르면 출발!
+          if cruiseButtonCounterDiff > 0:
+              self.xState = XState.e2eCruisePrepare
+              self.e2eCruiseCount = 3 * DT_MDL
+              self.mpcEvent = EventName.trafficSignGreen
+        if self.trafficState == 2  and (not self.trafficError or (self.trafficError and cruiseButtonCounterDiff > 0)):
             self.xState = XState.e2eCruisePrepare
             self.e2eCruiseCount = 3 * DT_MDL
             self.mpcEvent = EventName.trafficSignGreen
