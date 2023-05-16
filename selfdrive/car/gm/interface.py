@@ -291,7 +291,7 @@ class CarInterface(CarInterfaceBase):
     if ret.vEgo < self.CP.minSteerSpeed:
       events.add(EventName.belowSteerSpeed)
     if self.CP.enableGasInterceptor and self.CP.transmissionType == TransmissionType.direct and not self.CS.single_pedal_mode:
-      if self.CS.gearShipfter == GearShifter.reverse:
+      if ret.gearShifter == GearShifter.reverse:
         events.add(EventName.reverseGear)
       else:
         events.add(EventName.brakeUnavailable)
