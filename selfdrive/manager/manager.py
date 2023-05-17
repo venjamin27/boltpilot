@@ -255,6 +255,9 @@ def manager_thread() -> None:
   ensure_running(managed_processes.values(), False, params=params, CP=sm['carParams'], not_run=ignore)
 
   print_timer = 0
+
+  started_prev = False
+
   while True:
     sm.update()
 
