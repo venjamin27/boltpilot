@@ -118,7 +118,7 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     vehicleSensorsInvalid @116;
 
     cruisePaused @128; #ajouatom
-    cruiseResume @117; #ajouatom
+    cruiseResume @129; #ajouatom
     trafficSignGreen @118; #ajouatom
     trafficSignChanged @119; #ajouatom
     autoHold @120; #ajouatom
