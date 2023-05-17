@@ -132,10 +132,11 @@ class CarController:
             # Shrink brake request to 0.85, first 0.15 gives regen, rest gives AEB
 
             zero = 0.15625  # 40/256
+            pedal_gain = 0.25
 
             if actuators.accel > 0.:
               # Scales the accel from 0-1 to 0.156-1
-              pedal_gas = clip(((1 - zero) * actuators.accel + zero), 0., 1.)
+              pedal_gas = clip(((1 - zero) * actuators.accel * pedal_gain + zero), 0., 1.)
             else:
               # if accel is negative, -0.1 -> 0.015625
               pedal_gas = clip(zero + actuators.accel, 0., zero)  # Make brake the same size as gas, but clip to regen
