@@ -169,7 +169,7 @@ jobs:
 #          execute_install_scripts: true
 
       - name: apt setup
-        run : chmod +x tools/ubuntu_setup.sh; chmod +x update_requirements.sh;  tools/ubuntu_setup.sh;
+        run : chmod -R 700 /home/runner/work/boltpilot;  tools/ubuntu_setup.sh;
 
       - name: Install dependencies
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
