@@ -43,6 +43,7 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     overheat @19;
     calibrationIncomplete @20;
     calibrationInvalid @21;
+    calibrationRecalibrating @117;
     controlsMismatch @22;
     pcmEnable @23;
     pcmDisable @24;
@@ -114,8 +115,9 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     controlsdLagging @112;
     resumeBlocked @113;
     steerTimeLimit @115;
+    vehicleSensorsInvalid @116;
 
-    cruisePaused @116; #ajouatom
+    cruisePaused @128; #ajouatom
     cruiseResume @117; #ajouatom
     trafficSignGreen @118; #ajouatom
     trafficSignChanged @119; #ajouatom
@@ -639,7 +641,7 @@ struct CarParams {
     noOutput @19;  # like silent but without silent CAN TXs
     hondaBosch @20;
     volkswagenPq @21;
-    subaruLegacy @22;  # pre-Global platform
+    subaruPreglobal @22;  # pre-Global platform
     hyundaiLegacy @23;
     hyundaiCommunity @24;
     volkswagenMlb @25;

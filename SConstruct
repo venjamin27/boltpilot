@@ -7,6 +7,8 @@ import numpy as np
 
 import SCons.Errors
 
+SCons.Warnings.warningAsException(True)
+
 TICI = os.path.isfile('/TICI')
 AGNOS = TICI
 
@@ -314,7 +316,9 @@ else:
     qt_env.PrependENVPath('PATH', Dir("#third_party/qt5/larch64/bin/").abspath)
   elif arch != "Darwin":
     qt_libs += ["GL"]
+qt_env['QT3DIR'] = qt_env['QTDIR']
 
+# compatibility for older SCons versions
 try:
   qt_env.Tool('qt3')
 except SCons.Errors.UserError:
@@ -403,13 +407,17 @@ SConscript(['rednose/SConscript'])
 
 # Build system services
 SConscript([
-  'system/camerad/SConscript',
   'system/clocksd/SConscript',
   'system/proclogd/SConscript',
   'system/ubloxd/SConscript',
+  'system/loggerd/SConscript',
 ])
 if arch != "Darwin":
-  SConscript(['system/logcatd/SConscript'])
+  SConscript([
+    'system/camerad/SConscript',
+    'system/sensord/SConscript',
+    'system/logcatd/SConscript',
+  ])
 
 # Build openpilot
 
@@ -425,21 +433,15 @@ SConscript(['third_party/SConscript'])
 SConscript(['common/kalman/SConscript'])
 SConscript(['common/transformations/SConscript'])
 
-SConscript(['selfdrive/modeld/SConscript'])
-
+SConscript(['selfdrive/boardd/SConscript'])
 SConscript(['selfdrive/controls/lib/lateral_mpc_lib/SConscript'])
 SConscript(['selfdrive/controls/lib/longitudinal_mpc_lib/SConscript'])
-
-SConscript(['selfdrive/boardd/SConscript'])
-
-SConscript(['system/loggerd/SConscript'])
-
 SConscript(['selfdrive/locationd/SConscript'])
-SConscript(['system/sensord/SConscript'])
-SConscript(['selfdrive/ui/SConscript'])
 SConscript(['selfdrive/navd/SConscript'])
+SConscript(['selfdrive/modeld/SConscript'])
+SConscript(['selfdrive/ui/SConscript'])
 
-if arch in ['x86_64', 'Darwin'] or GetOption('extras'):
+if (arch in ['x86_64', 'Darwin'] and Dir('#tools/cabana/').exists()) or GetOption('extras'):
   SConscript(['tools/replay/SConscript'])
   SConscript(['tools/cabana/SConscript'])
 
