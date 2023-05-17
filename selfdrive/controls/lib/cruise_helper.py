@@ -627,7 +627,8 @@ class CruiseHelper:
     mpcEvent = controls.sm['longitudinalPlan'].mpcEvent
     if self.longActiveUser>0:
       if mpcEvent != self.mpcEvent_prev and mpcEvent>0:
-        controls.events.add(mpcEvent)
+        #controls.events.add(mpcEvent)
+        self.send_apilot_event(controls, mpcEvent, 5.0)
       #if self.xState != self.xState_prev and self.xState == XState.softHold:
       #  controls.events.add(EventName.autoHold)
       #if self.xState == XState.softHold and self.trafficState != 2 and trafficState == 2:

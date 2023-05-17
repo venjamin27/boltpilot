@@ -121,7 +121,6 @@ void OnroadWindow::updateState(const UIState &s) {
 }
 
 void OnroadWindow::mouseReleaseEvent(QMouseEvent* e) {
-#if 0
   QRect rc = rect();
   if(false && isMapVisible()) {
     UIState *s = uiState();
@@ -133,6 +132,7 @@ void OnroadWindow::mouseReleaseEvent(QMouseEvent* e) {
     }
   }
   if(rc.contains(e->pos())) {
+#if 0
     QPoint endPos = e->pos();
     int dx = endPos.x() - startPos.x();
     int dy = endPos.y() - startPos.y();
@@ -168,13 +168,13 @@ void OnroadWindow::mouseReleaseEvent(QMouseEvent* e) {
 
       return;
     }
+#endif
 
     if (map != nullptr) {
       bool sidebarVisible = geometry().x() > 0;
       map->setVisible(!sidebarVisible && !map->isVisible());
     }
   }
-#endif
 
   // propagation event to parent(HomeWindow)
   QWidget::mouseReleaseEvent(e);

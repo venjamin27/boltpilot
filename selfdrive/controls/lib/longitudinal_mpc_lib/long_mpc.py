@@ -248,7 +248,7 @@ class LongitudinalMpc:
     self.v_cruise = 0.
     self.xStopFilter = StreamingMovingAverage(3)  #11
     self.xStopFilter2 = StreamingMovingAverage(15) #3
-    self.vFilter = StreamingMovingAverage(4)
+    self.vFilter = StreamingMovingAverage(10)
     self.applyCruiseGap = 1.
     self.applyModelDistOrder = 32
     self.trafficStopUpdateDist = 10.0
@@ -619,12 +619,14 @@ class LongitudinalMpc:
       if not self.openpilotLongitudinalControl:
         if v_ego_kph < 0.1:
           self.applyCruiseGap = 1
-        elif v_ego_kph < 60:
-          self.applyCruiseGap = int(interp(radarstate.leadOne.vRel*3.6, [-5.0, -2.0, -1.0], [4, self.applyCruiseGap, 1]))
-        elif v_ego_kph < 120:
-          self.applyCruiseGap = int(interp(radarstate.leadOne.vRel*3.6, [-10.0, -5.0, -1.0], [4, self.applyCruiseGap, 2]))
         else:
-          self.applyCruiseGap = int(interp(radarstate.leadOne.vRel*3.6, [-20.0, -10.0, -1.0], [4, self.applyCruiseGap, 3]))
+          self.applyCruiseGap = int(interp(a_ego, [-1.5, -0.5], [4, self.applyCruiseGap]))
+        #elif v_ego_kph < 60:
+        #  self.applyCruiseGap = int(interp(radarstate.leadOne.vRel*3.6, [-5.0, -2.0, -1.0], [4, self.applyCruiseGap, 1]))
+        #elif v_ego_kph < 120:
+        #  self.applyCruiseGap = int(interp(radarstate.leadOne.vRel*3.6, [-10.0, -5.0, -1.0], [4, self.applyCruiseGap, 2]))
+        #else:
+        #  self.applyCruiseGap = int(interp(radarstate.leadOne.vRel*3.6, [-20.0, -10.0, -1.0], [4, self.applyCruiseGap, 3]))
       
         #elif a_ego < 0.1:
         #  self.applyCruiseGap = int(interp(a_ego, [-2.0, 0.0], [4, self.applyCruiseGap]))
@@ -643,7 +645,7 @@ class LongitudinalMpc:
     if v_ego_kph < 1.0: 
       stopSign = model_x < 20.0 and model_v < 10.0
     elif v_ego_kph < 80.0:
-      stopSign = model_x < 130.0 and ((model_v < 3.0) or (model_v < v[0]*0.6)) and abs(y[-1]) < 5.0
+      stopSign = model_x < 110.0 and ((model_v < 3.0) or (model_v < v[0]*0.7)) and abs(y[-1]) < 5.0
     else:
       stopSign = False
 
