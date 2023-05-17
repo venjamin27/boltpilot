@@ -651,9 +651,9 @@ class CruiseHelper:
         longActiveUser = -2
         if not self.preBrakePressed:
           self.v_cruise_kph_backup = v_cruise_kph
-        self.longActiveUserReady,temp,temp = self.check_brake_cruise_on(CS, v_cruise_kph)
+        self.longActiveUserReady,unUsed,unUsed2 = self.check_brake_cruise_on(CS, v_cruise_kph)
       elif CS.gasPressed:  
-        self.longActiveUserReady,temp,temp = self.check_gas_cruise_on(CS, v_cruise_kph)
+        self.longActiveUserReady,unUsed3,unUsed4 = self.check_gas_cruise_on(CS, v_cruise_kph)
       elif not CS.gasPressed and self.gasPressedCount > 2:
         longActiveUser,v_cruise_kph,self.v_cruise_kph_backup = self.check_gas_cruise_on(CS, v_cruise_kph)
       elif not CS.brakePressed and self.preBrakePressed:
@@ -737,29 +737,29 @@ def enable_radar_tracks(CP, logcan, sendcan):
   if CP.openpilotLongitudinalControl: # and CP.carFingerprint in [CAR.SANTA_FE, CAR.SANTA_FE_HEV_2022, CAR.NEXO]:
     rdr_fw = None
     rdr_fw_address = 0x7d0 #일부차량은 다름..
-    if True:
-      for i in range(10):
-        print("O yes")
-      try:
-        for i in range(40):
-          try:
-            query = IsoTpParallelQuery(sendcan, logcan, CP.sccBus, [rdr_fw_address], [b'\x10\x07'], [b'\x50\x07'], debug=True)
-            for addr, dat in query.get_data(0.1).items(): # pylint: disable=unused-variable
-              print("ecu write data by id ...")
-              new_config = b"\x00\x00\x00\x01\x00\x01"
-              #new_config = b"\x00\x00\x00\x00\x00\x01"
-              dataId = b'\x01\x42'
-              WRITE_DAT_REQUEST = b'\x2e'
-              WRITE_DAT_RESPONSE = b'\x68'
-              query = IsoTpParallelQuery(sendcan, logcan, CP.sccBus, [rdr_fw_address], [WRITE_DAT_REQUEST+dataId+new_config], [WRITE_DAT_RESPONSE], debug=True)
-              query.get_data(0)
-              print(f"Try {i+1}")
-              break
+    # if True:
+    for i in range(10):
+      print("O yes")
+    try:
+      for i in range(40):
+        try:
+          query = IsoTpParallelQuery(sendcan, logcan, CP.sccBus, [rdr_fw_address], [b'\x10\x07'], [b'\x50\x07'], debug=True)
+          for addr, dat in query.get_data(0.1).items(): # pylint: disable=unused-variable
+            print("ecu write data by id ...")
+            new_config = b"\x00\x00\x00\x01\x00\x01"
+            #new_config = b"\x00\x00\x00\x00\x00\x01"
+            dataId = b'\x01\x42'
+            WRITE_DAT_REQUEST = b'\x2e'
+            WRITE_DAT_RESPONSE = b'\x68'
+            query = IsoTpParallelQuery(sendcan, logcan, CP.sccBus, [rdr_fw_address], [WRITE_DAT_REQUEST+dataId+new_config], [WRITE_DAT_RESPONSE], debug=True)
+            query.get_data(0)
+            print(f"Try {i+1}")
             break
-          except Exception as e:
-            print(f"Failed {i}: {e}") 
-      except Exception as e:
-        print("Failed to enable tracks" + str(e))
+          break
+        except Exception as e:
+          print(f"Failed {i}: {e}")
+    except Exception as e:
+      print("Failed to enable tracks" + str(e))
   print("END Try to enable radar tracks")
   # END try to enable radar tracks
 
