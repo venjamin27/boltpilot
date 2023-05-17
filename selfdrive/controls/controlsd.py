@@ -26,9 +26,7 @@ from selfdrive.controls.lib.latcontrol_torque import LatControlTorque
 from selfdrive.controls.lib.events import Events, ET
 from selfdrive.controls.lib.alertmanager import AlertManager, set_offroad_alert
 from selfdrive.controls.lib.vehicle_model import VehicleModel
-from selfdrive.locationd.calibrationd import Calibration
 from system.hardware import HARDWARE
-from selfdrive.manager.process_config import managed_processes
 from selfdrive.controls.lib.cruise_helper import CruiseHelper
 
 GearShifter = car.CarState.GearShifter
