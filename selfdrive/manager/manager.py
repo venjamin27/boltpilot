@@ -313,6 +313,8 @@ def main() -> None:
   prepare_only = os.getenv("PREPAREONLY") is not None
 
   manager_init()
+  os.system("python /data/openpilot/selfdrive/car/hyundai/values.py > /data/params/d/SupportedCars")
+  os.system("python /data/openpilot/selfdrive/car/gm/values.py > /data/params/d/SupportedCars_gm")
 
   # Start UI early so prepare can happen in the background
   if not prepare_only:
