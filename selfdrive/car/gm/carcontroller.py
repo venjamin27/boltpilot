@@ -132,14 +132,19 @@ class CarController:
             # Shrink brake request to 0.85, first 0.15 gives regen, rest gives AEB
 
             zero = 0.15625  # 40/256
-            pedal_gain = 0.25
+            #pedalAccGain = 0.24 # 가속 gain, 0.25 부터 시작, 50~60km/h 에서는 0.25가 딱 좋음
+            #Tuning 가이드 -> plot 그래프상 노란색이 아래에 있으면 그 속도에서 gain 값을 올려주고,
+            #               노란색이 위에 있으면 gain 값을 낮춰주고
+            #               단, 정지 출발은 예외, gain 값이 너무 높으면 말타기함.
+            pedalAccGain = interp(CS.out.vEgo, [0, 14.0, 22], [0.26, 0.25, 0.27])
+            pedalDecelgain = interp(CS.out.vEgo, [0, 14.0, 22], [0.27, 0.27, 0.27])
 
             if actuators.accel > 0.:
               # Scales the accel from 0-1 to 0.156-1
-              pedal_gas = clip(((1 - zero) * actuators.accel * pedal_gain + zero), 0., 1.)
+              pedal_gas = clip(((1 - zero) * actuators.accel * pedalAccGain + zero), 0., 1.)
             else:
               # if accel is negative, -0.1 -> 0.015625
-              pedal_gas = clip(zero + actuators.accel, 0., zero)  # Make brake the same size as gas, but clip to regen
+              pedal_gas = clip(zero + actuators.accel*pedalDecelgain, 0., zero)  # Make brake the same size as gas, but clip to regen
               # aeb = actuators.brake*(1-zero)-regen # For use later, braking more than regen
           else:
             pedal_gas = clip(actuators.accel, 0., 1.)

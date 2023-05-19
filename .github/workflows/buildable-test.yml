@@ -14,167 +14,273 @@ on:
   pull_request_target:
 
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+concurrency:
+  group: ${{ github.event_name == 'push' && github.run_id || github.head_ref || github.ref }}-${{ github.workflow }}-${{ github.event_name }}
+  cancel-in-progress: true
+
+
+
+env:
+  BASE_IMAGE: openpilot-base
+  CL_BASE_IMAGE: openpilot-base-cl
+  DOCKER_REGISTRY: ghcr.io/commaai
+#  AZURE_TOKEN: ${{ secrets.AZURE_COMMADATACI_OPENPILOTCI_TOKEN }}
+
+#  DOCKER_LOGIN: docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
+  BUILD: |
+      DOCKER_BUILDKIT=1 docker build --pull --build-arg BUILDKIT_INLINE_CACHE=1 --cache-from $DOCKER_REGISTRY/$BASE_IMAGE:latest -t $DOCKER_REGISTRY/$BASE_IMAGE:latest -t $BASE_IMAGE:latest -f Dockerfile.openpilot_base .
+
+  RUN: docker run --shm-size 1G -v $PWD:/tmp/openpilot -w /tmp/openpilot -e FILEREADER_CACHE=1 -e PYTHONPATH=/tmp/openpilot -e NUM_JOBS -e JOB_ID -e GITHUB_ACTION -e GITHUB_REF -e GITHUB_HEAD_REF -e GITHUB_SHA -e GITHUB_REPOSITORY -e GITHUB_RUN_ID -v /tmp/scons_cache:/tmp/scons_cache -v /tmp/comma_download_cache:/tmp/comma_download_cache -v /tmp/openpilot_cache:/tmp/openpilot_cache $BASE_IMAGE /bin/sh -c
+
+  BUILD_CL: |
+      DOCKER_BUILDKIT=1 docker build --pull --build-arg BUILDKIT_INLINE_CACHE=1 --cache-from $DOCKER_REGISTRY/$CL_BASE_IMAGE:latest -t $DOCKER_REGISTRY/$CL_BASE_IMAGE:latest -t $CL_BASE_IMAGE:latest -f Dockerfile.openpilot_base_cl .
+  RUN_CL: docker run --shm-size 1G -v $PWD:/tmp/openpilot -w /tmp/openpilot -e PYTHONPATH=/tmp/openpilot -e NUM_JOBS -e JOB_ID -e GITHUB_ACTION -e GITHUB_REF -e GITHUB_HEAD_REF -e GITHUB_SHA -e GITHUB_REPOSITORY -e GITHUB_RUN_ID -v /tmp/scons_cache:/tmp/scons_cache -v /tmp/comma_download_cache:/tmp/comma_download_cache -v /tmp/openpilot_cache:/tmp/openpilot_cache $CL_BASE_IMAGE /bin/sh -c
+
+  UNIT_TEST: coverage run --append -m unittest discover
+  POETRY_CACHE_DIR: ${{ github.workspace }}/.poetry_cache
+
+
 jobs:
-  lint:
-  # This workflow contains a single job called "build"
-    name: Lint
-    if: github.repository == 'jc01rho-openpilot-BoltEV2019-KoKr/boltpilot'
+#  build_release:
+#    name: build release
+#    runs-on: ubuntu-20.04
+#    env:
+#      STRIPPED_DIR: /tmp/releasepilot
+#    steps:
+#    - uses: actions/checkout@v3
+#      with:
+#        submodules: true
+#    - name: Build devel
+#      run: TARGET_DIR=$STRIPPED_DIR release/build_devel.sh
+#    - uses: ./.github/workflows/setup
+#    - name: Check submodules
+##      if: github.ref == 'refs/heads/master' && github.repository == 'commaai/openpilot'
+#      run: release/check-submodules.sh
+#    - name: Build openpilot and run checks
+#      run: |
+#        cd $STRIPPED_DIR
+#        ${{ env.RUN }} "CI=1 python selfdrive/manager/build.py"
+#    - name: Run tests
+#      run: |
+#        cd $STRIPPED_DIR
+#        ${{ env.RUN }}  \
+#                        python -m unittest discover selfdrive/car"
+#    - name: pre-commit
+#      run: |
+#        cd $GITHUB_WORKSPACE
+#        cp .pre-commit-config.yaml $STRIPPED_DIR
+#        cp .pylintrc $STRIPPED_DIR
+#        cp mypy.ini $STRIPPED_DIR
+#        cd $STRIPPED_DIR
+#        ${{ env.RUN }} "pre-commit run --all"
+
+  build_all:
+    name: build all
     runs-on: ubuntu-20.04
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      - uses: actions/checkout@v3
-      - name: Python Linter
-        uses: ricardochaves/python-lint@v1.4.0
-        with:
-          python-root-list: selfdrive/car/gm/** selfdrive/car/*.py selfdrive/controls/*.py
-          use-pylint: true
-          use-pycodestyle: false
-          use-flake8: true
-          use-black: false
-          use-mypy: false
-          use-isort: false
-          extra-pylint-options: --disable=C,R,E0401,W0612,W0101,W0611,W0613,W0511,W0311,W0954,W0703,W0621,W0201,W0109,W0235,W0603,W0212,W0107,W0702,W0106
-          extra-flake8-options: --select=F21,F822,F823,F831,F811,F812,E999
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+    - uses: ./.github/workflows/setup
+      with:
+        save-cache: true
+    - name: Build openpilot with all flags
+      run: ${{ env.RUN }} "scons -j$(nproc) --extras "
+#     run: ${{ env.RUN }} "scons -j$(nproc) --extras  && release/check-dirty.sh"
+    - name: Cleanup scons cache
+      run: |
+          ${{ env.RUN }} "rm -rf /tmp/scons_cache/* && \
+                          scons -j$(nproc) --cache-populate"
 
-      - name: Python Linter
-        if: always()
-        uses: ricardochaves/python-lint@v1.4.0
-        with:
-          python-root-list: selfdrive/controls/lib/*.py
-          use-pylint: true
-          use-pycodestyle: false
-          use-flake8: true
-          use-black: false
-          use-mypy: false
-          use-isort: false
-          extra-pylint-options: --disable=C,R,E0401,W0612,W0101,W0611,W0613,W0511,W0311,W0954,W0703,W0621,W0201,W0109,W0235,W0603,W0106,W0107,W0702,W0212,W0105,W0128,W0125
-          extra-flake8-options: --select=F21,F822,F823,F831,F811,F812,E999
 
-  build:
-    name: Build
-    # The type of runner that the job will run on
+  static_analysis:
+    name: static analysis
     runs-on: ubuntu-20.04
-    if: always() && github.repository == 'jc01rho-openpilot-BoltEV2019-KoKr/boltpilot'
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      - uses: szenius/set-timezone@v1.0
-        with:
-          timezoneLinux: "Asia/Seoul"
-      - name: Get number of CPU cores
-        uses: SimenB/github-actions-cpu-cores@v1
-        id: cpu-cores
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+    - name: Build Docker image
+      run: eval "$BUILD"
+    - name: pre-commit
+      run: ${{ env.RUN }} "pre-commit run --all"
 
-      - name: Get current date
-        id: date
-        run: echo  "date=$(expr $(date +'%d') % 5  )" >> $GITHUB_ENV
+  valgrind:
+    name: valgrind
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+    - uses: ./.github/workflows/setup
+    - name: Build openpilot
+      run: ${{ env.RUN }} "scons -j$(nproc)"
+    - name: Run valgrind
+      run: |
+        ${{ env.RUN }} "python selfdrive/test/test_valgrind_replay.py"
+    - name: Print logs
+      if: always()
+      run: cat selfdrive/test/valgrind_logs.txt
 
+  unit_tests:
+    name: unit tests
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+    - uses: ./.github/workflows/setup
+    - name: Build openpilot
+      run: ${{ env.RUN }} "scons -j$(nproc)"
+    - name: Run unit tests
+      run: |
+        ${{ env.RUN }} "export SKIP_LONG_TESTS=1 && \
+                        $UNIT_TEST common && \
+                        $UNIT_TEST opendbc/can && \
+                        $UNIT_TEST selfdrive/boardd && \
+                        $UNIT_TEST selfdrive/controls && \
+                        $UNIT_TEST selfdrive/monitoring && \
+                        $UNIT_TEST system/loggerd && \
+                        $UNIT_TEST selfdrive/car && \
+                        $UNIT_TEST selfdrive/locationd && \
+                        $UNIT_TEST system/ubloxd && \
+                        selfdrive/locationd/test/_test_locationd_lib.py && \
+                        ./system/ubloxd/tests/test_glonass_runner && \
+                        $UNIT_TEST selfdrive/athena && \
+                        $UNIT_TEST selfdrive/thermald && \
+                        $UNIT_TEST system/hardware/tici && \
+                        $UNIT_TEST tools/lib/tests && \
+                        ./selfdrive/ui/tests/create_test_translations.sh && \
+                        QT_QPA_PLATFORM=offscreen ./selfdrive/ui/tests/test_translations && \
+                        ./selfdrive/ui/tests/test_translations.py && \
+                        ./common/tests/test_util && \
+                        ./common/tests/test_swaglog && \
+                        ./selfdrive/boardd/tests/test_boardd_usbprotocol && \
+                        ./system/loggerd/tests/test_logger &&\
+                        ./system/proclogd/tests/test_proclog && \
+                        ./tools/replay/tests/test_replay && \
+                        ./tools/cabana/tests/test_cabana && \
+                        ./system/camerad/test/ae_gray_test && \
+                        coverage xml"
+    - name: "Upload coverage to Codecov"
+      uses: codecov/codecov-action@v2
 
-      - uses: actions/checkout@v3
+  process_replay:
+    name: process replay
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+    - uses: ./.github/workflows/setup
+    - name: Cache test routes
+      id: dependency-cache
+      uses: actions/cache@v3
+      with:
+        path: /tmp/comma_download_cache
+        key: proc-replay-${{ hashFiles('.github/workflows/selfdrive_tests.yaml', 'selfdrive/test/process_replay/ref_commit') }}
+    - name: Build openpilot
+      run: |
+        ${{ env.RUN }} "scons -j$(nproc)"
+    - name: Run replay
+      run: |
+        ${{ env.RUN }} "CI=1 coverage run selfdrive/test/process_replay/test_processes.py -j$(nproc) && \
+                        coverage xml"
+    - name: Print diff
+      id: print-diff
+      if: always()
+      run: cat selfdrive/test/process_replay/diff.txt
+    - uses: actions/upload-artifact@v2
+      if: always()
+      continue-on-error: true
+      with:
+        name: process_replay_diff.txt
+        path: selfdrive/test/process_replay/diff.txt
+    - name: Upload reference logs
+      if: ${{ failure() && steps.print-diff.outcome == 'success' && github.repository == 'commaai/openpilot' && env.AZURE_TOKEN != '' }}
+      run: |
+        ${{ env.RUN }} "CI=1 AZURE_TOKEN='$AZURE_TOKEN' python selfdrive/test/process_replay/test_processes.py -j$(nproc) --upload-only"
+    - name: "Upload coverage to Codecov"
+      uses: codecov/codecov-action@v2
 
-      - name: Set outputs
-        id: vars
-        run: echo  "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+  test_modeld:
+    name: model tests
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+    - uses: ./.github/workflows/setup
+    - name: Build Docker image
+      # Sim docker is needed to get the OpenCL drivers
+      run: eval "$BUILD_CL"
+    - name: Build openpilot
+      run: |
+        ${{ env.RUN }} "scons -j$(nproc)"
+    - name: Run model replay with ONNX
+      run: |
+        ${{ env.RUN_CL }} "ONNXCPU=1 CI=1 NO_NAV=1 coverage run selfdrive/test/process_replay/model_replay.py && \
+                           coverage xml"
+    - name: Run unit tests
+      run: |
+        ${{ env.RUN_CL }} "$UNIT_TEST selfdrive/modeld && \
+                           coverage xml"
+    - name: "Upload coverage to Codecov"
+      uses: codecov/codecov-action@v2
 
-#      - name: Cache apt binaries
-#        uses: actions/cache@v3
-#        with:
-#          path: |
-#            /home/runner/.cache/apt
-##            !/var/cache/apt/archives/partial
-##            !/var/cache/apt/archives/lock
-##            !/var/lib/apt/lists
-##            !/var/lib/apt/lists/lock
-#          key: ${{ runner.os }}-apt-cache-${{ steps.vars.outputs.sha_short }}
-#          restore-keys: |
-#            ${{ runner.os }}-apt-cache
+  test_longitudinal:
+    name: longitudinal
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+    - uses: ./.github/workflows/setup
+    - name: Build openpilot
+      run: |
+        ${{ env.RUN }} "scons -j$(nproc)"
+    - name: Test longitudinal
+      run: |
+        ${{ env.RUN }} "mkdir -p selfdrive/test/out && \
+                        cd selfdrive/test/longitudinal_maneuvers && \
+                        coverage run ./test_longitudinal.py && \
+                        coverage xml"
+    - name: "Upload coverage to Codecov"
+      uses: codecov/codecov-action@v2
+    - uses: actions/upload-artifact@v2
+      if: always()
+      continue-on-error: true
+      with:
+        name: longitudinal
+        path: selfdrive/test/longitudinal_maneuvers/out/longitudinal/
 
-      - name: Cache scons binaries
-        uses: actions/cache@v3
-        with:
-          path: |
-            /tmp/scons_cache
-          key: ${{ runner.os }}-scons-cache-${{ steps.vars.outputs.sha_short }}
-          restore-keys: |
-            ${{ runner.os }}-scons-cache
-
-#      - uses: actions/cache@v3
-#        name: Cache pip binaries
-#        with:
-#          path: /home/runner/.cache/pip
-#          key: ${{ runner.os }}-pip-cache-${{ steps.vars.outputs.sha_short }}
-#          restore-keys: |
-#            ${{ runner.os }}-pip-cache
-
-
-      - name: disable-man-db
-        run : |
-          sudo mv /usr/bin/mandb /usr/bin/mandb-OFF
-          sudo cp -p /bin/true /usr/bin/mandb
-          sudo rm -r /var/cache/man
-
-#      - name: apt-update
-#        run : sudo apt update -y ;
-
-      - name: mkdir
-        run : mkdir -p /home/runner/.cache/apt/archives/partial
-
-#      - name: apt-install #libyuv-dev  cythonize 누락함
-#        run : sudo apt install -y  -o=dir::cache=/home/runner/.cache/apt python3-testresources curl pip capnproto clang libcapnp-dev libzmq3-dev opencl-headers libeigen3-dev ocl-icd-opencl-dev gcc-arm-none-eabi binutils-arm-none-eabi libnewlib-arm-none-eabi libusb-1.0-0* qtchooser qt5ct sudo apt  qt5-qmake qt5-assistant qt5-qmake-bin qt5-gtk2-platformtheme qt5-qmltooling-plugins qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools libcurl4-openssl-dev libavcodec-dev openssl libavformat-dev sudo apt  libjpeg-dev libssl-dev libbz2-dev libsystemd-dev libswscale-dev unzip libqt5multimedia5 libqt5multimedia5-plugins qt5-qmltooling-plugins libqt5multimedia* libqt53dcore5 libqt53dcore5 sudo apt  libqt53dextras5 libqt53dinput5 qtbase5-private-dev qtmultimedia5-dev qtpositioning5-dev libqt5location5 libgsl-dev libqt5location5* ffmpeg libqt5widgets5 libqt5gui5 libqt5dbus5 sudo apt  libqt5network5 libqt5core5a qtlocation5-dev qtlocation5-dev qtpositioning5-dev qml-module-qtquick2 qml-module-qtpositioning qml-module-qtgraphicaleffects qml-module-qtquick-layouts sudo apt  qml-module-qtquick-controls libffmpeg-nvenc-dev cmake libomxil-bellagio0 libomxil-bellagio-dev autoconf automake build-essential libass-dev libfreetype6-dev libgpac-dev libsdl1.2-dev libtheora-dev libtool libva-dev libvdpau-dev libvorbis-dev libx11-dev libxext-dev libxfixes-dev pkg-config texi2html zlib1g-dev ffmpeg
-#        run : sudo apt install -y  -o=dir::cache=/home/runner/.cache/apt python3-testresources curl pip capnproto clang libcapnp-dev libzmq3-dev opencl-headers libeigen3-dev ocl-icd-opencl-dev gcc-arm-none-eabi binutils-arm-none-eabi libnewlib-arm-none-eabi libusb-1.0-0* qtchooser qt5ct sudo apt  qt5-qmake qt5-assistant qt5-qmake-bin qt5-gtk2-platformtheme qt5-qmltooling-plugins qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools libcurl4-openssl-dev libavcodec-dev openssl libavformat-dev sudo apt  libjpeg-dev libssl-dev libbz2-dev libsystemd-dev libswscale-dev unzip libqt5multimedia5 libqt5multimedia5-plugins qt5-qmltooling-plugins libqt5multimedia* libqt53dcore5 libqt53dcore5 sudo apt  libqt53dextras5 libqt53dinput5 qtbase5-private-dev qtmultimedia5-dev qtpositioning5-dev libqt5location5 libgsl-dev libqt5location5* ffmpeg libqt5widgets5 libqt5gui5 libqt5dbus5 sudo apt  libqt5network5 libqt5core5a qtlocation5-dev qtlocation5-dev qtpositioning5-dev qml-module-qtquick2 qml-module-qtpositioning qml-module-qtgraphicaleffects qml-module-qtquick-layouts sudo apt  qml-module-qtquick-controls libffmpeg-nvenc-dev cmake libomxil-bellagio0 libomxil-bellagio-dev autoconf automake build-essential libass-dev libfreetype6-dev libgpac-dev libsdl1.2-dev libtheora-dev libtool libva-dev libvdpau-dev libvorbis-dev libx11-dev libxext-dev libxfixes-dev pkg-config texi2html zlib1g-dev ffmpeg
-
-#      - name: apt-chmod #libyuv-dev  cythonize 누락함
-#        run : sudo chmod 777 -R /home/runner/.cache/apt/
-
-#      - name: pip-install
-#        run : pip install --upgrade  setuptools pip
-#        run : pip install --upgrade  setuptools pip & pip install scons sympy cython numpy pycapnp cffi zmq smbus2 casadi pycryptodome future-fstrings setproctitle hatanaka pycurl atomicwrites
-
-      - name: scons-cache-clean
-        if: steps.date.outputs.date == '1'
-        run : scons -c
-
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
-        with:
-          virtualenvs-create: true
-          virtualenvs-in-project: true
-          installer-parallel: true
-
-
-      - name: Load cached venv
-        id: cached-poetry-dependencies
-        uses: actions/cache@v2
-        with:
-          path: .venv
-          key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
-
-      - name: Set up python
-        id: setup-python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.8.10'
-          cache: 'poetry' # caching pip dependencies
-
-
-      - run: sudo apt-get update; sudo apt-get install -y -q  autoconf build-essential ca-certificates casync clang cmake make cppcheck libtool gcc-arm-none-eabi bzip2 liblzma-dev libarchive-dev libbz2-dev capnproto libcapnp-dev curl libcurl4-openssl-dev git git-lfs ffmpeg libavformat-dev libavcodec-dev libavdevice-dev libavutil-dev libavfilter-dev libeigen3-dev libffi-dev libglew-dev libgles2-mesa-dev libglfw3-dev libglib2.0-0 libomp-dev libopencv-dev libpng16-16 libportaudio2 libssl-dev libsqlite3-dev libusb-1.0-0-dev libzmq3-dev libsystemd-dev locales opencl-headers ocl-icd-libopencl1 ocl-icd-opencl-dev clinfo qml-module-qtquick2 qtmultimedia5-dev qtlocation5-dev qtpositioning5-dev qttools5-dev-tools libqt5sql5-sqlite libqt5svg5-dev libqt5charts5-dev libqt5x11extras5-dev libreadline-dev libdw1 valgrind libavresample-dev qt5-default
-        shell: bash
-
-#      - uses: awalsh128/cache-apt-pkgs-action@latest
-#        name: apt caching install
-#        with:
-#          packages: autoconf build-essential ca-certificates casync clang cmake make cppcheck libtool gcc-arm-none-eabi bzip2 liblzma-dev libarchive-dev libbz2-dev capnproto libcapnp-dev curl libcurl4-openssl-dev git git-lfs ffmpeg libavformat-dev libavcodec-dev libavdevice-dev libavutil-dev libavfilter-dev libeigen3-dev libffi-dev libglew-dev libgles2-mesa-dev libglfw3-dev libglib2.0-0 libomp-dev libopencv-dev libpng16-16 libportaudio2 libssl-dev libsqlite3-dev libusb-1.0-0-dev libzmq3-dev libsystemd-dev locales opencl-headers ocl-icd-libopencl1 ocl-icd-opencl-dev clinfo qml-module-qtquick2 qtmultimedia5-dev qtlocation5-dev qtpositioning5-dev qttools5-dev-tools libqt5sql5-sqlite libqt5svg5-dev libqt5charts5-dev libqt5x11extras5-dev libreadline-dev libdw1 valgrind libavresample-dev qt5-default
-#          version: 1.2
-#          execute_install_scripts: true
-
-      - name: apt setup
-        run : chmod -R 700 /home/runner/work/boltpilot;  tools/ubuntu_setup.sh;
-
-      - name: Install dependencies
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: poetry install --no-interaction --no-root
-
-
-      - name: Scons Build
-        run : poetry run scons -u -j${{ steps.cpu-cores.outputs.count }} ;
+  test_cars:
+    name: cars
+    runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: false
+      matrix:
+        job: [0, 1, 2, 3, 4]
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+    - uses: ./.github/workflows/setup
+    - name: Cache test routes
+      id: dependency-cache
+      uses: actions/cache@03e00da99d75a2204924908e1cca7902cafce66b
+      with:
+        path: /tmp/comma_download_cache
+        key: car_models-${{ hashFiles('selfdrive/car/tests/test_models.py', 'selfdrive/car/tests/routes.py') }}-${{ matrix.job }}
+    - name: Build openpilot
+      run: ${{ env.RUN }} "scons -j$(nproc)"
+    - name: Test car models
+      run: |
+        ${{ env.RUN }} "coverage run -m pytest selfdrive/car/tests/test_models.py && \
+                        coverage xml && \
+                        chmod -R 777 /tmp/comma_download_cache"
+      env:
+        NUM_JOBS: 5
+        JOB_ID: ${{ matrix.job }}
+    - name: "Upload coverage to Codecov"
+      uses: codecov/codecov-action@v2
