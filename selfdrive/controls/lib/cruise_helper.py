@@ -321,7 +321,8 @@ class CruiseHelper:
   def apilot_curve(self, CS, controls):
     # 회전속도를 선속도 나누면 : 곡률이 됨. [20]은 약 4초앞의 곡률을 보고 커브를 계산함.
     #curvature = abs(controls.sm['modelV2'].orientationRate.z[20] / clip(CS.vEgo, 0.1, 100.0))
-    curvature = np.max(np.abs(controls.sm['modelV2'].orientationRate.z[16:])) / clip(CS.vEgo, 0.5, 100.0)
+    orientationRates = np.array(controls.sm['modelV2'].orientationRate.z[16:], dtype=np.float32)
+    curvature = np.max(np.abs(orientationRates)) / clip(CS.vEgo, 0.5, 100.0)
     curvature = self.curvatureFilter.process(curvature) * self.autoCurveSpeedFactor
     turnSpeed = 300
     if abs(curvature) > 0.0001:
