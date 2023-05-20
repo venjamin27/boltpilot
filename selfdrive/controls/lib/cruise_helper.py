@@ -83,6 +83,7 @@ class CruiseHelper:
     self.naviSpeed = 255
     self.roadSpeed = 255
     self.curveSpeed = 255
+    self.turnSpeed_prev = 300
     self.cruiseSpeedTarget = 0
 
     self.active_cam = False
