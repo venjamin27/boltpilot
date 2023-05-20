@@ -624,7 +624,7 @@ class CruiseHelper:
     if self.autoCurveSpeedCtrlUse > 0:
       self.curveSpeed = self.apilot_curve(CS, controls)
 
-    self.v_ego_kph = int(CS.vEgoCluster + 0.5)
+    self.v_ego_kph = int(CS.vEgoCluster * CV.MS_TO_KPH + 0.5)
     self.v_ego_kph_set = clip(self.v_ego_kph, self.cruiseSpeedMin, MAX_SET_SPEED_KPH)
     self.xState = controls.sm['longitudinalPlan'].xState
     self.xStop = controls.sm['longitudinalPlan'].xStop
