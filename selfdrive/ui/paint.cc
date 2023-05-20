@@ -1489,12 +1489,12 @@ void DrawApilot::drawDeviceState(UIState* s) {
     int r = interp<float>(cpuTemp, { 50.f, 90.f }, { 200.f, 255.f }, false);
     int g = interp<float>(cpuTemp, { 50.f, 90.f }, { 255.f, 200.f }, false);
     NVGcolor textColor = nvgRGBA(r, g, 200, 255);
-    if (width() > 1200) {
-        ui_draw_text(s, width() - 350, 35, str, 35, textColor, BOLD);
+    if (s->fb_w > 1200) {
+        ui_draw_text(s, s->fb_w - 350, 35, str, 35, textColor, BOLD);
         float engineRpm = car_state.getEngineRpm();
         float motorRpm = car_state.getMotorRpm();
         sprintf(str, "FPS: %d, %s: %.0f CHARGE: %.0f%%", m_fps, (motorRpm > 0.0) ? "MOTOR" : "RPM", (motorRpm > 0.0) ? motorRpm : engineRpm, car_state.getChargeMeter());
-        ui_draw_text(s, width() - 350, 90, str, 35, textColor, BOLD);
+        ui_draw_text(s, s->fb_w - 350, 90, str, 35, textColor, BOLD);
     }
 
 }
