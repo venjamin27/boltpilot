@@ -149,7 +149,6 @@ static void ui_draw_bsd(const UIState* s, const QPolygonF& vd, NVGcolor* color, 
     }
 
 }
-#if 0
 template <class T>
 float interp(float x, const T* x_list, const T* y_list, size_t size, bool extrapolate)
 {
@@ -169,7 +168,7 @@ float interp(float x, const T* x_list, const T* y_list, size_t size, bool extrap
     T dydx = (yR - yL) / (xR - xL);
     return yL + dydx * (x - xL);
 }
-
+#if 0
 static void ui_draw_path(const UIState* s) {
     const UIScene& scene = s->scene;
     SubMaster& sm = *(s->sm);
