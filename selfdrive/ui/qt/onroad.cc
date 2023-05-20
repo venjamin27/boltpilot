@@ -623,7 +623,7 @@ void AnnotatedCameraWidget::paintEvent(QPaintEvent *event) {
     case 0: drawHud(p, model); break;
     default: 
         ui_draw(s, width(), height()); 
-        if (s->show_device_stat) drawDeviceState(p);
+        //if (s->show_device_stat) drawDeviceState(p);
         //drawTurnSignals(p);
         //drawGpsStatus(p);
 #ifdef __TEST
