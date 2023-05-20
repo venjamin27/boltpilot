@@ -1445,6 +1445,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
 }
 void DrawApilot::drawDeviceState(UIState* s) {
     const SubMaster& sm = *(s->sm);
+    auto deviceState = sm["deviceState"].getDeviceState();
     char  str[128];
     QString qstr;
     const auto freeSpacePercent = deviceState.getFreeSpacePercent();
