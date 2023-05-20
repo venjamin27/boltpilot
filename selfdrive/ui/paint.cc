@@ -1449,9 +1449,9 @@ void DrawApilot::drawDebugText(UIState* s) {
     char  str[128];
     QString qstr;
 
-    int y = 400, dy = 40;
+    int y = 150, dy = 40;
 
-    const int text_x = 1400;
+    const int text_x = 1600;
     const auto live_torque_params = sm["liveTorqueParameters"].getLiveTorqueParameters();
     
     sprintf(str, "LT[%.0f]:%s (%.4f/%.4f)", live_torque_params.getTotalBucketPoints(), live_torque_params.getLiveValid() ? "ON" : "OFF", live_torque_params.getLatAccelFactorFiltered(), live_torque_params.getFrictionCoefficientFiltered());
