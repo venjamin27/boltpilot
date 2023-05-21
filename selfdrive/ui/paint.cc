@@ -1542,6 +1542,8 @@ DrawApilot::DrawApilot() {
 
 }
 DrawApilot* drawApilot;
+Alert alert;
+NVGcolor alert_color;
 void ui_draw(UIState *s, int w, int h) {
   // Update intrinsics matrix after possible wide camera toggle change
   if (s->fb_w != w || s->fb_h != h) {
@@ -1565,9 +1567,23 @@ void ui_draw(UIState *s, int w, int h) {
   //nvgTextAlign(s->vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
   //ui_print(s, s->fb_w/2, s->fb_h/2, "%s", "APILOT");
 
+  ui_draw_alert(s);
+
   nvgResetScissor(s->vg);
   nvgEndFrame(s->vg);
   glDisable(GL_BLEND);
+}
+void ui_draw_alert(UIState* s) {
+    if (alert.size != cereal::ControlsState::AlertSize::NONE) {
+        alert_color = COLOR_ORANGE;
+        ui_draw_text(s, s->fb_w / 2, s->fb_h - 300, alert.text1.toStdString().c_str(), 100, alert_color, BOLD, 3.0f, 8.0f);
+        ui_draw_text(s, s->fb_w / 2, s->fb_h - 200, alert.text2.toStdString().c_str(), 70, alert_color, BOLD, 3.0f, 8.0f);
+    }
+}
+void ui_update_alert(const Alert& a, const QColor& color) {
+    alert_color = nvgRGBA(color.red(), color.green(), color.blue(), color.alpha());
+    //printf("r=%d, g=%d, b=%d\n", color.red(), color.green(), color.blue());
+    alert = a;
 }
 
 void ui_nvg_init(UIState *s) {

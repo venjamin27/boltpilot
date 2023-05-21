@@ -102,7 +102,8 @@ void OnroadWindow::updateState(const UIState &s) {
     } else if (alert.type == "controlsUnresponsivePermanent") {
       bgColor = bg_colors[STATUS_DISENGAGED];
     }
-    alerts->updateAlert(alert, bgColor);
+    //alerts->updateAlert(alert, bgColor);
+    ui_update_alert(alert, bgColor);
   }
 
   if (s.scene.map_on_left) {
@@ -219,7 +220,8 @@ void OnroadWindow::offroadTransition(bool offroad) {
   }
 #endif
 
-  alerts->updateAlert({}, bg);
+  //alerts->updateAlert({}, bg);
+  ui_update_alert({}, bg);
 
   if(offroad && recorder) {
     recorder->stop(false);
