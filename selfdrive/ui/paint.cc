@@ -1473,6 +1473,7 @@ void DrawApilot::drawDeviceState(UIState* s) {
     char  str[128];
     QString qstr;
     const auto freeSpacePercent = deviceState.getFreeSpacePercent();
+    const auto memoryUsagePercent = deviceState.getMemoryUsagePercent();
 
     const auto cpuTempC = deviceState.getCpuTempC();
     //const auto gpuTempC = deviceState.getGpuTempC();
@@ -1487,12 +1488,12 @@ void DrawApilot::drawDeviceState(UIState* s) {
         cpuTemp = cpuTemp / (float)std::size(cpuTempC);
     }
     auto car_state = sm["carState"].getCarState();
-    sprintf(str, "STORAGE: %.0f%%   CPU: %.0f°C    AMBIENT: %.0f°C", freeSpacePercent, cpuTemp, ambientTemp);
+    sprintf(str, "MEM: %.0f%% STORAGE: %.0f%% CPU: %.0f°C AMBIENT: %.0f°C", memoryUsagePercent, freeSpacePercent, cpuTemp, ambientTemp);
     int r = interp<float>(cpuTemp, { 50.f, 90.f }, { 200.f, 255.f }, false);
     int g = interp<float>(cpuTemp, { 50.f, 90.f }, { 255.f, 200.f }, false);
     NVGcolor textColor = nvgRGBA(r, g, 200, 255);
     if (s->fb_w > 1200) {
-        ui_draw_text(s, s->fb_w - 350, 35, str, 35, textColor, BOLD);
+        ui_draw_text(s, s->fb_w - 400, 35, str, 35, textColor, BOLD);
         float engineRpm = car_state.getEngineRpm();
         float motorRpm = car_state.getMotorRpm();
         sprintf(str, "FPS: %d, %s: %.0f CHARGE: %.0f%%", g_fps, (motorRpm > 0.0) ? "MOTOR" : "RPM", (motorRpm > 0.0) ? motorRpm : engineRpm, car_state.getChargeMeter());
