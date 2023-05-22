@@ -217,8 +217,8 @@
       "name": "SteerRatioAccelApply",
       "title": "SteerRatioAccel적용(0%)",
       "descr": "SR에 Accel텀적용시험(+)값으로 시험해야할듯~",
-      "min": -300,
-      "max": 300,
+      "min": -1000,
+      "max": 1000,
       "default": 0,
       "unit": 10
     },
