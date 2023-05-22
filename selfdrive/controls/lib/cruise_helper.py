@@ -186,7 +186,7 @@ class CruiseHelper:
         self.cruiseOnDist = float(int(Params().get("CruiseOnDist", encoding="utf8"))) / 100.
       elif self.update_params_count == 17:
         self.steerRatioApply = float(int(Params().get("SteerRatioApply", encoding="utf8"))) / 10.
-        self.steerRatioAccelApply = float(int(Params().get("SteerRatioAccelApply", encoding="utf8"))) / 10.
+        self.steerRatioAccelApply = float(int(Params().get("SteerRatioAccelApply", encoding="utf8"))) / 100.
 
   @staticmethod
   def get_lead(sm):
