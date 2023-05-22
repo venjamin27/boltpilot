@@ -241,8 +241,8 @@ class CarInterface(CarInterfaceBase):
       ret.pcmCruise = False
       ret.openpilotLongitudinalControl = True
       # Note: Low speed, stop and go not tested. Should be fairly smooth on highway
-      ret.longitudinalTuning.kpBP = [0., 35.]
-      ret.longitudinalTuning.kpV =[0.4, 0.20]
+      ret.longitudinalTuning.kpBP = [0., 22.]
+      ret.longitudinalTuning.kpV =[0.33, 0.27]
       ret.longitudinalTuning.kiBP = [0.]
       ret.longitudinalTuning.kiV = [0.]
       ret.longitudinalTuning.kf = 0.3
