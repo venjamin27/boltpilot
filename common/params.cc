@@ -278,6 +278,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     { "CruiseControlMode", PERSISTENT },
     { "CruiseOnDist", PERSISTENT },
     { "SteerRatioApply", PERSISTENT },
+    { "SteerRatioAccelApply", PERSISTENT },
     { "MyEcoModeFactor", PERSISTENT },
     { "CruiseMaxVals1", PERSISTENT },
     { "CruiseMaxVals2", PERSISTENT },

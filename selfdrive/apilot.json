@@ -213,6 +213,16 @@
       "unit": 10
     },
     {
+      "group": "조향튜닝",
+      "name": "SteerRatioAccelApply",
+      "title": "SteerRatioAccel적용(0%)",
+      "descr": "SR에 Accel텀적용시험(+)값으로 시험해야할듯~",
+      "min": -300,
+      "max": 300,
+      "default": 0,
+      "unit": 10
+    },
+    {
       "group": "가속설정",
       "name": "MyEcoModeFactor",
       "title": "연비가속비율(80%)",
