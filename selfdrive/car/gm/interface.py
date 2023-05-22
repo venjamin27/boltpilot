@@ -241,10 +241,10 @@ class CarInterface(CarInterfaceBase):
       ret.pcmCruise = False
       ret.openpilotLongitudinalControl = True
       # Note: Low speed, stop and go not tested. Should be fairly smooth on highway
-      ret.longitudinalTuning.kpBP = [0.]
-      ret.longitudinalTuning.kpV = [1.]
-      ret.longitudinalTuning.kiBP = [0., 14., 22]
-      ret.longitudinalTuning.kiV = [0.10, 0.15, 0.15]
+      ret.longitudinalTuning.kpBP = [0., 30.]
+      ret.longitudinalTuning.kpV =[0.4, 0.06]
+      ret.longitudinalTuning.kiBP = [0.]
+      ret.longitudinalTuning.kiV = [0.]
       ret.longitudinalTuning.kf = 0.3
       ret.stoppingDecelRate = 0.8  # reach stopping target smoothly, brake_travel/s while trying to stop
       ret.stopAccel = 0.  # Required acceleration to keep vehicle stationary
