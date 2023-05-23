@@ -146,8 +146,9 @@ def manager_init() -> None:
     ("CruiseControlMode", "4"),
     ("CruiseOnDist", "0"),
     ("SteerRatioApply", "0"),
-    ("SteerDeltaUp", "3"),       
-    ("SteerDeltaDown", "7"),       
+    ("SteerDeltaUp", "3"),
+    ("SteerDeltaDown", "7"),
+    ("PowerOffTime", "0"),
   ]
   if not PC:
     default_params.append(("LastUpdateTime", datetime.datetime.utcnow().isoformat().encode('utf8')))
