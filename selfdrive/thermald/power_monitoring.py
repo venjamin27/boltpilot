@@ -120,7 +120,7 @@ class PowerMonitoring:
                             self.car_voltage_instant_mV > (VBATT_INSTANT_PAUSE_CHARGING * 1e3)
                             # and offroad_time > VOLTAGE_SHUTDOWN_MIN_OFFROAD_TIME_S
                             )
-    powerOffSec = self.params.get_bool("PowerOffTime")* 3600
+    powerOffSec = self.params.get("PowerOffTime") * 3600
     should_shutdown |= (powerOffSec and (offroad_time > powerOffSec))
     should_shutdown |= low_voltage_shutdown
     should_shutdown |= (self.car_battery_capacity_uWh <= 0)
