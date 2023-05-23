@@ -15,7 +15,7 @@ CAR_CHARGING_RATE_W = 45
 
 VBATT_PAUSE_CHARGING = 11.8           # Lower limit on the LPF car battery voltage
 VBATT_INSTANT_PAUSE_CHARGING = 7.0    # Lower limit on the instant car battery voltage measurements to avoid triggering on instant power loss
-MAX_TIME_OFFROAD_S = 5*3600
+MAX_TIME_OFFROAD_S = 5*3600           # Not Used, replaced with PowerOffTime paramater.
 MIN_ON_TIME_S = 3600
 DELAY_SHUTDOWN_TIME_S = 300 # Wait at least DELAY_SHUTDOWN_TIME_S seconds after offroad_time to shutdown.
 VOLTAGE_SHUTDOWN_MIN_OFFROAD_TIME_S = 60
@@ -120,13 +120,14 @@ class PowerMonitoring:
                             self.car_voltage_instant_mV > (VBATT_INSTANT_PAUSE_CHARGING * 1e3)
                             # and offroad_time > VOLTAGE_SHUTDOWN_MIN_OFFROAD_TIME_S
                             )
-    should_shutdown |= offroad_time > MAX_TIME_OFFROAD_S
-    # should_shutdown |= low_voltage_shutdown
+    powerOffSec = self.params.get_bool("PowerOffTime")* 3600
+    should_shutdown |= (powerOffSec and (offroad_time > powerOffSec))
+    should_shutdown |= low_voltage_shutdown
     should_shutdown |= (self.car_battery_capacity_uWh <= 0)
     should_shutdown &= not ignition
     should_shutdown &= (not self.params.get_bool("DisablePowerDown"))
     should_shutdown &= in_car
-    # should_shutdown &= offroad_time > DELAY_SHUTDOWN_TIME_S
+    should_shutdown &= offroad_time > DELAY_SHUTDOWN_TIME_S
     should_shutdown |= self.params.get_bool("ForcePowerDown")
     should_shutdown &= started_seen or (now > MIN_ON_TIME_S)
     return should_shutdown
