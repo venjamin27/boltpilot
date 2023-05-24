@@ -209,6 +209,7 @@ class CarInterface(CarInterfaceBase):
       elif ret.gearShifter == GearShifter.park or ret.gearShifter == GearShifter.neutral:
         events.add(EventName.wrongGear)
       else:
+        print("Unknown gearShifter value: %s" % ret.gearShifter)
         events.add(EventName.brakeUnavailable)
 
     ret.events = events.to_msg()
