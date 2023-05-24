@@ -162,6 +162,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"PandaSignatures", CLEAR_ON_MANAGER_START},
     {"Passive", PERSISTENT},
     {"PrimeType", PERSISTENT},
+    {"PowerOffTime", PERSISTENT},
     {"RecordFront", PERSISTENT},
     {"RecordFrontLock", PERSISTENT},  // for the internal fleet
     {"ReplayControlsState", CLEAR_ON_MANAGER_START | CLEAR_ON_IGNITION_ON},
@@ -314,6 +315,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     { "LateralJerkCost", PERSISTENT },
     { "SteerDeltaUp", PERSISTENT },
     { "SteerDeltaDown", PERSISTENT },
+    { "PedalPressedThreshold", PERSISTENT },    
 };
 
 } // namespace
