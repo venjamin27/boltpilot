@@ -183,7 +183,7 @@ class Tici(HardwareBase):
         'network_type': ["Unknown"],
         'sim_state': ["READY"],
         'data_connected': modem.Get(MM_MODEM, 'State', dbus_interface=DBUS_PROPS, timeout=TIMEOUT) == MM_MODEM_STATE.CONNECTED,
-      }
+    c}
 
   def get_subscriber_info(self):
     return ""
@@ -581,7 +581,7 @@ class Tici(HardwareBase):
     gpio_set(GPIO.STM_RST_N, 0)
     time.sleep(1)
     gpio_set(GPIO.STM_BOOT0, 0)
-	
+
   def get_ip_address(self):
     try:
       wlan = subprocess.check_output(["ifconfig", "wlan0"], encoding='utf8').strip()
