@@ -244,6 +244,8 @@ class CarState(CarStateBase):
       ("ParkBrake", "VehicleIgnitionAlt"),
       ("CruiseMainOn", "ECMEngineStatus"),
       ("BrakePressed", "ECMEngineStatus"),
+
+      ("VehicleSpeed", "ECMVehicleSpeed"),
     ]
 
     checks = [
@@ -268,6 +270,7 @@ class CarState(CarStateBase):
       signals += [
         ("RollingCounter", "ASCMLKASteeringCmd"),
         ("SinglePedalModeActive", "EVDriveMode"),
+        # ("RegenPaddle", "EBCMRegenPaddle"),
       ]
       checks += [
         ("ASCMLKASteeringCmd", 0),

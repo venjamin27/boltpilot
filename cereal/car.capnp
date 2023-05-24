@@ -159,6 +159,13 @@ struct CarEvent @0x9b1657f34caf3ad3 {
 struct CarState {
   events @13 :List(CarEvent);
 
+  #BOLT EV
+  vehicleSpeed @53 :Float32;
+  regenPressed @50 :Bool; #this is regen button only
+  adaptiveCruise @51 :Bool;
+  mainOn @54 :Bool;
+  lkasEnable @52 :Bool;
+
   # CAN health
   canValid @26 :Bool;       # invalid counter/checksums
   canTimeout @40 :Bool;     # CAN bus dropped out
