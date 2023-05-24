@@ -609,6 +609,7 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
   //toggleLayout->addWidget(new ParamControl("SccConnectedBus2", "SCC배선이 BUS2에 연결됨", "SCC배선을 개조하여 BUS2에 연결된경우 켭니다.", "../assets/offroad/icon_road.png", this));
   toggleLayout->addWidget(new CValueControl("EnableAutoEngage", "EnableAutoEngage", "0:Not used,1:Auto Engage/Cruise OFF,2:Auto Engage/Cruise ON", "../assets/offroad/icon_shell.png", 0, 2, 1));
   toggleLayout->addWidget(new CValueControl("PowerOffTime", "PowerOffTime(0:Always On)", "0:Always On,  X:Power Off after X(Hours)", "../assets/offroad/icon_shell.png", 0, 100, 1));
+  toggleLayout->addWidget(new CValueControl("PedalPressedThreshold", "PedalPressedThreshold(15)", "PedalPressedThreshold(0 - 30)", "../assets/offroad/icon_shell.png", 0, 30, 1));
   toggleLayout->addWidget(horizontal_line());
   toggleLayout->addWidget(new CValueControl("AutoNaviSpeedCtrl", tr("SpeedCameraControl(1)"), tr("0:Not used, 1:NDA"), "../assets/offroad/icon_road.png", 0, 1, 1));
   toggleLayout->addWidget(new CValueControl("AutoNaviSpeedCtrlStart", tr("SpeedCameraDecelStart(22s)"), "감속시작시점을 설정합니다. 값이 크면 감속을 카메라에서 멀리 시작", "../assets/offroad/icon_road.png", 10, 50, 1));

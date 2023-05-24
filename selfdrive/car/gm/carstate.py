@@ -2,6 +2,7 @@ import copy
 from cereal import car
 from common.conversions import Conversions as CV
 from common.numpy_fast import mean
+from common.params import Params, put_nonblocking
 from opendbc.can.can_define import CANDefine
 from opendbc.can.parser import CANParser
 from selfdrive.car.interfaces import CarStateBase
@@ -27,6 +28,7 @@ class CarState(CarStateBase):
     self.cam_lka_steering_cmd_counter = 0
     self.buttons_counter = 0
     self.single_pedal_mode = False
+    self.params = Params()
 
   def update(self, pt_cp, cam_cp, loopback_cp):
     ret = car.CarState.new_message()
@@ -95,7 +97,7 @@ class CarState(CarStateBase):
 
     if self.CP.enableGasInterceptor:
       ret.gas = (pt_cp.vl["GAS_SENSOR"]["INTERCEPTOR_GAS"] + pt_cp.vl["GAS_SENSOR"]["INTERCEPTOR_GAS2"]) / 2.
-      ret.gasPressed = ret.gas > 20
+      ret.gasPressed = ret.gas > int(self.params.get("PedalPressedThreshold", encoding='utf8'))
     else:
       ret.gas = pt_cp.vl["AcceleratorPedal2"]["AcceleratorPedal2"] / 254.
       ret.gasPressed = ret.gas > 1e-5
