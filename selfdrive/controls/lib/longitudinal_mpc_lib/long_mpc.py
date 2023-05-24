@@ -431,7 +431,7 @@ class LongitudinalMpc:
     self.update_gap_tf(controls, radarstate, v_ego, a_ego)
 
     self.comfort_brake = COMFORT_BRAKE
-    self.set_weights(prev_accel_constraint=prev_accel_constraint, v_lead0=lead_xv_0[0,1], v_lead1=lead_xv_1[0,1])
+    #self.set_weights(prev_accel_constraint=prev_accel_constraint, v_lead0=lead_xv_0[0,1], v_lead1=lead_xv_1[0,1])
 
     applyStopDistance = self.stopDistance * (2.0 - self.mySafeModeFactor)
 
@@ -443,11 +443,12 @@ class LongitudinalMpc:
     self.params[:,0] = MIN_ACCEL
     self.params[:,1] = self.max_a
 
+    v_cruise, stop_x, self.mode = self.update_apilot(controls, carstate, radarstate, model, v_cruise, self.mode)
+    self.set_weights(prev_accel_constraint=prev_accel_constraint, v_lead0=lead_xv_0[0,1], v_lead1=lead_xv_1[0,1])
+
     # Update in ACC mode or ACC/e2e blend
     if self.mode == 'acc':
       self.params[:,5] = self.leadDangerFactor #LEAD_DANGER_FACTOR
-
-      v_cruise, stop_x = self.update_apilot(controls, carstate, radarstate, model, v_cruise)
 
       x2 = stop_x * np.ones(N+1) + self.trafficStopDistanceAdjust
 
@@ -659,6 +660,8 @@ class LongitudinalMpc:
       self.trafficState = 1
     elif self.startSignCount * DT_MDL > 0.3:
       self.trafficState = 2  
+    else:
+      self.trafficState = 0
 
 # Stopping Dist....
 # v[-1] : stop signal 감지... 3m/s이하가 나오면 정지로 감지하자...
@@ -674,7 +677,8 @@ class LongitudinalMpc:
 ### 단, 낮시간이나 설정에 따라 자동출발여부를 확인한다.
 ####     혹시나, 감속시에 한번이라도 정지가 출발신호가 수신되었으면, 수동출발하도록 한다.
 
-  def update_apilot(self, controls, carstate, radarstate, model, v_cruise):
+  def update_apilot(self, controls, carstate, radarstate, model, v_cruise, mode):
+
     v_ego = carstate.vEgo
     v_ego_kph = v_ego * CV.MS_TO_KPH
     x = model.position.x
@@ -744,47 +748,54 @@ class LongitudinalMpc:
       if carstate.gasPressed:
         self.xState = XState.e2eCruisePrepare
         stop_x = 1000.0
-      elif v_ego < 0.1:
-        if self.trafficDetectBrightness < self.lightSensor:
-          self.trafficError = True
-          self.mpcEvent = EventName.trafficError
-          ## 조도가 높고, 정지중, +키를 누르면 출발!
-          if cruiseButtonCounterDiff > 0:
+      elif True:
+        if self.trafficState == 2:
+          if v_ego_kph > 30:
+             self.xState = XState.e2eCruise
+          elif carstate.aEgo > 1.0:
+            self.mpcEvent = EventName.trafficSignGreen
+      else:
+        if v_ego < 0.1:
+          if self.trafficDetectBrightness < self.lightSensor:
+            self.trafficError = True
+            self.mpcEvent = EventName.trafficError
+            ## 조도가 높고, 정지중, +키를 누르면 출발!
+            if cruiseButtonCounterDiff > 0:
+                self.xState = XState.e2eCruisePrepare
+                self.e2eCruiseCount = 3 * DT_MDL
+                self.mpcEvent = EventName.trafficSignGreen
+          if self.trafficState == 2  and (not self.trafficError or (self.trafficError and cruiseButtonCounterDiff > 0)):
               self.xState = XState.e2eCruisePrepare
               self.e2eCruiseCount = 3 * DT_MDL
               self.mpcEvent = EventName.trafficSignGreen
-        if self.trafficState == 2  and (not self.trafficError or (self.trafficError and cruiseButtonCounterDiff > 0)):
-            self.xState = XState.e2eCruisePrepare
-            self.e2eCruiseCount = 3 * DT_MDL
-            self.mpcEvent = EventName.trafficSignGreen
+          else:
+            if self.trafficState == 2 and self.trafficError:
+              self.mpcEvent = EventName.trafficSignChanged
+            if self.trafficError and cruiseButtonCounterDiff > 0:
+              self.trafficError = False
+            elif not self.trafficError and cruiseButtonCounterDiff < 0:
+              self.trafficError = True          
+            self.stopDist = 0.0
+            v_cruise = 0.0
+            stop_x = 0.0
+        elif radar_detected and (radarstate.leadOne.dRel - stop_x) < 4.0: # 레이더감지, 정지라인보다 선행차가 가까이있다면..  2->4M : 즉 정지선이 앞차보다 4M뒤에 있다면 앞차안봄..
+          self.xState = XState.lead
+          stop_x = 1000.0
+        elif cruiseButtonCounterDiff > 0:
+          self.xState = XState.e2eCruisePrepare
+          stop_x = 1000.0
         else:
-          if self.trafficState == 2 and self.trafficError:
-            self.mpcEvent = EventName.trafficSignChanged
-          if self.trafficError and cruiseButtonCounterDiff > 0:
-            self.trafficError = False
-          elif not self.trafficError and cruiseButtonCounterDiff < 0:
-            self.trafficError = True          
-          self.stopDist = 0.0
-          v_cruise = 0.0
-          stop_x = 0.0
-      elif radar_detected and (radarstate.leadOne.dRel - stop_x) < 4.0: # 레이더감지, 정지라인보다 선행차가 가까이있다면..  2->4M : 즉 정지선이 앞차보다 4M뒤에 있다면 앞차안봄..
-        self.xState = XState.lead
-        stop_x = 1000.0
-      elif cruiseButtonCounterDiff > 0:
-        self.xState = XState.e2eCruisePrepare
-        stop_x = 1000.0
-      else:
-        self.comfort_brake = COMFORT_BRAKE * self.trafficStopAccel
-        if controls.longActiveUser > 0 and self.longActiveUser <= 0:  # longActive된경우
-          self.stopDist = 2 if self.xStop < 2 else self.xStop
-        else:
-          if not self.trafficError and self.trafficState == 1 and self.xStop > self.trafficStopUpdateDist:  # 정지조건에만 update함. 20M이상에서만 Update하자. 이후에는 너무 급격히 정지함. 시험..
-            self.stopDist = self.xStop
-          elif self.trafficState == 2: ## 감속도중 파란불이면 그냥출발
-            #self.trafficError = True
-            self.xState = XState.e2eCruisePrepare
-            stop_x = 1000.0
-        self.fakeCruiseDistance = 0 if self.stopDist > 10.0 else 10.0
+          self.comfort_brake = COMFORT_BRAKE * self.trafficStopAccel
+          if controls.longActiveUser > 0 and self.longActiveUser <= 0:  # longActive된경우
+            self.stopDist = 2 if self.xStop < 2 else self.xStop
+          else:
+            if not self.trafficError and self.trafficState == 1 and self.xStop > self.trafficStopUpdateDist:  # 정지조건에만 update함. 20M이상에서만 Update하자. 이후에는 너무 급격히 정지함. 시험..
+              self.stopDist = self.xStop
+            elif self.trafficState == 2: ## 감속도중 파란불이면 그냥출발
+              #self.trafficError = True
+              self.xState = XState.e2eCruisePrepare
+              stop_x = 1000.0
+          self.fakeCruiseDistance = 0 if self.stopDist > 10.0 else 10.0
     ## e2eCruisePrepare 일시정지중
     elif self.xState == XState.e2eCruisePrepare:
       self.mpcEvent = 0
@@ -819,6 +830,8 @@ class LongitudinalMpc:
       if self.trafficState == 2: #stop_x > 100.0:
         stop_x = 1000.0
 
+    mode = 'blended' if self.xState in [XState.e2eStop, XState.e2eCruisePrepare] else 'acc'
+
     self.comfort_brake *= self.mySafeModeFactor
     self.longActiveUser = controls.longActiveUser
     self.cruiseButtonCounter = controls.cruiseButtonCounter
@@ -834,7 +847,7 @@ class LongitudinalMpc:
       stop_x = 0.0
 #    else:
 #      self.fakeCruiseDistance += self.stopDist
-    return v_cruise, stop_x+self.stopDist
+    return v_cruise, stop_x+self.stopDist, mode
 
 if __name__ == "__main__":
   ocp = gen_long_ocp()

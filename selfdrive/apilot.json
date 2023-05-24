@@ -154,6 +154,16 @@
     },
     {
       "group": "조향튜닝",
+      "name": "LateralTorqueKf",
+      "title": "_LateralTorqueKf(100)",
+      "descr": "",
+      "min": 0,
+      "max": 200,
+      "default": 1,
+      "unit": 1
+    },
+    {
+      "group": "조향튜닝",
       "name": "SteerActuatorDelay",
       "title": "SteerActuatorDelay(30)",
       "descr": "값이크면 조향을 좀더 미리함(일반,10msec)",

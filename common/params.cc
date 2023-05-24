@@ -323,6 +323,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     { "LateralTorqueKp", PERSISTENT },
     { "LateralTorqueKi", PERSISTENT },
     { "LateralTorqueKd", PERSISTENT },
+    { "LateralTorqueKf", PERSISTENT },
     { "SteerDeltaUp", PERSISTENT },
     { "SteerDeltaDown", PERSISTENT },
 };

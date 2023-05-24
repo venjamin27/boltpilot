@@ -18,7 +18,6 @@ IMPERIAL_INCREMENT = 1.6  # should be CV.MPH_TO_KPH, but this causes rounding er
 
 MIN_SPEED = 1.0
 CONTROL_N = 17
-CONTROL_N_LAT = 23
 CAR_ROTATION_RADIUS = 0.0
 
 # EU guidelines
@@ -164,10 +163,10 @@ def rate_limit(new_value, last_value, dw_step, up_step):
 
 
 def get_lag_adjusted_curvature(CP, v_ego, psis, curvatures, curvature_rates, steerActuatorDelay):
-  if len(psis) != CONTROL_N_LAT:
-    psis = [0.0]*CONTROL_N_LAT
-    curvatures = [0.0]*CONTROL_N_LAT
-    curvature_rates = [0.0]*CONTROL_N_LAT
+  if len(psis) != CONTROL_N:
+    psis = [0.0]*CONTROL_N
+    curvatures = [0.0]*CONTROL_N
+    curvature_rates = [0.0]*CONTROL_N
   v_ego = max(MIN_SPEED, v_ego)
 
   # TODO this needs more thought, use .2s extra for now to estimate other delays
@@ -178,7 +177,7 @@ def get_lag_adjusted_curvature(CP, v_ego, psis, curvatures, curvature_rates, ste
   # in high delay cases some corrections never even get commanded. So just use
   # psi to calculate a simple linearization of desired curvature
   current_curvature_desired = curvatures[0]
-  psi = interp(delay, T_IDXS[:CONTROL_N_LAT], psis)
+  psi = interp(delay, T_IDXS[:CONTROL_N], psis)
   average_curvature_desired = psi / (v_ego * delay)
   desired_curvature = 2 * average_curvature_desired - current_curvature_desired
 

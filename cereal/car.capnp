@@ -178,6 +178,8 @@ struct CarState {
   # gas pedal, 0.0-1.0
   gas @3 :Float32;        # this is user pedal only
   gasPressed @4 :Bool;    # this is user pedal only
+  
+  engineRpm @46 :Float32;
 
   # brake pedal, 0.0-1.0
   brake @5 :Float32;      # this is user pedal only
@@ -227,12 +229,11 @@ struct CarState {
   charging @43 :Bool;
 
 
-  cruiseGap @48 : Int32;
-  tpms @46 : Tpms;
+  cruiseGap @47 : Int32;
+  tpms @48 : Tpms;
   # neokii
-  vCluRatio @47 :Float32;
-  driverOverride @49 : Int32; #0: Normal, 1:Gas, 2:Brake
-  engineRpm @50 : Float32;
+  vCluRatio @49 :Float32;
+  driverOverride @50 : Int32; #0: Normal, 1:Gas, 2:Brake
   chargeMeter @51 : Float32;
   motorRpm @52 : Float32;
 
