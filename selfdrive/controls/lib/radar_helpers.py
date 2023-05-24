@@ -1,5 +1,6 @@
 from common.numpy_fast import mean
 from common.kalman.simple_kalman import KF1D
+from common.filter_simple import StreamingMovingAverage
 
 
 # Default lead acceleration decay set to 50% at 1s
@@ -62,6 +63,7 @@ class Track():
 class Cluster():
   def __init__(self):
     self.tracks = set()
+    self.aLeadKFilter = StreamingMovingAverage(5)
 
   def add(self, t):
     # add the first track
@@ -131,6 +133,26 @@ class Cluster():
       "modelProb": model_prob,
       "radar": True,
       "aLeadTau": float(self.aLeadTau)
+    }
+
+  def get_RadarState2(self, model_prob, lead_msg, mixRadarInfo, lead_index):
+    useVisionMix = False
+    if mixRadarInfo>0 and float(lead_msg.prob) > 0.5 and abs(float(self.aLeadK)) < abs(float(lead_msg.a[0])):
+      useVisionMix = True
+
+    aLeadK = self.aLeadKFilter.process(float(lead_msg.a[0]) if useVisionMix else float(self.aLeadK))
+    return {
+      "dRel": float(self.dRel),
+      "yRel": float(self.yRel),
+      "vRel": float(self.vRel),
+      "vLead": float(self.vLead),
+      "vLeadK": float(self.vLeadK),
+      "aLeadK": aLeadK,
+      "status": True,
+      "fcw": self.is_potential_fcw(model_prob),
+      "modelProb": model_prob,
+      "radar": True,
+      "aLeadTau": _vision_lead_aTau[lead_index] if useVisionMix else float(self.aLeadTau)
     }
 
   def get_RadarState_from_vision(self, lead_msg, lead_index, v_ego):

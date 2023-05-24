@@ -15,7 +15,7 @@ from common.params import Params, ParamKeyType
 from common.text_window import TextWindow
 from selfdrive.boardd.set_time import set_time
 from system.hardware import HARDWARE, PC
-from selfdrive.manager.helpers import unblock_stdout
+from selfdrive.manager.helpers import unblock_stdout, write_onroad_params
 from selfdrive.manager.process import ensure_running, launcher
 from selfdrive.manager.process_config import managed_processes
 from selfdrive.athena.registration import register, UNREGISTERED_DONGLE_ID
@@ -58,6 +58,7 @@ def manager_init() -> None:
     ("ShowGapInfo", "1"),
     ("ShowDmInfo", "1"),
     ("ShowRadarInfo", "1"),
+    ("MixRadarInfo", "0"),
     ("ShowZOffset", "122"),
     ("ShowPathMode", "9"),
     ("ShowPathColor", "12"),
@@ -74,6 +75,7 @@ def manager_init() -> None:
     ("OpkrPrebuiltOn", "0"),
     ("AutoCurveSpeedCtrlUse", "1"),
     ("AutoCurveSpeedFactor", "100"),
+    ("AutoCurveSpeedFactorIn", "0"),
     ("AutoTurnControl", "0"),
     ("AutoTurnSpeed", "40"),
     ("AutoTurnTimeMax", "200"),
@@ -137,17 +139,25 @@ def manager_init() -> None:
     ("PathCostApplyLow", "100"),
     ("HapticFeedbackWhenSpeedCamera", "0"),       
     ("SoftHoldMode", "1"),       
-    ("ApplyModelDistOrder", "28"),       
+    ("ApplyModelDistOrder", "30"),       
+    ("TrafficStopUpdateDist", "10"),       
+    ("TrafficDetectBrightness", "100"),       
     ("SteeringRateCost", "700"),       
     ("LateralMotionCost", "11"),       
     ("LateralAccelCost", "0"),       
     ("LateralJerkCost", "5"),       
+    ("LateralTorqueKp", "100"),       
+    ("LateralTorqueKi", "10"),       
+    ("LateralTorqueKd", "0"),       
     ("SteerActuatorDelay", "30"),       
     ("CruiseControlMode", "4"),
     ("CruiseOnDist", "0"),
     ("SteerRatioApply", "0"),
-    ("SteerDeltaUp", "3"),
+    ("SteerRatioAccelApply", "0"),
+    ("SteerDeltaUp", "3"),       
     ("SteerDeltaDown", "7"),
+
+    #BoltEV
     ("PowerOffTime", "0"),
     ("PedalPressedThreshold", "20"), 
   ]
@@ -247,13 +257,29 @@ def manager_thread() -> None:
   sm = messaging.SubMaster(['deviceState', 'carParams'], poll=['deviceState'])
   pm = messaging.PubMaster(['managerState'])
 
+  write_onroad_params(False, params)
   ensure_running(managed_processes.values(), False, params=params, CP=sm['carParams'], not_run=ignore)
 
   print_timer = 0
+
+  started_prev = False
+
   while True:
     sm.update()
 
     started = sm['deviceState'].started
+
+    if started and not started_prev:
+      params.clear_all(ParamKeyType.CLEAR_ON_ONROAD_TRANSITION)
+    elif not started and started_prev:
+      params.clear_all(ParamKeyType.CLEAR_ON_OFFROAD_TRANSITION)
+
+    # update onroad params, which drives boardd's safety setter thread
+    if started != started_prev:
+      write_onroad_params(started, params)
+
+    started_prev = started
+
     ensure_running(managed_processes.values(), started, params=params, CP=sm['carParams'], not_run=ignore)
 
     running = ' '.join("%s%s\u001b[0m" % ("\u001b[32m" if p.proc.is_alive() else "\u001b[31m", p.name)
@@ -293,6 +319,8 @@ def main() -> None:
   prepare_only = os.getenv("PREPAREONLY") is not None
 
   manager_init()
+  os.system("python /data/openpilot/selfdrive/car/hyundai/values.py > /data/params/d/SupportedCars")
+  os.system("python /data/openpilot/selfdrive/car/gm/values.py > /data/params/d/SupportedCars_gm")
 
   # Start UI early so prepare can happen in the background
   if not prepare_only:
