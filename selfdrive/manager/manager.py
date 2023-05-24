@@ -149,7 +149,7 @@ def manager_init() -> None:
     ("SteerDeltaUp", "3"),
     ("SteerDeltaDown", "7"),
     ("PowerOffTime", "0"),
-    ("PedalPressedThreshold", "15"), 
+    ("PedalPressedThreshold", "20"), 
   ]
   if not PC:
     default_params.append(("LastUpdateTime", datetime.datetime.utcnow().isoformat().encode('utf8')))
