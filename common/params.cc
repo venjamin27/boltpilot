@@ -315,6 +315,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     { "LateralJerkCost", PERSISTENT },
     { "SteerDeltaUp", PERSISTENT },
     { "SteerDeltaDown", PERSISTENT },
+    { "PedalPressedThreshold", PERSISTENT },    
 };
 
 } // namespace
