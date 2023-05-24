@@ -9,7 +9,6 @@ from selfdrive.car.hyundai.values import Buttons
 from common.params import Params
 from selfdrive.controls.lib.drive_helpers import V_CRUISE_MAX, V_CRUISE_MIN, CONTROL_N_LAT
 from selfdrive.controls.lib.lateral_planner import TRAJECTORY_SIZE
-#from selfdrive.controls.lib.longitudinal_mpc_lib.long_mpc import AUTO_TR_CRUISE_GAP
 from selfdrive.car.hyundai.values import CAR
 from selfdrive.car.isotp_parallel_query import IsoTpParallelQuery
 from common.filter_simple import StreamingMovingAverage
@@ -72,6 +71,7 @@ class CruiseHelper:
     self.trafficState = 0
     self.xState_prev = XState.cruise
     self.xState = XState.cruise
+    self.mpcEvent_prev = 0
     self.xStop = 0
     self.v_ego_kph = 0
     self.v_ego_kph_set = 0
@@ -83,6 +83,7 @@ class CruiseHelper:
     self.naviSpeed = 255
     self.roadSpeed = 255
     self.curveSpeed = 255
+    self.turnSpeed_prev = 300
     self.cruiseSpeedTarget = 0
 
     self.active_cam = False
@@ -97,13 +98,14 @@ class CruiseHelper:
     self.leadCarSpeed = 0.
 
     self.update_params_count = 0
-    self.curvatureFilter = StreamingMovingAverage(10)
+    self.curvatureFilter = StreamingMovingAverage(20)
 
     self.longCruiseGap = int(Params().get("PrevCruiseGap"))
     self.cruiseSpeedMin = int(Params().get("CruiseSpeedMin"))
 
     self.autoCurveSpeedCtrlUse = int(Params().get("AutoCurveSpeedCtrlUse"))
     self.autoCurveSpeedFactor = float(int(Params().get("AutoCurveSpeedFactor", encoding="utf8")))*0.01
+    self.autoCurveSpeedFactorIn = float(int(Params().get("AutoCurveSpeedFactorIn", encoding="utf8")))*0.01
     self.autoNaviSpeedCtrl = int(Params().get("AutoNaviSpeedCtrl"))
     self.autoNaviSpeedCtrlStart = float(Params().get("AutoNaviSpeedCtrlStart"))
     self.autoNaviSpeedCtrlEnd = float(Params().get("AutoNaviSpeedCtrlEnd"))
@@ -130,6 +132,7 @@ class CruiseHelper:
     self.cruiseControlMode = int(Params().get("CruiseControlMode", encoding="utf8"))
     self.cruiseOnDist = float(int(Params().get("CruiseOnDist", encoding="utf8"))) / 100.
     self.steerRatioApply = float(int(Params().get("SteerRatioApply", encoding="utf8"))) / 10.
+    self.steerRatioAccelApply = float(int(Params().get("SteerRatioAccelApply", encoding="utf8"))) / 100.
 
   def update_params(self, frame):
     if frame % 20 == 0:
@@ -139,6 +142,7 @@ class CruiseHelper:
       if self.update_params_count == 0:
         self.autoCurveSpeedCtrlUse = int(Params().get("AutoCurveSpeedCtrlUse"))
         self.autoCurveSpeedFactor = float(int(Params().get("AutoCurveSpeedFactor", encoding="utf8")))*0.01
+        self.autoCurveSpeedFactorIn = float(int(Params().get("AutoCurveSpeedFactorIn", encoding="utf8")))*0.01
       elif self.update_params_count == 1:
         self.autoNaviSpeedCtrl = int(Params().get("AutoNaviSpeedCtrl"))
         self.autoRoadLimitCtrl = int(Params().get("AutoRoadLimitCtrl", encoding="utf8"))
@@ -184,6 +188,7 @@ class CruiseHelper:
         self.cruiseOnDist = float(int(Params().get("CruiseOnDist", encoding="utf8"))) / 100.
       elif self.update_params_count == 17:
         self.steerRatioApply = float(int(Params().get("SteerRatioApply", encoding="utf8"))) / 10.
+        self.steerRatioAccelApply = float(int(Params().get("SteerRatioAccelApply", encoding="utf8"))) / 100.
 
   @staticmethod
   def get_lead(sm):
@@ -319,6 +324,29 @@ class CruiseHelper:
     return clip(apply_limit_speed, 0, MAX_SET_SPEED_KPH), clip(self.roadLimitSpeed, 30, MAX_SET_SPEED_KPH)
 
   def apilot_curve(self, CS, controls):
+    # 회전속도를 선속도 나누면 : 곡률이 됨. [20]은 약 4초앞의 곡률을 보고 커브를 계산함.
+    #curvature = abs(controls.sm['modelV2'].orientationRate.z[20] / clip(CS.vEgo, 0.1, 100.0))
+    orientationRates = np.array(controls.sm['modelV2'].orientationRate.z, dtype=np.float32)
+    # 계산된 결과로, oritetationRates를 나누어 조금더 curvature값이 커지도록 함.
+    speed = min(self.turnSpeed_prev / 3.6, clip(CS.vEgo, 0.5, 100.0))
+    speed_diff = max(0, CS.vEgo - speed)
+    # 결과속도와 현재속도의 차이로 좀더 curvature값이 커지도록 함.
+    speed = clip(speed - speed_diff * self.autoCurveSpeedFactorIn, 0.5, 100.0)
+    # 12: 약1.4초 미래의 curvature를 계산함.
+    curvature = np.max(np.abs(orientationRates[12:])) / speed
+    curvature = self.curvatureFilter.process(curvature) * self.autoCurveSpeedFactor
+    turnSpeed = 300
+    if abs(curvature) > 0.0001:
+      turnSpeed = interp(curvature, V_CURVE_LOOKUP_BP, V_CRUVE_LOOKUP_VALS)
+      turnSpeed = clip(turnSpeed, MIN_CURVE_SPEED, 255)
+    else:
+      turnSpeed = 300
+
+    controls.debugText1 = 'CURVE={:5.1f},curvature={:5.4f}'.format(turnSpeed, curvature)
+    self.turnSpeed_prev = turnSpeed
+    return turnSpeed
+
+  def apilot_curve_old(self, CS, controls):
     curvatures = controls.sm['lateralPlan'].curvatures
     turnSpeed = 300
     if len(curvatures) == CONTROL_N_LAT:
@@ -424,12 +452,15 @@ class CruiseHelper:
       elif self.v_ego_kph < v_cruise_kph and abs(CS.steeringAngleDeg) > 7.0 and 0 < self.dRel < 30: 
           v_cruise_kph = self.v_ego_kph_set
       #  5. 페달을 0.6초이내 뗀경우: 속도증가 autoSyncCruiseSpeedMax까지: 가속페달로 속도를 증가시킴
-      elif self.gasPressedCount * DT_CTRL < 0.6:
-        if self.v_ego_kph > 30.0 and v_cruise_kph < self.autoSyncCruiseSpeedMax:  
+      elif self.gasPressedCount * DT_CTRL < 0.6 and self.preGasPressedMax > 0.03:
+        if self.v_ego_kph > self.autoResumeFromGasSpeed + 5.0 and v_cruise_kph < self.autoSyncCruiseSpeedMax:  
           v_cruise_kph = self.v_cruise_speed_up(v_cruise_kph, self.roadSpeed)
           if self.autoSyncCruiseSpeedMax > 0 and v_cruise_kph > self.autoSyncCruiseSpeedMax:
             v_cruise_kph = self.autoSyncCruiseSpeedMax
           v_cruise_kph_backup = v_cruise_kph
+      # 앞차를 추월하기 위해 가속한경우, 앞차와의 거리가 감속가능한 거리가 아닌경우 크루즈OFF: 급격한 감속충격을 막기 위해.. (시험해야함)
+      elif 0 < self.dRel < CS.vEgo ** 2 / (2.5*2):
+        longActiveUser = -2
       #  6. 크루즈속도보다 높을때: 크루즈속도 현재속도셋 : autoSyncCruiseSpeedMax까지
       elif self.v_ego_kph > v_cruise_kph and self.autoSyncCruiseSpeedMax > self.autoResumeFromGasSpeed:
         if self.autoResumeFromGasSpeed < self.v_ego_kph < self.autoSyncCruiseSpeedMax: # 오토크루즈 ON속도보다 높고, 130키로보다 작을때만 싱크
@@ -572,20 +603,21 @@ class CruiseHelper:
 
   def cruise_control_speed(self, controls, CS, v_cruise_kph):
 
+    #self.cruiseControlMode : 가상의 초과속도를 말함.
     v_cruise_kph_apply = v_cruise_kph    
     if self.cruiseControlMode > 0:
       if self.longActiveUser > 0:
 
-        if self.cruiseSpeedTarget > 0:  # 작동중일때 설정 속도변화 감지.
+        if self.cruiseSpeedTarget > 0:  # 작동중일때 크루즈 설정속도 변화감지.
           if self.cruiseSpeedTarget < v_cruise_kph:  # 설정속도가 빨라지면..
             self.cruiseSpeedTarget = v_cruise_kph
           elif self.cruiseSpeedTarget > v_cruise_kph: # 설정속도가 느려지면.
             self.cruiseSpeedTarget = 0
-        elif self.cruiseSpeedTarget == 0 and self.v_ego_kph + 3 < v_cruise_kph and v_cruise_kph > 20.0:
+        elif self.cruiseSpeedTarget == 0 and self.v_ego_kph + 3 < v_cruise_kph and v_cruise_kph > 20.0:  # 주행중 속도가 떨어지면 다시 크루즈연비제어 시작.
           self.cruiseSpeedTarget = v_cruise_kph
 
-        if self.cruiseSpeedTarget != 0:
-          if self.v_ego_kph >= self.cruiseSpeedTarget + 1: # 설정속도를 초과하면..
+        if self.cruiseSpeedTarget != 0:  ## 크루즈 연비 제어모드 작동중일때: 연비제어 종료지점
+          if self.v_ego_kph > self.cruiseSpeedTarget: # 설정속도를 초과하면..
             self.cruiseSpeedTarget = 0
           else:
             v_cruise_kph_apply = self.cruiseSpeedTarget + self.cruiseControlMode  # + 설정 속도로 설정함.
@@ -604,7 +636,7 @@ class CruiseHelper:
     if self.autoCurveSpeedCtrlUse > 0:
       self.curveSpeed = self.apilot_curve(CS, controls)
 
-    self.v_ego_kph = int(CS.vEgo * CV.MS_TO_KPH + 0.5) + 2.0 #실제속도가 v_cruise_kph보다 조금 빨라 2을 더함.
+    self.v_ego_kph = int(CS.vEgoCluster * CV.MS_TO_KPH + 0.5)
     self.v_ego_kph_set = clip(self.v_ego_kph, self.cruiseSpeedMin, MAX_SET_SPEED_KPH)
     self.xState = controls.sm['longitudinalPlan'].xState
     self.xStop = controls.sm['longitudinalPlan'].xStop
@@ -623,20 +655,25 @@ class CruiseHelper:
     
     trafficState = (controls.sm['longitudinalPlan'].trafficState % 100)
     trafficError = controls.sm['longitudinalPlan'].trafficState >= 1000
+    mpcEvent = controls.sm['longitudinalPlan'].mpcEvent
     if self.longActiveUser>0:
-      if self.xState != self.xState_prev and self.xState == XState.softHold:
-        controls.events.add(EventName.autoHold)
-      if self.xState == XState.softHold and self.trafficState != 2 and trafficState == 2:
-        self.send_apilot_event(controls, EventName.trafficSignChanged)
-        #self.radarAlarmCount = 2000 if self.radarAlarmCount == 0 else self.radarAlarmCount
-      elif self.xState == XState.e2eCruise and self.trafficState != 2 and trafficState == 2 and CS.vEgo < 0.1:
-        controls.events.add(EventName.trafficSignGreen)
-      elif self.xState == XState.e2eStop and self.xState_prev in [XState.e2eCruise, XState.lead]: # and self.longControlActiveSound >= 2:
-        self.send_apilot_event(controls, EventName.trafficStopping, 20.0)
-      elif trafficError:
-        self.send_apilot_event(controls, EventName.trafficError, 10.0)
+      if mpcEvent != self.mpcEvent_prev and mpcEvent>0:
+        #controls.events.add(mpcEvent)
+        self.send_apilot_event(controls, mpcEvent, 5.0)
+      #if self.xState != self.xState_prev and self.xState == XState.softHold:
+      #  controls.events.add(EventName.autoHold)
+      #if self.xState == XState.softHold and self.trafficState != 2 and trafficState == 2:
+      #  self.send_apilot_event(controls, EventName.trafficSignChanged)
+      #  #self.radarAlarmCount = 2000 if self.radarAlarmCount == 0 else self.radarAlarmCount
+      #elif self.xState == XState.e2eCruise and self.trafficState != 2 and trafficState == 2 and CS.vEgo < 0.1:
+      #  controls.events.add(EventName.trafficSignGreen)
+      #elif self.xState == XState.e2eStop and self.xState_prev in [XState.e2eCruise, XState.lead]: # and self.longControlActiveSound >= 2:
+      #  self.send_apilot_event(controls, EventName.trafficStopping, 20.0)
+      #elif trafficError:
+      #  self.send_apilot_event(controls, EventName.trafficError, 20.0)
 
 
+    self.mpcEvent_prev = mpcEvent
     self.trafficState = trafficState
     self.dRel = dRel
     self.vRel = vRel
@@ -651,9 +688,9 @@ class CruiseHelper:
         longActiveUser = -2
         if not self.preBrakePressed:
           self.v_cruise_kph_backup = v_cruise_kph
-        self.longActiveUserReady,unUsed,unUsed2 = self.check_brake_cruise_on(CS, v_cruise_kph)
+        self.longActiveUserReady,temp,temp = self.check_brake_cruise_on(CS, v_cruise_kph)
       elif CS.gasPressed:  
-        self.longActiveUserReady,unUsed3,unUsed4 = self.check_gas_cruise_on(CS, v_cruise_kph)
+        self.longActiveUserReady,temp,temp = self.check_gas_cruise_on(CS, v_cruise_kph)
       elif not CS.gasPressed and self.gasPressedCount > 2:
         longActiveUser,v_cruise_kph,self.v_cruise_kph_backup = self.check_gas_cruise_on(CS, v_cruise_kph)
       elif not CS.brakePressed and self.preBrakePressed:
@@ -737,29 +774,29 @@ def enable_radar_tracks(CP, logcan, sendcan):
   if CP.openpilotLongitudinalControl: # and CP.carFingerprint in [CAR.SANTA_FE, CAR.SANTA_FE_HEV_2022, CAR.NEXO]:
     rdr_fw = None
     rdr_fw_address = 0x7d0 #일부차량은 다름..
-    # if True:
-    for i in range(10):
-      print("O yes")
-    try:
-      for i in range(40):
-        try:
-          query = IsoTpParallelQuery(sendcan, logcan, CP.sccBus, [rdr_fw_address], [b'\x10\x07'], [b'\x50\x07'], debug=True)
-          for addr, dat in query.get_data(0.1).items(): # pylint: disable=unused-variable
-            print("ecu write data by id ...")
-            new_config = b"\x00\x00\x00\x01\x00\x01"
-            #new_config = b"\x00\x00\x00\x00\x00\x01"
-            dataId = b'\x01\x42'
-            WRITE_DAT_REQUEST = b'\x2e'
-            WRITE_DAT_RESPONSE = b'\x68'
-            query = IsoTpParallelQuery(sendcan, logcan, CP.sccBus, [rdr_fw_address], [WRITE_DAT_REQUEST+dataId+new_config], [WRITE_DAT_RESPONSE], debug=True)
-            query.get_data(0)
-            print(f"Try {i+1}")
+    if True:
+      for i in range(10):
+        print("O yes")
+      try:
+        for i in range(40):
+          try:
+            query = IsoTpParallelQuery(sendcan, logcan, CP.sccBus, [rdr_fw_address], [b'\x10\x07'], [b'\x50\x07'], debug=True)
+            for addr, dat in query.get_data(0.1).items(): # pylint: disable=unused-variable
+              print("ecu write data by id ...")
+              new_config = b"\x00\x00\x00\x01\x00\x01"
+              #new_config = b"\x00\x00\x00\x00\x00\x01"
+              dataId = b'\x01\x42'
+              WRITE_DAT_REQUEST = b'\x2e'
+              WRITE_DAT_RESPONSE = b'\x68'
+              query = IsoTpParallelQuery(sendcan, logcan, CP.sccBus, [rdr_fw_address], [WRITE_DAT_REQUEST+dataId+new_config], [WRITE_DAT_RESPONSE], debug=True)
+              query.get_data(0)
+              print(f"Try {i+1}")
+              break
             break
-          break
-        except Exception as e:
-          print(f"Failed {i}: {e}")
-    except Exception as e:
-      print("Failed to enable tracks" + str(e))
+          except Exception as e:
+            print(f"Failed {i}: {e}") 
+      except Exception as e:
+        print("Failed to enable tracks" + str(e))
   print("END Try to enable radar tracks")
   # END try to enable radar tracks
 

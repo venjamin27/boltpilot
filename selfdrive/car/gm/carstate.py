@@ -270,7 +270,6 @@ class CarState(CarStateBase):
       signals += [
         ("RollingCounter", "ASCMLKASteeringCmd"),
         ("SinglePedalModeActive", "EVDriveMode"),
-        # ("RegenPaddle", "EBCMRegenPaddle"),
       ]
       checks += [
         ("ASCMLKASteeringCmd", 0),

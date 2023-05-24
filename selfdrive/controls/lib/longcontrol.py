@@ -98,7 +98,7 @@ class LongControl:
       self.startAccelApply = float(int(Params().get("StartAccelApply", encoding="utf8"))) * 0.01
       self.stopAccelApply = float(int(Params().get("StopAccelApply", encoding="utf8"))) * 0.01
       
-  #Update longitudinal control. This updates the state machine and runs a PID loop
+    """Update longitudinal control. This updates the state machine and runs a PID loop"""
     # Interp control trajectory
     speeds = long_plan.speeds
     if len(speeds) == CONTROL_N:

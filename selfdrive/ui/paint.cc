@@ -40,6 +40,8 @@
 
 #define BOLD "KaiGenGothicKR-Bold"//"Inter-Bold"//"sans-bold"
 
+int g_fps= 0;
+
 #if 0
 static void ui_print(UIState *s, int x, int y,  const char* fmt, ... )
 {
@@ -74,7 +76,7 @@ static void ui_draw_text(const UIState* s, float x, float y, const char* string,
     nvgText(s->vg, x, y, string, NULL);
 }
 
-static void ui_draw_line(const UIState* s, const QPolygonF& vd, NVGcolor* color, NVGpaint* paint, float stroke=0.0) {
+static void ui_draw_line(const UIState* s, const QPolygonF& vd, NVGcolor* color, NVGpaint* paint, float stroke=0.0, NVGcolor strokeColor=COLOR_WHITE) {
     if (vd.size() == 0) return;
 
     nvgBeginPath(s->vg);
@@ -91,12 +93,12 @@ static void ui_draw_line(const UIState* s, const QPolygonF& vd, NVGcolor* color,
     }
     nvgFill(s->vg);
     if (stroke > 0.0) {
-        nvgStrokeColor(s->vg, COLOR_WHITE);
+        nvgStrokeColor(s->vg, strokeColor);
         nvgStrokeWidth(s->vg, stroke);
         nvgStroke(s->vg);
     }
 }
-static void ui_draw_line2(const UIState* s, float x[], float y[], int size, NVGcolor* color, NVGpaint* paint, float stroke=0.0) {
+static void ui_draw_line2(const UIState* s, float x[], float y[], int size, NVGcolor* color, NVGpaint* paint, float stroke=0.0, NVGcolor strokeColor=COLOR_WHITE) {
 
     nvgBeginPath(s->vg);
     nvgMoveTo(s->vg, x[0], y[0]);
@@ -113,7 +115,7 @@ static void ui_draw_line2(const UIState* s, float x[], float y[], int size, NVGc
     nvgFill(s->vg);
 
     if (stroke > 0.0) {
-        nvgStrokeColor(s->vg, COLOR_WHITE);
+        nvgStrokeColor(s->vg, strokeColor);
         nvgStrokeWidth(s->vg, stroke);
         nvgStroke(s->vg);
     }
@@ -149,6 +151,29 @@ static void ui_draw_bsd(const UIState* s, const QPolygonF& vd, NVGcolor* color, 
     }
 
 }
+template <class T>
+float interp(float x, std::initializer_list<T> x_list, std::initializer_list<T> y_list, bool extrapolate)
+{
+    std::vector<T> xData(x_list);
+    std::vector<T> yData(y_list);
+    int size = xData.size();
+
+    int i = 0;
+    if (x >= xData[size - 2]) {
+        i = size - 2;
+    }
+    else {
+        while (x > xData[i + 1]) i++;
+    }
+    T xL = xData[i], yL = yData[i], xR = xData[i + 1], yR = yData[i + 1];
+    if (!extrapolate) {
+        if (x < xL) yR = yL;
+        if (x > xR) yL = yR;
+    }
+
+    T dydx = (yR - yL) / (xR - xL);
+    return yL + dydx * (x - xL);
+}
 #if 0
 template <class T>
 float interp(float x, const T* x_list, const T* y_list, size_t size, bool extrapolate)
@@ -169,7 +194,6 @@ float interp(float x, const T* x_list, const T* y_list, size_t size, bool extrap
     T dydx = (yR - yL) / (xR - xL);
     return yL + dydx * (x - xL);
 }
-
 static void ui_draw_path(const UIState* s) {
     const UIScene& scene = s->scene;
     SubMaster& sm = *(s->sm);
@@ -294,6 +318,8 @@ void DrawApilot::drawLaneLines(const UIState* s) {
     const UIScene& scene = s->scene;
     SubMaster& sm = *(s->sm);
     NVGcolor color;
+    auto    car_state = sm["carState"].getCarState();
+    bool brake_valid = car_state.getBrakeLights();
 
     bool left_blindspot = sm["carState"].getCarState().getLeftBlindspot();
     bool right_blindspot = sm["carState"].getCarState().getRightBlindspot();
@@ -352,7 +378,7 @@ void DrawApilot::drawLaneLines(const UIState* s) {
             show_path_mode = s->show_path_mode_cruise_off;
         }
         if (show_path_mode == 0) {
-            ui_draw_line(s, scene.track_vertices, &colors[show_path_color % 10], nullptr,(show_path_color >= 10) ? 2.0 : 0.0);
+            ui_draw_line(s, scene.track_vertices, &colors[show_path_color % 10], nullptr,(show_path_color >= 10 || brake_valid) ? 2.0 : 0.0, (brake_valid)?COLOR_RED:COLOR_WHITE);
         }
         else if (show_path_mode >= 9) {
             int     track_vertices_len = scene.track_vertices.length();
@@ -376,7 +402,7 @@ void DrawApilot::drawLaneLines(const UIState* s) {
                 x[5] = (x[1] + x[3]) / 2;
                 y[5] = (y[1] + y[3]) / 2;
                 //ui_draw_line2(s, x, y, 6, &colors[color_n], nullptr, (show_path_color >= 10) ? 2.0 : 0.0);
-                ui_draw_line2(s, x, y, 6, &colors[show_path_color % 10], nullptr, (show_path_color >= 10) ? 2.0 : 0.0);
+                ui_draw_line2(s, x, y, 6, &colors[show_path_color % 10], nullptr, (show_path_color >= 10 || brake_valid) ? 2.0 : 0.0, (brake_valid) ? COLOR_RED : COLOR_WHITE);
 
                 if (++color_n > 6) color_n = 0;
             }
@@ -385,7 +411,6 @@ void DrawApilot::drawLaneLines(const UIState* s) {
 
             int     track_vertices_len = scene.track_vertices.length();
             //color = nvgRGBA(0, 150, 0, 30);
-            auto    car_state = sm["carState"].getCarState();
             float   accel = car_state.getAEgo();
             float   v_ego = car_state.getVEgoCluster();
             float   v_ego_kph = v_ego * MS_TO_KPH;
@@ -441,8 +466,8 @@ void DrawApilot::drawLaneLines(const UIState* s) {
 
                     if (draw) {
                         switch (show_path_mode) {
-                        case 2: case 6: ui_draw_line2(s, x, y, 4, &colors[color_n], nullptr, (show_path_color >= 10) ? 2.0 : 0.0); break;
-                        default:        ui_draw_line2(s, x, y, 4, &colors[show_path_color % 10], nullptr, (show_path_color >= 10) ? 2.0 : 0.0); break;
+                        case 2: case 6: ui_draw_line2(s, x, y, 4, &colors[color_n], nullptr, (show_path_color >= 10 || brake_valid) ? 2.0 : 0.0, (brake_valid) ? COLOR_RED : COLOR_WHITE); break;
+                        default:        ui_draw_line2(s, x, y, 4, &colors[show_path_color % 10], nullptr, (show_path_color >= 10 || brake_valid) ? 2.0 : 0.0, (brake_valid) ? COLOR_RED : COLOR_WHITE); break;
                         }
                     }
 
@@ -474,8 +499,8 @@ void DrawApilot::drawLaneLines(const UIState* s) {
 
                     if (draw) {
                         switch (show_path_mode) {
-                        case 4: case 8:     ui_draw_line2(s, x, y, 6, &colors[color_n], nullptr, (show_path_color >= 10) ? 2.0 : 0.0); break;
-                        default:            ui_draw_line2(s, x, y, 6, &colors[show_path_color % 10], nullptr, (show_path_color >= 10) ? 2.0 : 0.0); break;
+                        case 4: case 8:     ui_draw_line2(s, x, y, 6, &colors[color_n], nullptr, (show_path_color >= 10 || brake_valid) ? 2.0 : 0.0, (brake_valid) ? COLOR_RED : COLOR_WHITE); break;
+                        default:            ui_draw_line2(s, x, y, 6, &colors[show_path_color % 10], nullptr, (show_path_color >= 10 || brake_valid) ? 2.0 : 0.0, (brake_valid) ? COLOR_RED : COLOR_WHITE); break;
 
                         }
                     }
@@ -736,7 +761,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
         float _path_y = (y1 + y2) / 2.;
         if (_path_y > s->fb_h - 100) _path_y = s->fb_h - 100;
         float _path_width = x2 - x1;
-        float alpha = 0.95;
+        float alpha = 0.92;
         path_fx = path_fx * alpha + _path_x * (1. - alpha);
         path_fy = path_fy * alpha + _path_y * (1. - alpha);
         path_fwidth = path_fwidth * alpha + _path_width * (1. - alpha);
@@ -821,8 +846,8 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
         x = path_bx;
     }
 
-    filter_x = filter_x * 0.96 + x * 0.04;
-    filter_y = filter_y * 0.96 + y * 0.04;
+    filter_x = filter_x * 0.92 + x * 0.08;
+    filter_y = filter_y * 0.92 + y * 0.08;
     x = filter_x;
     y = filter_y;
 #endif
@@ -1100,6 +1125,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
 
     // 타겟좌측 : 갭표시
     int myDrivingMode = controls_state.getMyDrivingMode();
+    int active = controls_state.getActive();
     //const auto lp = sm["longitudinalPlan"].getLongitudinalPlan();
     float gap = lp.getCruiseGap();
     //float tFollow = lp.getTFollow();
@@ -1148,6 +1174,9 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
         auto xState = lp.getXState();
         QString qstr;
         if (brake_hold) qstr = "AUTOHOLD";
+        else if (active < 0) {
+            qstr = "NOT ACTIVE";
+        }
         else if (longActiveUser > 0) {
             if (xState == cereal::LongitudinalPlan::XState::E2E_STOP) qstr = tr("SIGN DETECTED");
             else if (xState == cereal::LongitudinalPlan::XState::SOFT_HOLD) qstr = "SOFTHOLD";
@@ -1438,6 +1467,40 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
     brake_valid = brake_valid;
     longActiveUserReady = longActiveUserReady;
 }
+void DrawApilot::drawDeviceState(UIState* s) {
+    const SubMaster& sm = *(s->sm);
+    auto deviceState = sm["deviceState"].getDeviceState();
+    char  str[128];
+    QString qstr;
+    const auto freeSpacePercent = deviceState.getFreeSpacePercent();
+    const auto memoryUsagePercent = deviceState.getMemoryUsagePercent();
+
+    const auto cpuTempC = deviceState.getCpuTempC();
+    //const auto gpuTempC = deviceState.getGpuTempC();
+    float ambientTemp = deviceState.getAmbientTempC();
+    float cpuTemp = 0.f;
+    //float gpuTemp = 0.f;
+
+    if (std::size(cpuTempC) > 0) {
+        for (int i = 0; i < std::size(cpuTempC); i++) {
+            cpuTemp += cpuTempC[i];
+        }
+        cpuTemp = cpuTemp / (float)std::size(cpuTempC);
+    }
+    auto car_state = sm["carState"].getCarState();
+    sprintf(str, "MEM: %d%% STORAGE: %.0f%% CPU: %.0f°C AMBIENT: %.0f°C", memoryUsagePercent, freeSpacePercent, cpuTemp, ambientTemp);
+    int r = interp<float>(cpuTemp, { 50.f, 90.f }, { 200.f, 255.f }, false);
+    int g = interp<float>(cpuTemp, { 50.f, 90.f }, { 255.f, 200.f }, false);
+    NVGcolor textColor = nvgRGBA(r, g, 200, 255);
+    if (s->fb_w > 1200) {
+        ui_draw_text(s, s->fb_w - 450, 35, str, 35, textColor, BOLD);
+        float engineRpm = car_state.getEngineRpm();
+        float motorRpm = car_state.getMotorRpm();
+        sprintf(str, "FPS: %d, %s: %.0f CHARGE: %.0f%%", g_fps, (motorRpm > 0.0) ? "MOTOR" : "RPM", (motorRpm > 0.0) ? motorRpm : engineRpm, car_state.getChargeMeter());
+        ui_draw_text(s, s->fb_w - 350, 90, str, 35, textColor, BOLD);
+    }
+
+}
 void DrawApilot::drawDebugText(UIState* s) {
     if (s->fb_w < 1200) return;
     const SubMaster& sm = *(s->sm);
@@ -1466,7 +1529,13 @@ void DrawApilot::drawDebugText(UIState* s) {
     y += dy;
     ui_draw_text(s, text_x, y, str, 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
 
-    //auto controls_state = sm["controlsState"].getControlsState();
+    auto controls_state = sm["controlsState"].getControlsState();
+    qstr = QString::fromStdString(controls_state.getDebugText1().cStr());
+    y += dy;
+    ui_draw_text(s, text_x, y, qstr.toStdString().c_str(), 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
+    qstr = QString::fromStdString(controls_state.getDebugText2().cStr());
+    y += dy;
+    ui_draw_text(s, text_x, y, qstr.toStdString().c_str(), 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
     //p.drawText(text_x, y + 160, QString::fromStdString(controls_state.getDebugText2().cStr()));
     //p.drawText(text_x, y + 240, QString::fromStdString(controls_state.getDebugText1().cStr()));
 }
@@ -1474,6 +1543,8 @@ DrawApilot::DrawApilot() {
 
 }
 DrawApilot* drawApilot;
+Alert alert;
+NVGcolor alert_color;
 void ui_draw(UIState *s, int w, int h) {
   // Update intrinsics matrix after possible wide camera toggle change
   if (s->fb_w != w || s->fb_h != h) {
@@ -1488,6 +1559,7 @@ void ui_draw(UIState *s, int w, int h) {
   drawApilot->drawLaneLines(s);
   drawApilot->drawLeadApilot(s);
   if (s->show_debug) drawApilot->drawDebugText(s);
+  if (s->show_device_stat) drawApilot->drawDeviceState(s);
 
   //ui_draw_vision(s);
   //dashcam(s);
@@ -1496,9 +1568,23 @@ void ui_draw(UIState *s, int w, int h) {
   //nvgTextAlign(s->vg, NVG_ALIGN_CENTER | NVG_ALIGN_MIDDLE);
   //ui_print(s, s->fb_w/2, s->fb_h/2, "%s", "APILOT");
 
+  ui_draw_alert(s);
+
   nvgResetScissor(s->vg);
   nvgEndFrame(s->vg);
   glDisable(GL_BLEND);
+}
+void ui_draw_alert(UIState* s) {
+    if (alert.size != cereal::ControlsState::AlertSize::NONE) {
+        alert_color = COLOR_ORANGE;
+        ui_draw_text(s, s->fb_w / 2, s->fb_h - 300, alert.text1.toStdString().c_str(), 100, alert_color, BOLD, 3.0f, 8.0f);
+        ui_draw_text(s, s->fb_w / 2, s->fb_h - 200, alert.text2.toStdString().c_str(), 70, alert_color, BOLD, 3.0f, 8.0f);
+    }
+}
+void ui_update_alert(const Alert& a, const QColor& color) {
+    alert_color = nvgRGBA(color.red(), color.green(), color.blue(), color.alpha());
+    //printf("r=%d, g=%d, b=%d\n", color.red(), color.green(), color.blue());
+    alert = a;
 }
 
 void ui_nvg_init(UIState *s) {
