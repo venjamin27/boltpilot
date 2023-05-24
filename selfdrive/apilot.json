@@ -327,7 +327,7 @@
       "name": "LongitudinalActuatorDelayLowerBound",
       "title": "_LADLowerBound(30)",
       "descr": "낮추면 정지력증가, 가속력감소",
-      "min": 0,
+      "min": 10,
       "max": 100,
       "default": 50,
       "unit": 10
@@ -337,7 +337,7 @@
       "name": "LongitudinalActuatorDelayUpperBound",
       "title": "_LADUpperBound(60)",
       "descr": "올리면 감속력 증가",
-      "min": 0,
+      "min": 10,
       "max": 100,
       "default": 50,
       "unit": 10
