@@ -65,21 +65,21 @@ class RoadLimitSpeedServer:
         if self.gps_sm.updated['gpsLocationExternal']:
           self.location = self.gps_sm['gpsLocationExternal']
 
-        if self.location is not None:
-          json_location = json.dumps({"location": [
-            self.location.latitude,
-            self.location.longitude,
-            self.location.altitude,
-            self.location.speed,
-            self.location.bearingDeg,
-            self.location.accuracy,
-            self.location.unixTimestampMillis,
-            # self.location.source,
-            # self.location.vNED,
-            self.location.verticalAccuracy,
-            self.location.bearingAccuracyDeg,
-            self.location.speedAccuracy,
-          ]})
+          if self.location is not None:
+            json_location = json.dumps({"location": [
+              self.location.latitude,
+              self.location.longitude,
+              self.location.altitude,
+              self.location.speed,
+              self.location.bearingDeg,
+              self.location.accuracy,
+              self.location.unixTimestampMillis,
+              # self.location.source,
+              # self.location.vNED,
+              self.location.verticalAccuracy,
+              self.location.bearingAccuracyDeg,
+              self.location.speedAccuracy,
+            ]})
 
           address = (self.remote_gps_addr[0], Port.LOCATION_PORT)
           self.gps_socket.sendto(json_location.encode(), address)
