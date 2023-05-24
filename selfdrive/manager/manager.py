@@ -75,6 +75,7 @@ def manager_init() -> None:
     ("OpkrPrebuiltOn", "0"),
     ("AutoCurveSpeedCtrlUse", "1"),
     ("AutoCurveSpeedFactor", "100"),
+    ("AutoCurveSpeedFactorIn", "0"),
     ("AutoTurnControl", "0"),
     ("AutoTurnSpeed", "40"),
     ("AutoTurnTimeMax", "200"),

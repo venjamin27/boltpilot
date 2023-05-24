@@ -433,6 +433,16 @@
       "unit": 1
     },
     {
+      "group": "감속제어",
+      "name": "AutoCurveSpeedFactorIn",
+      "title": "커브속도조절비율진입(0%)",
+      "descr": "올리면 진입속도를 더 줄이도록 노력합니다.",
+      "min": 0,
+      "max": 300,
+      "default": 0,
+      "unit": 1
+    },
+    {
       "group": "조향일반",
       "name": "AutoTurnControl",
       "title": "자동모델턴제어(0)",
