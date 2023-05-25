@@ -288,8 +288,9 @@ class CarInterface(CarInterfaceBase):
       events.add(EventName.belowEngageSpeed)
     if ret.cruiseState.standstill:
       events.add(EventName.resumeRequired)
-    if ret.vEgo < self.CP.minSteerSpeed:
-      events.add(EventName.belowSteerSpeed)
+    # belowsteerspeed alertevent는 내지 않도록 한다. 텍스트로 표시만 따로 하여 debug ui 출력을 확보한다.  
+    #if ret.vEgo < self.CP.minSteerSpeed:
+    #  events.add(EventName.belowSteerSpeed)
     if self.CP.enableGasInterceptor and self.CP.transmissionType == TransmissionType.direct and not self.CS.single_pedal_mode:
       if ret.gearShifter in [GearShifter.reverse] :
         events.add(EventName.reverseGear)
