@@ -136,8 +136,8 @@ class CarController:
             #Tuning 가이드 -> plot 그래프상 노란색이 아래에 있으면 그 속도에서 gain 값을 올려주고,
             #               노란색이 위에 있으면 gain 값을 낮춰주고
             #               단, 정지 출발은 예외, gain 값이 너무 높으면 말타기함.
-            pedalAccGain = interp(CS.out.vEgo, [0, 14.0, 22], [0.26, 0.25, 0.27])
-            pedalDecelgain = interp(CS.out.vEgo, [0, 14.0, 22], [0.27, 0.27, 0.27])
+            pedalAccGain = interp(CS.out.vEgo, [10, 30], [0.26, 1.0])
+            pedalDecelgain = interp(CS.out.vEgo, [10, 30], [0.26, 1.0])
 
             if actuators.accel > 0.:
               # Scales the accel from 0-1 to 0.156-1
@@ -155,6 +155,8 @@ class CarController:
 
           if not CC.longActive:
             pedal_gas = 0.0  # May not be needed with the enable param
+          elif pedal_gas < 0.075 :
+            can_sends.append(gmcan.create_regen_paddle_command(self.packer_pt, CanBus.POWERTRAIN))
 
           idx = (self.frame // 4) % 4
           can_sends.append(create_gas_interceptor_command(self.packer_pt, pedal_gas, idx))
