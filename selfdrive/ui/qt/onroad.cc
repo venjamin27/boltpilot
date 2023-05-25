@@ -71,7 +71,7 @@ OnroadWindow::OnroadWindow(QWidget *parent) : QWidget(parent) {
   QObject::connect(uiState(), &UIState::offroadTransition, this, &OnroadWindow::offroadTransition);
 
   // screen recoder - neokii
-
+#if  defined(QCOM2) || defined(QCOM)
   record_timer = std::make_shared<QTimer>();
 	QObject::connect(record_timer.get(), &QTimer::timeout, [=]() {
     if(recorder) {
@@ -90,7 +90,7 @@ OnroadWindow::OnroadWindow(QWidget *parent) : QWidget(parent) {
   stacked_layout->addWidget(recorder_widget);
   recorder_widget->raise();
   alerts->raise();
-
+#endif
 }
 
 void OnroadWindow::updateState(const UIState &s) {
@@ -157,14 +157,16 @@ void OnroadWindow::mouseReleaseEvent(QMouseEvent* e) {
         }
       }
       else if(std::abs(dx) > std::abs(dy)) {
-        if(dx < 0) { // right to left
-          if(recorder)
-            recorder->toggle();
-        }
-        else { // left to right
-          if(recorder)
-            recorder->toggle();
-        }
+        #if  defined(QCOM2) || defined(QCOM)
+            if(dx < 0) { // right to left
+              if(recorder)
+                recorder->toggle();
+            }
+            else { // left to right
+              if(recorder)
+                recorder->toggle();
+            }
+        #endif
       }
 
       return;
@@ -222,10 +224,11 @@ void OnroadWindow::offroadTransition(bool offroad) {
 
   //alerts->updateAlert({}, bg);
   ui_update_alert({}, bg);
-
+#if  defined(QCOM2) || defined(QCOM)
   if(offroad && recorder) {
     recorder->stop(false);
   }
+#endif
 }
 
 void OnroadWindow::paintEvent(QPaintEvent *event) {
