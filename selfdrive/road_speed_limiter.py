@@ -66,7 +66,7 @@ class RoadLimitSpeedServer:
         wait_time = clip(wait_time, 0.8, 1.0)
         frame += 1
 
-    except:
+    except Exception as e:
       pass
 
   def gps_timer(self):
@@ -94,7 +94,7 @@ class RoadLimitSpeedServer:
 
             address = (self.remote_gps_addr[0], Port.LOCATION_PORT)
             self.gps_socket.sendto(json_location.encode(), address)
-    except:
+    except Exception as e:
       self.remote_gps_addr = None
 
   def get_broadcast_address(self):
@@ -107,7 +107,7 @@ class RoadLimitSpeedServer:
       )[20:24]
 
       return socket.inet_ntoa(ip)
-    except:
+    except Exception as e:
       return None
 
   def broadcast_thread(self):
@@ -131,19 +131,19 @@ class RoadLimitSpeedServer:
             if broadcast_address is not None:
               address = (broadcast_address, Port.BROADCAST_PORT)
               sock.sendto('EON:ROAD_LIMIT_SERVICE:v1'.encode(), address)
-          except:
+          except Exception as e:
             pass
 
           time.sleep(5.)
           frame += 1
 
-      except:
+      except Exception as e:
         pass
 
   def send_sdp(self, sock):
     try:
       sock.sendto('EON:ROAD_LIMIT_SERVICE:v1'.encode(), (self.remote_addr[0], Port.BROADCAST_PORT))
-    except:
+    except Exception as e:
       pass
 
   def udp_recv(self, sock):
@@ -159,7 +159,7 @@ class RoadLimitSpeedServer:
           try:
             os.system(json_obj['cmd'])
             ret = False
-          except:
+          except Exception as e:
             pass
 
         if 'request_gps' in json_obj:
@@ -169,7 +169,7 @@ class RoadLimitSpeedServer:
             else:
               self.remote_gps_addr = None
             ret = False
-          except:
+          except Exception as e:
             pass
 
         if 'echo' in json_obj:
@@ -177,7 +177,7 @@ class RoadLimitSpeedServer:
             echo = json.dumps(json_obj["echo"])
             sock.sendto(echo.encode(), (self.remote_addr[0], Port.BROADCAST_PORT))
             ret = False
-          except:
+          except Exception as e:
             pass
 
         try:
@@ -186,7 +186,7 @@ class RoadLimitSpeedServer:
             if 'active' in json_obj:
               self.active = json_obj['active']
               self.last_updated_active = sec_since_boot()
-          except:
+          except Exception as e:
             pass
 
           if 'road_limit' in json_obj:
@@ -196,7 +196,7 @@ class RoadLimitSpeedServer:
         finally:
           self.lock.release()
 
-    except:
+    except Exception as e:
 
       try:
         self.lock.acquire()
@@ -230,7 +230,7 @@ class RoadLimitSpeedServer:
       if key in json:
         return json[key]
 
-    except:
+    except Exception as e:
       pass
 
     return default
@@ -245,7 +245,7 @@ def main():
 
       try:
         sock.bind(('0.0.0.0', 843))
-      except:
+      except Exception as e:
         sock.bind(('0.0.0.0', Port.RECEIVE_PORT))
 
       sock.setblocking(False)
@@ -290,7 +290,7 @@ class RoadSpeedLimiter:
       dat = messaging.recv_sock(self.sock, wait=False)
       if dat is not None:
         self.roadLimitSpeed = dat.roadLimitSpeed
-    except:
+    except Exception as e:
       pass
 
   def get_active(self):

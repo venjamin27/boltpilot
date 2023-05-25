@@ -11,7 +11,6 @@ from common.realtime import Ratekeeper, Priority, config_realtime_process
 from selfdrive.controls.lib.radar_helpers import Cluster, Track, RADAR_TO_CAMERA
 from system.swaglog import cloudlog
 from third_party.cluster.fastcluster_py import cluster_points_centroid
-from common.params import Params
 from selfdrive.controls.lib.lane_planner import TRAJECTORY_SIZE
 import numpy as np
 
