@@ -814,7 +814,7 @@ void AnnotatedCameraWidget::drawBottomIcons(QPainter &p) {
   p.save();
   const SubMaster &sm = *(uiState()->sm);
   auto car_state = sm["carState"].getCarState();
-  //auto car_control = sm["carControl"].getCarControl();
+  auto car_control = sm["carControl"].getCarControl();
   auto controls_state = sm["controlsState"].getControlsState();
 
   // tpms
@@ -898,6 +898,17 @@ void AnnotatedCameraWidget::drawBottomIcons(QPainter &p) {
     drawIcon(p, x, y, autohold > 1 ? ic_autohold_warning : ic_autohold_active,
             QColor(0, 0, 0, (255 * bg_alpha)), img_alpha);
   }
+
+
+  //regen-paddle-icon
+
+  x = radius / 2 + (bdr_s * 2) + (radius + 50) * 5;
+  bool regen_valid = car_control.getActuators().getRegenPaddle();
+  img_alpha = regen_valid ? 1.0f : 0.15f;
+  bg_alpha = regen_valid ? 0.3f : 0.1f;
+  drawIcon(p, x, y, ic_regenPaddle, QColor(0, 0, 0, (255 * bg_alpha)), img_alpha);
+
+
 
   p.restore();
 }
