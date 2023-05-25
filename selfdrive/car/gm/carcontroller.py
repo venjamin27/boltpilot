@@ -155,6 +155,8 @@ class CarController:
 
           if not CC.longActive:
             pedal_gas = 0.0  # May not be needed with the enable param
+          elif pedal_gas < 0.075 :
+            can_sends.append(gmcan.create_regen_paddle_command(self.packer_pt, CanBus.POWERTRAIN))
 
           idx = (self.frame // 4) % 4
           can_sends.append(create_gas_interceptor_command(self.packer_pt, pedal_gas, idx))
