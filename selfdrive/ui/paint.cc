@@ -1639,7 +1639,7 @@ void ui_nvg_init(UIState *s) {
   {"ic_scc2", "../assets/images/img_scc2.png"},
   {"ic_radartracks", "../assets/images/img_radartracks.png"},
 
-  {"ic_regenPaddle","../assets/images/ic_regen.png"},
+
 
   };
   for (auto [name, file] : images) {
