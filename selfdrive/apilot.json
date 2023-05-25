@@ -404,6 +404,16 @@
     },
     {
       "group": "감속제어",
+      "name": "TrafficStopMode",
+      "title": "신호정지 방법 (1)",
+      "descr": "0:사용안함,1:Apilot모드,2:Mix 실험적모드",
+      "min": 0,
+      "max": 2,
+      "default": 1,
+      "unit": 1
+    },
+    {
+      "group": "감속제어",
       "name": "ApplyModelDistOrder",
       "title": "신호정지 감속모델선택 (30)",
       "descr": "숫자가 작을수록 감속을 미리합니다.",

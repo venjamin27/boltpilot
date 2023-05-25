@@ -237,6 +237,7 @@ class LongitudinalMpc:
     self.applyLongDynamicCost = False
     self.trafficStopAccel = 1.
     self.trafficStopModelSpeed = True
+    self.trafficStopMode = 1
     self.applyDynamicTFollow = 1.0
     self.applyDynamicTFollowApart = 1.0
     self.applyDynamicTFollowDecel = 1.0
@@ -582,6 +583,7 @@ class LongitudinalMpc:
       self.trafficStopAccel = float(int(Params().get("TrafficStopAccel", encoding="utf8"))) / 100.
     elif self.lo_timer == 80:
       self.trafficStopModelSpeed = Params().get_bool("TrafficStopModelSpeed")
+      self.trafficStopMode = int(Params().get("TrafficStopMode", encoding="utf8"))
       self.stopDistance = float(int(Params().get("StopDistance", encoding="utf8"))) / 100.
     elif self.lo_timer == 100:
       self.applyDynamicTFollow = float(int(Params().get("ApplyDynamicTFollow", encoding="utf8"))) / 100.
@@ -735,7 +737,7 @@ class LongitudinalMpc:
           self.xState = XState.e2eCruise
           self.mpcEvent = EventName.trafficSignGreen
     #고속모드 또는 신호감지 일시정지: 신호정지 사용안함.
-    elif controls.myDrivingMode == 4: 
+    elif controls.myDrivingMode == 4 or self.trafficStopMode==0: 
       if self.status:
         self.xState = XState.lead
       else:
@@ -748,7 +750,7 @@ class LongitudinalMpc:
       if carstate.gasPressed:
         self.xState = XState.e2eCruisePrepare
         stop_x = 1000.0
-      elif True:
+      elif self.trafficStopMode==2:
         if self.trafficState == 2:
           if v_ego_kph > 30:
              self.xState = XState.e2eCruise
@@ -830,7 +832,8 @@ class LongitudinalMpc:
       if self.trafficState == 2: #stop_x > 100.0:
         stop_x = 1000.0
 
-    mode = 'blended' if self.xState in [XState.e2eStop, XState.e2eCruisePrepare] else 'acc'
+    if self.trafficStopMode == 2:
+      mode = 'blended' if self.xState in [XState.e2eStop, XState.e2eCruisePrepare] else 'acc'
 
     self.comfort_brake *= self.mySafeModeFactor
     self.longActiveUser = controls.longActiveUser
