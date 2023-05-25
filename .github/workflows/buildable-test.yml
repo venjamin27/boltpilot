@@ -141,7 +141,7 @@ jobs:
             extra-flake8-options: --select=F21,F822,F823,F831,F811,F812,E999
 
   bp-build:
-    name: Build
+    name: bp-Build
     # The type of runner that the job will run on
     runs-on: ubuntu-20.04
     if: always() && github.repository == 'jc01rho-openpilot-BoltEV2019-KoKr/boltpilot'
