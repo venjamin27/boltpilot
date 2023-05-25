@@ -136,7 +136,7 @@ class CarController:
             #Tuning 가이드 -> plot 그래프상 노란색이 아래에 있으면 그 속도에서 gain 값을 올려주고,
             #               노란색이 위에 있으면 gain 값을 낮춰주고
             #               단, 정지 출발은 예외, gain 값이 너무 높으면 말타기함.
-            pedalAccGain = interp(CS.out.vEgo, [0, 22], [0.825, 0.825])
+            pedalAccGain = interp(CS.out.vEgo, [0, 22], [0.5, 0.5])
             pedalDecelgain = interp(CS.out.vEgo, [0, 22], [0.825, 0.825])
 
             if actuators.accel > 0.:
