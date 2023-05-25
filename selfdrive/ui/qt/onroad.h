@@ -110,6 +110,9 @@ protected:
   QPixmap ic_turn_signal_r;
   QPixmap ic_satellite;
 
+  QPixmap ic_regenPaddle;
+
+
   int m_fps = 0;
   QMap<QString, QPixmap> ic_oil_com;
 
