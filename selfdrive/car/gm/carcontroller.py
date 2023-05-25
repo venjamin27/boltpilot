@@ -131,13 +131,14 @@ class CarController:
             # Shrink gas request to 0.85, have it start at 0.2
             # Shrink brake request to 0.85, first 0.15 gives regen, rest gives AEB
 
-            zero = 0.15625  # 40/256
+            # zero = 0.15625  # 40/256
+            zero = interp(CS.out.vEgo,[10, 30], [0.15625, 0.1953])  # 40/256, 50/256(OPGM 따라해봄)
             #pedalAccGain = 0.24 # 가속 gain, 0.25 부터 시작, 50~60km/h 에서는 0.25가 딱 좋음
             #Tuning 가이드 -> plot 그래프상 노란색이 아래에 있으면 그 속도에서 gain 값을 올려주고,
             #               노란색이 위에 있으면 gain 값을 낮춰주고
             #               단, 정지 출발은 예외, gain 값이 너무 높으면 말타기함.
-            pedalAccGain = interp(CS.out.vEgo, [10, 30], [0.26, 1.0])
-            pedalDecelgain = interp(CS.out.vEgo, [10, 30], [0.26, 1.0])
+            pedalAccGain = interp(CS.out.vEgo, [10, 30], [0.26, 0.26])
+            pedalDecelgain = interp(CS.out.vEgo, [10, 30], [0.26, 0.26])
 
             if actuators.accel > 0.:
               # Scales the accel from 0-1 to 0.156-1
