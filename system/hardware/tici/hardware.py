@@ -183,7 +183,7 @@ class Tici(HardwareBase):
         'network_type': ["Unknown"],
         'sim_state': ["READY"],
         'data_connected': modem.Get(MM_MODEM, 'State', dbus_interface=DBUS_PROPS, timeout=TIMEOUT) == MM_MODEM_STATE.CONNECTED,
-    c}
+    }
 
   def get_subscriber_info(self):
     return ""
