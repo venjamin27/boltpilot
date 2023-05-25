@@ -155,8 +155,15 @@ class CarController:
 
           if not CC.longActive:
             pedal_gas = 0.0  # May not be needed with the enable param
+
           elif actuators.accel < -0.50 : #### implies CC.longActive is True
             can_sends.append(gmcan.create_regen_paddle_command(self.packer_pt, CanBus.POWERTRAIN))
+
+          elif actuators.accel < -1.50 :
+            at_full_stop = CC.longActive and CS.out.standstill
+            near_stop = CC.longActive and (CS.out.vEgo < self.params.NEAR_STOP_BRAKE_PHASE)
+            friction_brake_bus = CanBus.CHASSIS
+            can_sends.append(gmcan.create_friction_brake_command(self.packer_ch, friction_brake_bus, self.apply_brake, idx, CC.enabled, near_stop, at_full_stop, self.CP))
 
           idx = (self.frame // 4) % 4
           can_sends.append(create_gas_interceptor_command(self.packer_pt, pedal_gas, idx))
