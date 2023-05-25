@@ -125,6 +125,7 @@ class CarState(CarStateBase):
     ret.tpms.rl = 30 #TODO:
     ret.tpms.rr = 30 #TODO:    
 
+    ret.regenPressed = pt_cp.vl["EBCMRegenPaddle"]["RegenPaddle"] != 0
     # Regen braking is braking
     if self.CP.transmissionType == TransmissionType.direct:
       ret.regenBraking = pt_cp.vl["EBCMRegenPaddle"]["RegenPaddle"] != 0

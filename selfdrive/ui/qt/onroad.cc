@@ -71,7 +71,7 @@ OnroadWindow::OnroadWindow(QWidget *parent) : QWidget(parent) {
   QObject::connect(uiState(), &UIState::offroadTransition, this, &OnroadWindow::offroadTransition);
 
   // screen recoder - neokii
-
+#if  defined(QCOM2) || defined(QCOM)
   record_timer = std::make_shared<QTimer>();
 	QObject::connect(record_timer.get(), &QTimer::timeout, [=]() {
     if(recorder) {
@@ -90,7 +90,7 @@ OnroadWindow::OnroadWindow(QWidget *parent) : QWidget(parent) {
   stacked_layout->addWidget(recorder_widget);
   recorder_widget->raise();
   alerts->raise();
-
+#endif
 }
 
 void OnroadWindow::updateState(const UIState &s) {
@@ -157,14 +157,16 @@ void OnroadWindow::mouseReleaseEvent(QMouseEvent* e) {
         }
       }
       else if(std::abs(dx) > std::abs(dy)) {
-        if(dx < 0) { // right to left
-          if(recorder)
-            recorder->toggle();
-        }
-        else { // left to right
-          if(recorder)
-            recorder->toggle();
-        }
+        #if  defined(QCOM2) || defined(QCOM)
+            if(dx < 0) { // right to left
+              if(recorder)
+                recorder->toggle();
+            }
+            else { // left to right
+              if(recorder)
+                recorder->toggle();
+            }
+        #endif
       }
 
       return;
@@ -222,10 +224,11 @@ void OnroadWindow::offroadTransition(bool offroad) {
 
   //alerts->updateAlert({}, bg);
   ui_update_alert({}, bg);
-
+#if  defined(QCOM2) || defined(QCOM)
   if(offroad && recorder) {
     recorder->stop(false);
   }
+#endif
 }
 
 void OnroadWindow::paintEvent(QPaintEvent *event) {
@@ -811,7 +814,7 @@ void AnnotatedCameraWidget::drawBottomIcons(QPainter &p) {
   p.save();
   const SubMaster &sm = *(uiState()->sm);
   auto car_state = sm["carState"].getCarState();
-  //auto car_control = sm["carControl"].getCarControl();
+  auto car_control = sm["carControl"].getCarControl();
   auto controls_state = sm["controlsState"].getControlsState();
 
   // tpms
@@ -895,6 +898,17 @@ void AnnotatedCameraWidget::drawBottomIcons(QPainter &p) {
     drawIcon(p, x, y, autohold > 1 ? ic_autohold_warning : ic_autohold_active,
             QColor(0, 0, 0, (255 * bg_alpha)), img_alpha);
   }
+
+
+  //regen-paddle-icon
+
+  x = radius / 2 + (bdr_s * 2) + (radius + 50) * 5;
+  bool regen_valid = car_control.getActuators().getRegenPaddle();
+  img_alpha = regen_valid ? 1.0f : 0.15f;
+  bg_alpha = regen_valid ? 0.3f : 0.1f;
+  drawIcon(p, x, y, ic_regenPaddle, QColor(0, 0, 0, (255 * bg_alpha)), img_alpha);
+
+
 
   p.restore();
 }
