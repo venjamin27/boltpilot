@@ -1,7 +1,9 @@
 import copy
+import math
 from cereal import car
 from common.conversions import Conversions as CV
 from common.numpy_fast import mean
+from common.params import Params, put_nonblocking
 from opendbc.can.can_define import CANDefine
 from opendbc.can.parser import CANParser
 from selfdrive.car.interfaces import CarStateBase
@@ -12,6 +14,7 @@ NetworkLocation = car.CarParams.NetworkLocation
 GearShifter = car.CarState.GearShifter
 STANDSTILL_THRESHOLD = 10 * 0.0311 * CV.KPH_TO_MS
 
+CLUSTER_SAMPLE_RATE = 20  # frames
 
 class CarState(CarStateBase):
   def __init__(self, CP):
@@ -27,9 +30,22 @@ class CarState(CarStateBase):
     self.cam_lka_steering_cmd_counter = 0
     self.buttons_counter = 0
     self.single_pedal_mode = False
+    self.params = Params()
+
+    ###for neokii integration of former BoltPilot
+    self.cluster_speed = 0
+    self.cluster_speed_counter = CLUSTER_SAMPLE_RATE
+    self.is_settings_metri = True
+    self.ECMVehicleSpeed = 0
+    ###for neokii integration of former BoltPilot ends
 
   def update(self, pt_cp, cam_cp, loopback_cp):
     ret = car.CarState.new_message()
+
+    ###for neokii integration of former BoltPilot
+    self.is_settings_metric = self.params.get_bool("IsMetric") #####but unused variable.
+    # speed_conv = CV.KPH_TO_MS if self.is_metric else CV.MPH_TO_MS
+    ###for neokii integration of former BoltPilot ends
 
     self.prev_cruise_buttons = self.cruise_buttons
     self.cruise_buttons = pt_cp.vl["ASCMSteeringButton"]["ACCButtons"]
@@ -54,6 +70,27 @@ class CarState(CarStateBase):
     )
     ret.vEgoRaw = mean([ret.wheelSpeeds.fl, ret.wheelSpeeds.fr, ret.wheelSpeeds.rl, ret.wheelSpeeds.rr])
     ret.vEgo, ret.aEgo = self.update_speed_kf(ret.vEgoRaw)
+
+
+    ###for neokii integration of former BoltPilot
+    self.cluster_speed_counter += 1
+    if self.cluster_speed_counter > CLUSTER_SAMPLE_RATE:
+      self.cluster_speed = (pt_cp.vl["ECMVehicleSpeed"]["VehicleSpeed"] * CV.MPH_TO_MS)
+      self.cluster_speed_counter = 0
+
+
+      #Consider only BolTEV
+      # if not self.is_metric and self.CP.carFingerprint not in (CAR.KIA_SORENTO,):
+      self.cluster_speed = math.floor(self.cluster_speed * CV.MPH_TO_MS + CV.MPH_TO_MS)
+
+    vEgoRawClu = (pt_cp.vl["ECMVehicleSpeed"]["VehicleSpeed"] * CV.MPH_TO_MS)
+    vEgoClu, aEgoClu = self.update_clu_speed_kf(vEgoRawClu)
+    ret.vEgoCluster = vEgoRawClu
+    self.ECMVehicleSpeed = pt_cp.vl["ECMVehicleSpeed"]
+    ret.vCluRatio = (ret.vEgo / vEgoClu) if (vEgoClu > 3. and ret.vEgo > 3.) else 1.0
+    ###for neokii integration of former BoltPilot ends
+
+
     # sample rear wheel speeds, standstill=True if ECM allows engagement with brake
     ret.standstill = ret.wheelSpeeds.rl <= STANDSTILL_THRESHOLD and ret.wheelSpeeds.rr <= STANDSTILL_THRESHOLD
 
@@ -95,7 +132,7 @@ class CarState(CarStateBase):
 
     if self.CP.enableGasInterceptor:
       ret.gas = (pt_cp.vl["GAS_SENSOR"]["INTERCEPTOR_GAS"] + pt_cp.vl["GAS_SENSOR"]["INTERCEPTOR_GAS2"]) / 2.
-      ret.gasPressed = ret.gas > 20
+      ret.gasPressed = ret.gas > int(self.params.get("PedalPressedThreshold", encoding='utf8'))
     else:
       ret.gas = pt_cp.vl["AcceleratorPedal2"]["AcceleratorPedal2"] / 254.
       ret.gasPressed = ret.gas > 1e-5
@@ -207,6 +244,8 @@ class CarState(CarStateBase):
       ("ParkBrake", "VehicleIgnitionAlt"),
       ("CruiseMainOn", "ECMEngineStatus"),
       ("BrakePressed", "ECMEngineStatus"),
+
+      ("VehicleSpeed", "ECMVehicleSpeed"),
     ]
 
     checks = [
@@ -224,6 +263,7 @@ class CarState(CarStateBase):
       ("ECMEngineStatus", 100),
       ("PSCMSteeringAngle", 100),
       ("ECMAcceleratorPos", 80),
+      ("ECMVehicleSpeed", 50),
     ]
 
     # Used to read back last counter sent to PT by camera

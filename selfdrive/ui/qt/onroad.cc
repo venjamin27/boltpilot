@@ -102,7 +102,8 @@ void OnroadWindow::updateState(const UIState &s) {
     } else if (alert.type == "controlsUnresponsivePermanent") {
       bgColor = bg_colors[STATUS_DISENGAGED];
     }
-    alerts->updateAlert(alert, bgColor);
+    //alerts->updateAlert(alert, bgColor);
+    ui_update_alert(alert, bgColor);
   }
 
   if (s.scene.map_on_left) {
@@ -121,7 +122,6 @@ void OnroadWindow::updateState(const UIState &s) {
 }
 
 void OnroadWindow::mouseReleaseEvent(QMouseEvent* e) {
-#if 0
   QRect rc = rect();
   if(false && isMapVisible()) {
     UIState *s = uiState();
@@ -133,6 +133,7 @@ void OnroadWindow::mouseReleaseEvent(QMouseEvent* e) {
     }
   }
   if(rc.contains(e->pos())) {
+#if 0
     QPoint endPos = e->pos();
     int dx = endPos.x() - startPos.x();
     int dy = endPos.y() - startPos.y();
@@ -168,13 +169,13 @@ void OnroadWindow::mouseReleaseEvent(QMouseEvent* e) {
 
       return;
     }
+#endif
 
     if (map != nullptr) {
       bool sidebarVisible = geometry().x() > 0;
       map->setVisible(!sidebarVisible && !map->isVisible());
     }
   }
-#endif
 
   // propagation event to parent(HomeWindow)
   QWidget::mouseReleaseEvent(e);
@@ -219,7 +220,8 @@ void OnroadWindow::offroadTransition(bool offroad) {
   }
 #endif
 
-  alerts->updateAlert({}, bg);
+  //alerts->updateAlert({}, bg);
+  ui_update_alert({}, bg);
 
   if(offroad && recorder) {
     recorder->stop(false);
@@ -623,7 +625,7 @@ void AnnotatedCameraWidget::paintEvent(QPaintEvent *event) {
     case 0: drawHud(p, model); break;
     default: 
         ui_draw(s, width(), height()); 
-        if (s->show_device_stat) drawDeviceState(p);
+        //if (s->show_device_stat) drawDeviceState(p);
         //drawTurnSignals(p);
         //drawGpsStatus(p);
 #ifdef __TEST
@@ -647,6 +649,8 @@ void AnnotatedCameraWidget::paintEvent(QPaintEvent *event) {
   double dt = cur_draw_t - prev_draw_t;
   double fps = fps_filter.update(1. / dt * 1000);
   m_fps = fps;
+  extern int g_fps;
+  g_fps = fps;
   if (fps < 15) {
     LOGW("slow frame rate: %.2f fps", fps);
   }

@@ -291,12 +291,13 @@ class CarInterface(CarInterfaceBase):
     if ret.vEgo < self.CP.minSteerSpeed:
       events.add(EventName.belowSteerSpeed)
     if self.CP.enableGasInterceptor and self.CP.transmissionType == TransmissionType.direct and not self.CS.single_pedal_mode:
-      if ret.gearShifter == GearShifter.reverse:
+      if ret.gearShifter in [GearShifter.reverse] :
         events.add(EventName.reverseGear)
-      elif ret.gearShifter == GearShifter.park or ret.gearShifter == GearShifter.neutral:
+      elif ret.gearShifter in [GearShifter.park, GearShifter.neutral, GearShifter.manumatic, GearShifter.drive] :
         events.add(EventName.wrongGear)
       else:
         events.add(EventName.brakeUnavailable)
+        # print("Unknown gearShifter value: %s" % ret.gearShifter)
 
     ret.events = events.to_msg()
 

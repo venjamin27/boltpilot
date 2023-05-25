@@ -6,7 +6,7 @@ from opendbc.can.parser import CANParser
 from selfdrive.car.interfaces import RadarInterfaceBase
 from selfdrive.car.hyundai.values import DBC
 from common.params import Params
-from common.numpy_fast import interp
+from common.filter_simple import StreamingMovingAverage
 
 RADAR_START_ADDR = 0x500
 RADAR_MSG_COUNT = 32
@@ -60,7 +60,9 @@ class RadarInterface(RadarInterfaceBase):
     self.radar_off_can = CP.radarUnavailable
     self.rcp = get_radar_can_parser(CP)
 
-    self.vRel_prev = 1000.0
+    self.dRelFilter = StreamingMovingAverage(2)
+    self.vRelFilter = StreamingMovingAverage(4)
+    self.valid_prev = False
 
   def update(self, can_strings):
     # This one causes my radar points to not work
@@ -126,24 +128,23 @@ class RadarInterface(RadarInterfaceBase):
             self.pts[ii].trackId = self.track_id
             self.track_id += 1
 
-          vRel = cpt["SCC11"]['ACC_ObjRelSpd']
-          self.pts[ii].dRel = cpt["SCC11"]['ACC_ObjDist']  # from front of car
-          self.pts[ii].yRel = -cpt["SCC11"]['ACC_ObjLatPos']  # in car frame's y axis, left is negative
-          self.pts[ii].vRel = cpt["SCC11"]['ACC_ObjRelSpd']
-          if self.vRel_prev == 1000:
-            self.vRel_prev = self.pts[ii].vRel
-            self.pts[ii].aRel = 0.0
+          if not self.valid_prev:
+            dRel = self.dRelFilter.set(cpt["SCC11"]['ACC_ObjDist'])
+            vRel = self.vRelFilter.set(cpt["SCC11"]['ACC_ObjRelSpd'])
           else:
-            self.pts[ii].aRel = self.pts[ii].vRel - self.vRel_prev
-            self.vRel_prev = self.pts[ii].vRel
-          #self.pts[ii].aRel = float('nan')
+            dRel = self.dRelFilter.process(cpt["SCC11"]['ACC_ObjDist'])
+            vRel = self.vRelFilter.process(cpt["SCC11"]['ACC_ObjRelSpd'])
+          self.pts[ii].dRel = dRel #cpt["SCC11"]['ACC_ObjDist']  # from front of car
+          self.pts[ii].yRel = -cpt["SCC11"]['ACC_ObjLatPos']  # in car frame's y axis, left is negative
+          self.pts[ii].vRel = vRel #cpt["SCC11"]['ACC_ObjRelSpd']
+          self.pts[ii].aRel = float('nan')
           self.pts[ii].yvRel = float('nan')
           self.pts[ii].measured = True
 
         else:
-          self.vRel_prev = 1000.0
           if ii in self.pts:
             del self.pts[ii]
 
+      self.valid_prev = valid
       ret.points = list(self.pts.values())
       return ret

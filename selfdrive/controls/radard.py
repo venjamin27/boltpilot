@@ -6,11 +6,11 @@ from collections import defaultdict, deque
 import cereal.messaging as messaging
 from cereal import car
 from common.numpy_fast import interp
+from common.params import Params
 from common.realtime import Ratekeeper, Priority, config_realtime_process
 from selfdrive.controls.lib.radar_helpers import Cluster, Track, RADAR_TO_CAMERA
 from system.swaglog import cloudlog
 from third_party.cluster.fastcluster_py import cluster_points_centroid
-from common.params import Params
 from selfdrive.controls.lib.lane_planner import TRAJECTORY_SIZE
 import numpy as np
 
@@ -134,7 +134,7 @@ def get_path_adjacent_leads(v_ego, md, lane_width, clusters):
   lc = sorted(leads_center.values(), key=lambda c:c["dRel"])
   return [ll,lc,lr]
 
-def get_lead(v_ego, ready, clusters, lead_msg, lead_index, low_speed_override=True):
+def get_lead(v_ego, ready, clusters, lead_msg, lead_index, low_speed_override=True, mixRadarInfo=0):
   # Determine leads, this is where the essential logic happens
   if len(clusters) > 0 and ready and lead_msg.prob > .5:
     cluster = match_vision_to_cluster(v_ego, lead_msg, clusters)
@@ -143,7 +143,7 @@ def get_lead(v_ego, ready, clusters, lead_msg, lead_index, low_speed_override=Tr
 
   lead_dict = {'status': False}
   if cluster is not None:
-    lead_dict = cluster.get_RadarState(lead_msg.prob)
+    lead_dict = cluster.get_RadarState2(lead_msg.prob, lead_msg, mixRadarInfo, lead_index)
   elif (cluster is None) and ready and (lead_msg.prob > .5):
     lead_dict = Cluster().get_RadarState_from_vision(lead_msg, lead_index, v_ego)
 
@@ -172,9 +172,11 @@ class RadarD():
 
     self.ready = False
     self.showRadarInfo = False
+    self.mixRadarInfo = 0
 
   def update(self, sm, rr):
     self.showRadarInfo = int(Params().get("ShowRadarInfo"))
+    self.mixRadarInfo = int(Params().get("MixRadarInfo"))
 
     self.current_time = 1e-9*max(sm.logMonoTime.values())
 
@@ -243,8 +245,8 @@ class RadarD():
 
     leads_v3 = sm['modelV2'].leadsV3
     if len(leads_v3) > 1:
-      radarState.leadOne = get_lead(self.v_ego, self.ready, clusters, leads_v3[0], 0, low_speed_override=True)
-      radarState.leadTwo = get_lead(self.v_ego, self.ready, clusters, leads_v3[1], 1, low_speed_override=False)
+      radarState.leadOne = get_lead(self.v_ego, self.ready, clusters, leads_v3[0], 0, low_speed_override=True, mixRadarInfo=self.mixRadarInfo)
+      radarState.leadTwo = get_lead(self.v_ego, self.ready, clusters, leads_v3[1], 1, low_speed_override=False, mixRadarInfo=self.mixRadarInfo)
 
       if self.ready and self.showRadarInfo: #self.extended_radar_enabled and self.ready:
         ll,lc,lr = get_path_adjacent_leads(self.v_ego, sm['modelV2'], sm['lateralPlan'].laneWidth, clusters)
