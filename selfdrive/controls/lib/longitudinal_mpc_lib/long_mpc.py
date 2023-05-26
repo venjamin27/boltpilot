@@ -657,11 +657,11 @@ class LongitudinalMpc:
       stopSign = False
 
     self.stopSignCount = self.stopSignCount + 1 if (stopSign and (model_x > get_safe_obstacle_distance(v_ego, t_follow=0, comfort_brake=COMFORT_BRAKE, stop_distance=-1.0))) else 0
-    self.startSignCount = self.startSignCount + 1 if startSign else 0
+    self.startSignCount = self.startSignCount + 1 if startSign and not stopSign else 0
 
     if self.stopSignCount * DT_MDL > 0.0 and carstate.rightBlinker == False:
       self.trafficState = 1
-    elif self.startSignCount * DT_MDL > 0.5:
+    elif self.startSignCount * DT_MDL > 0.8:
       self.trafficState = 2  
     else:
       self.trafficState = 0
