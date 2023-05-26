@@ -645,14 +645,14 @@ class LongitudinalMpc:
   def check_model_stopping(self, carstate, v, v_ego, model_x, y):
     v_ego_kph = v_ego * CV.MS_TO_KPH
     model_v = self.vFilter.process(v[-1])
-    startSign = model_v > 5.0 or model_v > (v[0]+2)
+    startSign = (model_v > 5.0 or model_v > (v[0]+2)) and model_x > 50.0
     if v_ego_kph < 1.0: 
       stopSign = model_x < 20.0 and model_v < 10.0
     elif v_ego_kph < 80.0:
       if self.trafficDetectBrightness < self.lightSensor:
-        stopSign = model_x < 110.0 and ((model_v < 3.0) or (model_v < v[0]*0.6)) and abs(y[-1]) < 5.0
+        stopSign = model_x < 110.0 and ((model_v < 3.0) or (model_v < v[0]*0.6)) #and abs(y[-1]) < 5.0
       else:
-        stopSign = model_x < 130.0 and ((model_v < 3.0) or (model_v < v[0]*0.7)) and abs(y[-1]) < 5.0
+        stopSign = model_x < 130.0 and ((model_v < 3.0) or (model_v < v[0]*0.7)) #and abs(y[-1]) < 5.0
     else:
       stopSign = False
 
