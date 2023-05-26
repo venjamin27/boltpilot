@@ -696,7 +696,8 @@ class LongitudinalMpc:
     self.xStop = self.update_stop_dist(stop_x)
     stop_x = self.xStop
     ## 모델의 신호정지 검사
-    self.check_model_stopping(carstate, v, v_ego, self.xStop, y)
+    #self.check_model_stopping(carstate, v, v_ego, self.xStop, y)
+    self.check_model_stopping(carstate, v, v_ego, x[-1], y)
 
     cruiseButtonCounterDiff = controls.cruiseButtonCounter - self.cruiseButtonCounter
     if cruiseButtonCounterDiff != 0:
