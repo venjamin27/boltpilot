@@ -448,7 +448,7 @@ void update_model(UIState *s,
   if (lead_one.getStatus()) {
       //const float lead_d = lead_one.getDRel() * 2.;
       //max_distance = std::clamp((float)(lead_d - fmin(lead_d * 0.35, 10.)), 0.0f, max_distance);
-      const float lead_d = lead_one.getDRel() - 5.0;  /// 일부러 약깐 짧게 하여 패쓰엔드가 차아래쪽에 위치하게?? 패쓰를 낮추면 좋겠지만...
+      const float lead_d = lead_one.getDRel() - 8.0;  /// 일부러 약깐 짧게 하여 패쓰엔드가 차아래쪽에 위치하게?? 패쓰를 낮추면 좋겠지만...
       max_distance = std::clamp((float)lead_d, 0.0f, max_distance);
   }
 
