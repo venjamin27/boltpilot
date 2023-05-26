@@ -499,6 +499,10 @@ class Controls:
 
     # apilot은 cruise_helper에서 처리함..
     #self.v_cruise_helper.update_v_cruise(CS, self.enabled, self.is_metric)
+    if CS.regenPressed:
+      self.regenPressed = True
+    else :
+      self.regenPressed = False
 
     if CS.cruiseState.available:
       # if stock cruise is completely disabled, then we can use our own set speed logic
