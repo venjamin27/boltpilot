@@ -1078,30 +1078,18 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
             }
 
             nvgFontSize(s->vg, 40);
-#if 0
-            if (s->show_steer_mode == 2) {
-                int radar_y = (y > s->fb_h - 550) ? s->fb_h - 550 : y - 40;
-                if (s->show_mode >= 3) radar_y = y - 145;
-                ui_draw_text(s, x, radar_y, str, 40, textColor, BOLD, 1.0, 3.0, borderColor, COLOR_BLACK);
-            }
-            else {
-                int radar_y = y - 140;
-                ui_draw_text(s, x, radar_y, str, 40, textColor, BOLD, 1.0, 3.0, borderColor, COLOR_BLACK);
-            }
-#else
-            //ui_draw_text(s, x, y + 210, str, 40, COLOR_WHITE, BOLD, 1.0, 3.0, borderColor, COLOR_BLACK);
-#endif
         }
         if (s->show_mode >= 2) {
-            if(!no_radar) ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2, icon_size, icon_size }, (radar_detected) ? "ic_radar" : "ic_radar_vision", 1.0f);
+            if(!no_radar && s->show_path_end==0) ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2, icon_size, icon_size }, (radar_detected) ? "ic_radar" : "ic_radar_vision", 1.0f);
         }
         else ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2, icon_size, icon_size }, (no_radar) ? "ic_radar_no" : (radar_detected) ? "ic_radar" : "ic_radar_vision", 1.0f);
 
+        float disp_size = (s->show_path_end)?60.0:45.0;
         if (no_radar) {
             if (stop_dist > 0.5 && stopping) {
                 if (stop_dist < 10.0) sprintf(str, "%.1f", stop_dist);
                 else sprintf(str, "%.0f", stop_dist);
-                ui_draw_text(s, x, y+120.0, str, 45, COLOR_WHITE, BOLD);
+                ui_draw_text(s, x, y+120.0, str, disp_size, COLOR_WHITE, BOLD);
             }
             else if (longActiveUser > 0 && (stopping || lp.getTrafficState() >= 1000)) {
                 if (brake_hold || soft_hold) {
@@ -1116,11 +1104,13 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
         else if (disp_dist > 0.0) {
             if (disp_dist < 10.0) sprintf(str, "%.1f", disp_dist);
             else sprintf(str, "%.0f", disp_dist);
-            ui_draw_text(s, x, y + 120.0, str, 45, textColor, BOLD);
+            //ui_draw_text(s, x, y + 120.0, str, 45, textColor, BOLD);
+            ui_draw_text(s, x, y + 120.0, str, disp_size, COLOR_WHITE, BOLD);
         }
     }
     if (s->show_path_end) {
-        if(path_y < s->fb_h - 200) ui_fill_rect(s->vg, { path_x - path_width / 2, path_y, path_width, -10 }, (radar_rel_speed > -0.1) ? COLOR_GREEN : COLOR_RED, 5);
+        //if (path_y < s->fb_h - 200) ui_fill_rect(s->vg, { path_x - path_width / 2, path_y, path_width, -10 }, (radar_rel_speed > -0.1) ? COLOR_GREEN : COLOR_RED, 5);
+        if (path_y < s->fb_h - 200) ui_fill_rect(s->vg, { path_x - path_width / 2, path_y, path_width, -10 }, no_radar?COLOR_ORANGE:radar_detected?COLOR_RED:COLOR_BLUE, 5);
     }
 
     // 타겟좌측 : 갭표시
