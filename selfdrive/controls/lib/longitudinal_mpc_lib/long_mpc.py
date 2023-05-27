@@ -259,6 +259,7 @@ class LongitudinalMpc:
     self.e2eCruiseCount = 0
     self.mpcEvent = 0
     self.lightSensor = 0
+    self.prev_x = 0
 
     self.t_follow = T_FOLLOW
     self.comfort_brake = COMFORT_BRAKE
@@ -646,6 +647,11 @@ class LongitudinalMpc:
     v_ego_kph = v_ego * CV.MS_TO_KPH
     model_v = self.vFilter.process(v[-1])
     startSign = (model_v > 5.0 or model_v > (v[0]+2)) # and model_x > 50.0
+
+    ## 시그널이 10M이상 떨리면... 신호가 잘못된걸로...
+    if (self.prev_x - model_x) > 10:
+      startSign = False
+    self.prev_x = model_x
     if v_ego_kph < 1.0: 
       stopSign = model_x < 20.0 and model_v < 10.0
     elif v_ego_kph < 80.0:
@@ -812,12 +818,12 @@ class LongitudinalMpc:
         self.trafficError = True
       elif cruiseButtonCounterDiff != 0: #신호감지무시중 버튼이 눌리면 다시 재개함.
         self.xState = XState.e2eCruise
-      elif v_ego_kph < 1.0 and self.trafficState == 1:  ## 출발신호이지만.... 정지신호로 바뀐경우(모델신호 변심) 다시 정지하는걸로..
+      elif v_ego_kph < 1.0 and self.trafficState != 2:  ## 출발신호이지만.... 정지신호로 바뀐경우(모델신호 변심) 다시 정지하는걸로..
         self.xState = XState.e2eStop
       elif (v_ego_kph > 30.0 and (stop_x > 60.0 and abs(y[-1])<2.0)):
         self.xState = XState.e2eCruise
       else:
-        self.trafficState = 0
+        #self.trafficState = 0
         self.trafficError = False
         stop_x = 1000.0
     ## 신호감지주행중
@@ -833,7 +839,7 @@ class LongitudinalMpc:
         self.xState = XState.e2eCruise
         if carstate.brakePressed and v_ego_kph < 1.0  and self.softHoldMode > 0:
           self.xState = XState.softHold
-      if self.trafficState == 2: #stop_x > 100.0:
+      if self.trafficState in [0, 2]: #stop_x > 100.0:
         stop_x = 1000.0
 
     if self.trafficStopMode == 2:

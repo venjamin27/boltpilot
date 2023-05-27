@@ -544,6 +544,16 @@
     },
     {
       "group": "버튼설정",
+      "name": "CruiseSpeedUnit",
+      "title": "크루즈버튼속도단위(10)",
+      "descr": "",
+      "min": 1,
+      "max": 20,
+      "default": 10,
+      "unit": 1
+    },
+    {
+      "group": "버튼설정",
       "name": "GapButtonMode",
       "title": "크루즈갭버튼 작동모드(0)",
       "descr": "0:1~4, 1:1~5, 2:4~5, 3:4~5(크루즈OFF모드) (4:Auto, 5:크루즈ON제한모드)",

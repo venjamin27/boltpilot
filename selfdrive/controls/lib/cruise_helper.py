@@ -122,6 +122,7 @@ class CruiseHelper:
     self.autoSpeedUptoRoadSpeedLimit = float(int(Params().get("AutoSpeedUptoRoadSpeedLimit", encoding="utf8"))) / 100.
     self.autoSpeedAdjustWithLeadCar = float(int(Params().get("AutoSpeedAdjustWithLeadCar", encoding="utf8"))) / 1.
     self.cruiseButtonMode = int(Params().get("CruiseButtonMode"))
+    self.cruiseSpeedUnit = int(Params().get("CruiseSpeedUnit"))
     self.gapButtonMode = int(Params().get("GapButtonMode"))
     self.autoResumeFromGasSpeedMode = int(Params().get("AutoResumeFromGasSpeedMode"))
     self.myDrivingMode = int(Params().get("InitMyDrivingMode"))
@@ -170,6 +171,7 @@ class CruiseHelper:
         self.autoSpeedAdjustWithLeadCar = float(int(Params().get("AutoSpeedAdjustWithLeadCar", encoding="utf8"))) / 1.
       elif self.update_params_count == 10:
         self.cruiseButtonMode = int(Params().get("CruiseButtonMode"))
+        self.cruiseSpeedUnit = int(Params().get("CruiseSpeedUnit"))
         self.autoResumeFromGasSpeedMode = int(Params().get("AutoResumeFromGasSpeedMode"))
       elif self.update_params_count == 11:
         #self.myDrivingMode = int(Params().get("InitMyDrivingMode")) #초기에 한번만 읽어옴...
@@ -370,7 +372,7 @@ class CruiseHelper:
     if v_cruise_kph < roadSpeed:
       v_cruise_kph = roadSpeed
     else:
-      for speed in range (40, MAX_SET_SPEED_KPH, 10):
+      for speed in range (40, MAX_SET_SPEED_KPH, self.cruiseSpeedUnit):
         if v_cruise_kph < speed:
           v_cruise_kph = speed
           break
