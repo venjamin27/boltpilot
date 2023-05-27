@@ -33,6 +33,10 @@ class LatControlTorque(LatControl):
     self.steering_angle_deadzone_deg = self.torque_params.steeringAngleDeadzoneDeg
     self.paramsCount = 0
 
+    self.lateralTorqueCustom = Params().get_bool("LateralTorqueCustom")
+    self.lateralTorqueAccelFactor = float(int(Params().get("LateralTorqueAccelFactor", encoding="utf8")))*0.001
+    self.lateralTorqueFriction = float(int(Params().get("LateralTorqueFriction", encoding="utf8")))*0.001
+
   def update_live_torque_params(self, latAccelFactor, latAccelOffset, friction):
     self.torque_params.latAccelFactor = latAccelFactor
     self.torque_params.latAccelOffset = latAccelOffset
@@ -50,6 +54,13 @@ class LatControlTorque(LatControl):
       self.pid._k_i = [[0], [lateralTorqueKi]]
       self.pid._k_d = [[0], [lateralTorqueKd]]
       self.pid.k_f = lateralTorqueKf
+    elif self.paramsCount == 10:
+      self.lateralTorqueCustom = Params().get_bool("LateralTorqueCustom")
+      self.lateralTorqueAccelFactor = float(int(Params().get("LateralTorqueAccelFactor", encoding="utf8")))*0.001
+      self.lateralTorqueFriction = float(int(Params().get("LateralTorqueFriction", encoding="utf8")))*0.001
+      if self.lateralTorqueCustom:
+        self.torque_params.latAccelFactor = self.lateralTorqueAccelFactor
+        self.torque_params.friction = self.lateralTorqueFriction
 
   def update(self, active, CS, VM, params, last_actuators, steer_limited, desired_curvature, desired_curvature_rate, llk):
     self.update_params()

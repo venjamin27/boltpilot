@@ -164,6 +164,36 @@
     },
     {
       "group": "Á¶ÇâÆ©´×",
+      "name": "LateralTorqueCustom",
+      "title": "_LateralTorqueCustom(0)",
+      "descr": "",
+      "min": 0,
+      "max": 1,
+      "default": 1,
+      "unit": 1
+    },
+    {
+      "group": "Á¶ÇâÆ©´×",
+      "name": "LateralTorqueAccelFactor",
+      "title": "_LateralTorqueAccelFactor*0.001(2500)",
+      "descr": "",
+      "min": 1000,
+      "max": 4000,
+      "default": 2500,
+      "unit": 1
+    },
+    {
+      "group": "Á¶ÇâÆ©´×",
+      "name": "LateralTorqueFriction",
+      "title": "_LateralTorqueFriction*0.001(100)",
+      "descr": "",
+      "min": 0,
+      "max": 1000,
+      "default": 100,
+      "unit": 1
+    },
+    {
+      "group": "Á¶ÇâÆ©´×",
       "name": "SteerActuatorDelay",
       "title": "SteerActuatorDelay(30)",
       "descr": "°ªÀÌÅ©¸é Á¶ÇâÀ» Á»´õ ¹Ì¸®ÇÔ(ÀÏ¹Ý,10msec)",

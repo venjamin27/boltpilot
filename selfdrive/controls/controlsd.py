@@ -615,7 +615,7 @@ class Controls:
     # Update Torque Params
     if self.CP.lateralTuning.which() == 'torque':
       torque_params = self.sm['liveTorqueParameters']
-      if self.sm.all_checks(['liveTorqueParameters']) and torque_params.useParams:
+      if self.sm.all_checks(['liveTorqueParameters']) and torque_params.useParams and not self.cruise_helper.lateralTorqueCustom:
         self.LaC.update_live_torque_params(torque_params.latAccelFactorFiltered, torque_params.latAccelOffsetFiltered, torque_params.frictionCoefficientFiltered)
         #self.debugText2 = "LT[{:.0f}:{}] {:.3f},{:.3f},{:.3f}".format(torque_params.totalBucketPoints, "ON" if torque_params.liveValid else "OFF", 
         #                                                                 torque_params.latAccelFactorFiltered, torque_params.latAccelOffsetFiltered,torque_params.frictionCoefficientFiltered)                                                                                              

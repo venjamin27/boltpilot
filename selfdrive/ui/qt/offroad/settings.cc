@@ -686,6 +686,9 @@ TuningPanel::TuningPanel(QWidget* parent) : QWidget(parent) {
     toggleLayout->addWidget(new CValueControl("LateralTorqueKi", "LAT: LateralTorqueKi(10)", "", "../assets/offroad/icon_road.png", 0, 100, 1));
     toggleLayout->addWidget(new CValueControl("LateralTorqueKd", "LAT: LateralTorqueKd(0)", "", "../assets/offroad/icon_road.png", 0, 100, 1));
     toggleLayout->addWidget(new CValueControl("LateralTorqueKf", "LAT: LateralTorqueKf(100)", "", "../assets/offroad/icon_road.png", 0, 200, 1));
+    toggleLayout->addWidget(new CValueControl("LateralTorqueCustom", "LAT: LateralTorqueCustom(0)", "", "../assets/offroad/icon_road.png", 0, 1, 1));
+    toggleLayout->addWidget(new CValueControl("LateralTorqueAccelFactor", "LAT: LateralTorqueAccelFactor(2500)", "", "../assets/offroad/icon_road.png", 1000, 4000, 10));
+    toggleLayout->addWidget(new CValueControl("LateralTorqueFriction", "LAT: LateralTorqueFriction(100)", "", "../assets/offroad/icon_road.png", 0, 1000, 10));
     toggleLayout->addWidget(horizontal_line());
     toggleLayout->addWidget(new CValueControl("SteerActuatorDelay", "LAT:SteerActuatorDelay(30)", "표준", "../assets/offroad/icon_road.png", 0, 100, 1));
     toggleLayout->addWidget(new CValueControl("SteerDeltaUp", "LAT: SteerDeltaUp(3)", "", "../assets/offroad/icon_road.png", 1, 20, 1));
