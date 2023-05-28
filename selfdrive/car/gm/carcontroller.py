@@ -132,7 +132,7 @@ class CarController:
             # Shrink brake request to 0.85, first 0.15 gives regen, rest gives AEB
 
             # zero = 0.15625  # 40/256
-            zero = interp(CS.out.vEgo,[10, 30], [0.15625, 0.1953])  # 40/256, 50/256(OPGM 따라해봄)
+            zero = interp(CS.out.vEgo,[10, 30], [0.15625, 0.2250])  # 40/256, 50/256(OPGM 따라해봄)
             #pedalAccGain = 0.25 # 가속 gain, 0.25 부터 시작, 50km/h 이하 에서는 0.25~0.26가 딱 좋음
             #Tuning 가이드 -> plot 그래프상 노란색이 아래에 있으면 그 속도에서 gain 값을 올려주고,
             #               노란색이 위에 있으면 gain 값을 낮춰주고
