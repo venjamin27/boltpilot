@@ -818,8 +818,9 @@ class LongitudinalMpc:
         self.trafficError = True
       elif cruiseButtonCounterDiff != 0: #신호감지무시중 버튼이 눌리면 다시 재개함.
         self.xState = XState.e2eCruise
-      elif v_ego_kph < 1.0 and self.trafficState != 2:  ## 출발신호이지만.... 정지신호로 바뀐경우(모델신호 변심) 다시 정지하는걸로..
+      elif v_ego_kph < 2.0 and self.trafficState != 2:  ## 출발신호이지만.... 정지신호로 바뀐경우(모델신호 변심) 다시 정지하는걸로..
         self.xState = XState.e2eStop
+        self.stopDist = 2.0
       elif (v_ego_kph > 30.0 and (stop_x > 60.0 and abs(y[-1])<2.0)):
         self.xState = XState.e2eCruise
       else:
