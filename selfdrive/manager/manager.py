@@ -35,6 +35,8 @@ def manager_init() -> None:
 
   params = Params()
   params.clear_all(ParamKeyType.CLEAR_ON_MANAGER_START)
+  params.clear_all(ParamKeyType.CLEAR_ON_ONROAD_TRANSITION)
+  params.clear_all(ParamKeyType.CLEAR_ON_OFFROAD_TRANSITION)
 
   default_params: List[Tuple[str, Union[str, bytes]]] = [
     ("CompletedTrainingVersion", "0"),
@@ -75,7 +77,7 @@ def manager_init() -> None:
     ("OpkrPrebuiltOn", "0"),
     ("AutoCurveSpeedCtrlUse", "1"),
     ("AutoCurveSpeedFactor", "100"),
-    ("AutoCurveSpeedFactorIn", "0"),
+    ("AutoCurveSpeedFactorIn", "10"),
     ("AutoTurnControl", "0"),
     ("AutoTurnSpeed", "40"),
     ("AutoTurnTimeMax", "200"),
@@ -111,12 +113,12 @@ def manager_init() -> None:
     ("MySafeModeFactor", "80"),      
     ("LiveSteerRatioApply", "100"),      
     ("MyEcoModeFactor", "80"),  
-    ("CruiseMaxVals1", "200"),
-    ("CruiseMaxVals2", "140"),
-    ("CruiseMaxVals3", "50"),
-    ("CruiseMaxVals4", "20"),
-    ("CruiseMaxVals5", "15"),
-    ("CruiseMaxVals6", "15"),
+    ("CruiseMaxVals1", "160"),
+    ("CruiseMaxVals2", "120"),
+    ("CruiseMaxVals3", "100"),
+    ("CruiseMaxVals4", "80"),
+    ("CruiseMaxVals5", "70"),
+    ("CruiseMaxVals6", "60"),
     ("PrevCruiseGap", "4"),      
     ("CruiseSpeedMin", "10"),
     ("AutoSyncCruiseSpeedMax", "120"),       
@@ -124,26 +126,26 @@ def manager_init() -> None:
     ("CustomMapbox", "0"),    
     ("LongitudinalTuningKpV", "100"),     
     ("LongitudinalTuningKiV", "200"),     
+    ("LongitudinalTuningKf", "100"),     
     ("LongitudinalActuatorDelayUpperBound", "50"),     
     ("LongitudinalActuatorDelayLowerBound", "50"),     
     ("EnableRadarTracks", "0"),      
     ("EnableAutoEngage", "0"),      
-    ("ApplyDynamicTFollow", "105"), 
-    ("ApplyDynamicTFollowApart", "95"), 
-    ("ApplyDynamicTFollowDecel", "105"), 
+    ("ApplyDynamicTFollow", "100"), 
+    ("ApplyDynamicTFollowApart", "100"), 
+    ("ApplyDynamicTFollowDecel", "100"), 
     ("SccConnectedBus2", "0"),   
-    ("TFollowRatio", "100"),
+    ("TFollowRatio", "110"),
     ("JerkUpperLowerLimit", "8"),    
     ("KeepEngage", "1"),
-    ("UseLaneLineSpeed", "80"),    
+    ("UseLaneLineSpeed", "0"),    
     ("PathOffset", "0"),  
     ("PathCostApply", "100"),
     ("PathCostApplyLow", "100"),
     ("HapticFeedbackWhenSpeedCamera", "0"),       
     ("SoftHoldMode", "1"),       
-    ("ApplyModelDistOrder", "30"),       
-    ("TrafficStopUpdateDist", "10"),       
-    ("TrafficDetectBrightness", "100"),       
+    ("ApplyModelDistOrder", "32"),       
+    ("TrafficStopAdjustRatio", "90"),       
     ("SteeringRateCost", "700"),       
     ("LateralMotionCost", "11"),       
     ("LateralAccelCost", "0"),       
@@ -197,6 +199,7 @@ def manager_init() -> None:
   params.put("GitBranch", get_short_branch(default=""))
   params.put("GitRemote", get_origin(default=""))
   params.put_bool("IsTestedBranch", is_tested_branch())
+  params.put_bool("IsReleaseBranch", is_release_branch())
 
   # set dongle id
   reg_res = register(show_spinner=True)
