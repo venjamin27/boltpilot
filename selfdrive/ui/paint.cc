@@ -1076,7 +1076,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
         }
         else ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2, icon_size, icon_size }, (no_radar) ? "ic_radar_no" : (radar_detected) ? "ic_radar" : "ic_radar_vision", 1.0f);
 
-        float disp_size = (s->show_path_end)?60.0:45.0;
+        float disp_size = (s->show_path_end==1)?60.0:45.0;
         if (no_radar) {
             if (stop_dist > 0.5 && stopping) {
                 if (stop_dist < 10.0) sprintf(str, "%.1f", stop_dist);
