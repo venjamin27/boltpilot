@@ -569,6 +569,10 @@ static void make_plot_data(const UIState* s, float& data1, float& data2) {
     const auto lp = sm["longitudinalPlan"].getLongitudinalPlan();
     float   speeds_0 = lp.getSpeeds()[0];
 
+    const cereal::ModelDataV2::Reader& model = sm["modelV2"].getModelV2();
+    const auto position = model.getPosition();
+    const auto velocity = model.getVelocity();
+
     switch (s->show_plot_mode) {
     case 0:
     case 1:
@@ -580,9 +584,15 @@ static void make_plot_data(const UIState* s, float& data1, float& data2) {
         data2 = (desired_curvature * v_ego * v_ego) - (roll * 9.81);
         break;
     case 3:
-    default:
         data1 = v_ego;
         data2 = speeds_0;
+        break;
+    case 4:
+        data1 = position.getX()[32];
+        data2 = velocity.getX()[32];
+        break;
+    default:
+        data1 = data2 = 0;
         break;
     }
     if (s->show_plot_mode != show_plot_mode_prev) {
@@ -932,14 +942,16 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
             case 1: trafficMode = 1;    // red
                 stop_dist = lp.getXStop();
                 stopping = true;
-                if (s->show_mode == 4 || s->show_mode == 5);
-                else if (s->show_path_end > 0) ui_draw_image(s, { x - icon_size / 2 - 60, y + icon_size / 2 - 60, icon_size, icon_size }, "ic_traffic_red", 1.0f);
+                if (s->show_mode == 4 || s->show_mode == 5) {
+                    if (s->show_path_end > 0) ui_draw_image(s, { x - icon_size / 2 - 60, y + icon_size / 2 - 60, icon_size, icon_size }, "ic_traffic_red", 1.0f);
+                }
                 else if (s->show_steer_mode == 2) ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2, icon_size, icon_size }, "ic_traffic_red", 1.0f);
                 showBg = true;
                 break;
             case 2: trafficMode = 2;
-                if (s->show_mode == 4 || s->show_mode == 5);
-                else if (s->show_path_end > 0) ui_draw_image(s, { x - icon_size / 2 + 60, y + icon_size / 2 - 60, icon_size, icon_size }, "ic_traffic_green", 1.0f);
+                if (s->show_mode == 4 || s->show_mode == 5) {
+                    if (s->show_path_end > 0) ui_draw_image(s, { x - icon_size / 2 + 60, y + icon_size / 2 - 60, icon_size, icon_size }, "ic_traffic_green", 1.0f);
+                }
                 else if (s->show_steer_mode == 2) ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2, icon_size, icon_size }, "ic_traffic_green", 1.0f);
                 break; // green // 표시안함.
             case 3: trafficMode = 3; showBg = true; break; // yellow
@@ -1551,6 +1563,7 @@ void ui_draw(UIState *s, int w, int h) {
 void ui_draw_alert(UIState* s) {
     if (alert.size != cereal::ControlsState::AlertSize::NONE) {
         alert_color = COLOR_ORANGE;
+        nvgTextAlign(s->vg, NVG_ALIGN_CENTER | NVG_ALIGN_BOTTOM);
         ui_draw_text(s, s->fb_w / 2, s->fb_h - 300, alert.text1.toStdString().c_str(), 100, alert_color, BOLD, 3.0f, 8.0f);
         ui_draw_text(s, s->fb_w / 2, s->fb_h - 200, alert.text2.toStdString().c_str(), 70, alert_color, BOLD, 3.0f, 8.0f);
     }
