@@ -762,7 +762,7 @@ class LongitudinalMpc:
         if self.trafficState == 2:
           if v_ego_kph > 30:
              self.xState = XState.e2eCruise
-          elif carstate.aEgo > 1.0:
+          elif True:#carstate.aEgo > 1.0:
             self.mpcEvent = EventName.trafficSignGreen
       else:
         if v_ego < 0.1:
@@ -844,7 +844,8 @@ class LongitudinalMpc:
         stop_x = 1000.0
 
     if self.trafficStopMode == 2:
-      mode = 'blended' if self.xState in [XState.e2eStop, XState.e2eCruisePrepare] else 'acc'
+      #mode = 'blended' if self.xState in [XState.e2eStop, XState.e2eCruisePrepare] else 'acc'
+      mode = 'blended' if self.xState in [XState.e2eCruisePrepare] else 'acc'
 
     self.comfort_brake *= self.mySafeModeFactor
     self.longActiveUser = controls.longActiveUser
