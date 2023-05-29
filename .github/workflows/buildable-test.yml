@@ -297,6 +297,12 @@ jobs:
     - name: Build openpilot
       run: ${{ env.RUN }} "scons -j$(nproc)"
     - name: Run unit tests
+    #####                        ./selfdrive/ui/tests/create_test_translations.sh && \
+            ##                        QT_QPA_PLATFORM=offscreen ./selfdrive/ui/tests/test_translations && \
+            ##                        ./selfdrive/ui/tests/test_translations.py && \
+            #                        selfdrive/locationd/test/_test_locationd_lib.py && \
+            #                        ./system/ubloxd/tests/test_glonass_runner && \
+
       run: |
         ${{ env.RUN }} "export SKIP_LONG_TESTS=1 && \
                         $UNIT_TEST common && \
@@ -308,15 +314,10 @@ jobs:
                         $UNIT_TEST selfdrive/car/gm && \
                         $UNIT_TEST selfdrive/locationd && \
                         $UNIT_TEST system/ubloxd && \
-#                        selfdrive/locationd/test/_test_locationd_lib.py && \
-#                        ./system/ubloxd/tests/test_glonass_runner && \
                         $UNIT_TEST selfdrive/athena && \
                         $UNIT_TEST selfdrive/thermald && \
                         $UNIT_TEST system/hardware/tici && \
                         $UNIT_TEST tools/lib/tests && \
-#                        ./selfdrive/ui/tests/create_test_translations.sh && \
-#                        QT_QPA_PLATFORM=offscreen ./selfdrive/ui/tests/test_translations && \
-#                        ./selfdrive/ui/tests/test_translations.py && \
                         ./common/tests/test_util && \
                         ./common/tests/test_swaglog && \
                         ./selfdrive/boardd/tests/test_boardd_usbprotocol && \
