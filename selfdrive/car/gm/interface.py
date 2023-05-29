@@ -241,8 +241,8 @@ class CarInterface(CarInterfaceBase):
       ret.pcmCruise = False
       ret.openpilotLongitudinalControl = True
       # Note: Low speed, stop and go not tested. Should be fairly smooth on highway
-      ret.longitudinalTuning.kpBP = [0., 30.]
-      ret.longitudinalTuning.kpV = [1.0, 0.25]
+      ret.longitudinalTuning.kpBP = [0.]
+      ret.longitudinalTuning.kpV = [1.0]
       ret.longitudinalTuning.kiBP = [0.]
       ret.longitudinalTuning.kiV = [0.0]
       ret.longitudinalTuning.kf = 0.3
@@ -288,8 +288,9 @@ class CarInterface(CarInterfaceBase):
       events.add(EventName.belowEngageSpeed)
     if ret.cruiseState.standstill:
       events.add(EventName.resumeRequired)
-    if ret.vEgo < self.CP.minSteerSpeed:
-      events.add(EventName.belowSteerSpeed)
+    # belowsteerspeed alertevent는 내지 않도록 한다. 텍스트로 표시만 따로 하여 debug ui 출력을 확보한다.  
+    #if ret.vEgo < self.CP.minSteerSpeed:
+    #  events.add(EventName.belowSteerSpeed)
     if self.CP.enableGasInterceptor and self.CP.transmissionType == TransmissionType.direct and not self.CS.single_pedal_mode:
       if ret.gearShifter in [GearShifter.reverse] :
         events.add(EventName.reverseGear)

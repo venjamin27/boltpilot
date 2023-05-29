@@ -609,7 +609,7 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
   //toggleLayout->addWidget(new ParamControl("SccConnectedBus2", "SCC배선이 BUS2에 연결됨", "SCC배선을 개조하여 BUS2에 연결된경우 켭니다.", "../assets/offroad/icon_road.png", this));
   toggleLayout->addWidget(new CValueControl("EnableAutoEngage", "EnableAutoEngage", "0:Not used,1:Auto Engage/Cruise OFF,2:Auto Engage/Cruise ON", "../assets/offroad/icon_shell.png", 0, 2, 1));
   toggleLayout->addWidget(new CValueControl("PowerOffTime", "PowerOffTime(0:Always On)", "0:Always On,  X:Power Off after X(Hours)", "../assets/offroad/icon_shell.png", 0, 100, 1));
-  toggleLayout->addWidget(new CValueControl("PedalPressedThreshold", "PedalPressedThreshold(15)", "PedalPressedThreshold(0 - 30)", "../assets/offroad/icon_shell.png", 0, 30, 1));
+  toggleLayout->addWidget(new CValueControl("PedalPressedThreshold", "PedalPressedThreshold(20)", "PedalPressedThreshold(0 - 255)", "../assets/offroad/icon_shell.png", 0, 255, 5));
   toggleLayout->addWidget(new CValueControl("MixRadarInfo", "MixRadarInfo for SCC Rardar", "0:Not used,1:Use", "../assets/offroad/icon_shell.png", 0, 1, 1));
 
   toggleLayout->addWidget(horizontal_line());
