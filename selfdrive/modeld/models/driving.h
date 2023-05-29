@@ -178,14 +178,6 @@ struct ModelOutputTemporalPose {
 };
 static_assert(sizeof(ModelOutputTemporalPose) == sizeof(ModelOutputXYZ)*4);
 
-struct ModelOutputRoadTransform {
-  ModelOutputXYZ position_mean;
-  ModelOutputXYZ rotation_mean;
-  ModelOutputXYZ position_std;
-  ModelOutputXYZ rotation_std;
-};
-static_assert(sizeof(ModelOutputRoadTransform) == sizeof(ModelOutputXYZ)*4);
-
 struct ModelOutputDisengageProb {
   float gas_disengage;
   float brake_disengage;
@@ -245,7 +237,6 @@ struct ModelOutput {
   const ModelOutputPose pose;
   const ModelOutputWideFromDeviceEuler wide_from_device_euler;
   const ModelOutputTemporalPose temporal_pose;
-  const ModelOutputRoadTransform road_transform;
 };
 
 constexpr int OUTPUT_SIZE = sizeof(ModelOutput) / sizeof(float);
