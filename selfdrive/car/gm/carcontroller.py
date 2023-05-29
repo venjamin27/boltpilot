@@ -138,8 +138,8 @@ class CarController:
             #               노란색이 위에 있으면 gain 값을 낮춰주고
             #               단, 정지 출발은 예외, gain 값이 너무 높으면 말타기함.
             #               근데, 볼트는 오파의 기본상식이 잘 안 맞음
-            pedalAccGain = interp(CS.out.vEgo, [10, 30], [0.26, 0.26])
-            pedalDecelgain = interp(CS.out.vEgo, [10, 30], [0.26, 0.26])
+            pedalAccGain = interp(CS.out.vEgo, [10, 30], [0.23, 0.23])
+            pedalDecelgain = interp(CS.out.vEgo, [10, 30], [0.23, 0.23])
 
             pedal_gas = clip((actuators.accel * pedalAccGain + zero), 0., 1.)
 
