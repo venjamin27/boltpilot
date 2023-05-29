@@ -621,7 +621,7 @@ class Controls:
     # Update Torque Params
     if self.CP.lateralTuning.which() == 'torque':
       torque_params = self.sm['liveTorqueParameters']
-      if self.sm.all_checks(['liveTorqueParameters']) and torque_params.useParams:
+      if self.sm.all_checks(['liveTorqueParameters']) and torque_params.useParams and not self.cruise_helper.lateralTorqueCustom:
         self.LaC.update_live_torque_params(torque_params.latAccelFactorFiltered, torque_params.latAccelOffsetFiltered, torque_params.frictionCoefficientFiltered)
         #self.debugText2 = "LT[{:.0f}:{}] {:.3f},{:.3f},{:.3f}".format(torque_params.totalBucketPoints, "ON" if torque_params.liveValid else "OFF", 
         #                                                                 torque_params.latAccelFactorFiltered, torque_params.latAccelOffsetFiltered,torque_params.frictionCoefficientFiltered)                                                                                              
@@ -684,7 +684,6 @@ class Controls:
       t_since_plan = (self.sm.frame - self.sm.rcv_frame['longitudinalPlan']) * DT_CTRL
       actuators.accel = self.LoC.update(CC.longActive, CS, long_plan, pid_accel_limits, t_since_plan, CC)
       #self.debugText2 = 'Accel=[{:1.2f}]: {:1.2f},{:1.2f}'.format(actuators.accel, pid_accel_limits[0], pid_accel_limits[1])
-      self.debugText2 = self.LoC.debugLoCText
       #print(self.debugText2)
 
       # Steering PID loop and lateral MPC
@@ -899,6 +898,8 @@ class Controls:
 
     #ajouatom
     controlsState.debugText1 = self.debugText1
+    #self.debugText2 = self.LoC.debugLoCText
+    self.debugText2 = self.LaC.latDebugText
     controlsState.debugText2 = self.debugText2
     controlsState.longActiveUser = self.cruise_helper.longActiveUser
     controlsState.longActiveUserReady = self.cruise_helper.longActiveUserReady
@@ -916,7 +917,7 @@ class Controls:
 
     #print("cumLagMsg={:5.2f}".format(-self.rk.remaining * 1000.))
     #self.debugText1 = 'cumLagMs={:5.1f}'.format(-self.rk.remaining * 1000.)
-    controlsState.debugText1 = self.debugText1
+    #controlsState.debugText1 = self.debugText1
 
     controlsState.startMonoTime = int(start_time * 1e9)
     controlsState.forceDecel = bool(force_decel)

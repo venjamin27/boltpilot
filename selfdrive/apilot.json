@@ -154,6 +154,46 @@
     },
     {
       "group": "조향튜닝",
+      "name": "LateralTorqueKf",
+      "title": "_LateralTorqueKf(100)",
+      "descr": "",
+      "min": 0,
+      "max": 200,
+      "default": 1,
+      "unit": 1
+    },
+    {
+      "group": "조향튜닝",
+      "name": "LateralTorqueCustom",
+      "title": "_LateralTorqueCustom(0)",
+      "descr": "",
+      "min": 0,
+      "max": 1,
+      "default": 1,
+      "unit": 1
+    },
+    {
+      "group": "조향튜닝",
+      "name": "LateralTorqueAccelFactor",
+      "title": "_LateralTorqueAccelFactor*0.001(2500)",
+      "descr": "",
+      "min": 1000,
+      "max": 4000,
+      "default": 2500,
+      "unit": 1
+    },
+    {
+      "group": "조향튜닝",
+      "name": "LateralTorqueFriction",
+      "title": "_LateralTorqueFriction*0.001(100)",
+      "descr": "",
+      "min": 0,
+      "max": 1000,
+      "default": 100,
+      "unit": 1
+    },
+    {
+      "group": "조향튜닝",
       "name": "SteerActuatorDelay",
       "title": "SteerActuatorDelay(30)",
       "descr": "값이크면 조향을 좀더 미리함(일반,10msec)",
@@ -394,6 +434,16 @@
     },
     {
       "group": "감속제어",
+      "name": "TrafficStopMode",
+      "title": "신호정지 방법 (1)",
+      "descr": "0:사용안함,1:Apilot모드,2:Mix 실험적모드",
+      "min": 0,
+      "max": 2,
+      "default": 1,
+      "unit": 1
+    },
+    {
+      "group": "감속제어",
       "name": "ApplyModelDistOrder",
       "title": "신호정지 감속모델선택 (30)",
       "descr": "숫자가 작을수록 감속을 미리합니다.",
@@ -490,6 +540,16 @@
       "min": 0,
       "max": 4,
       "default": 0,
+      "unit": 1
+    },
+    {
+      "group": "버튼설정",
+      "name": "CruiseSpeedUnit",
+      "title": "크루즈버튼속도단위(10)",
+      "descr": "",
+      "min": 1,
+      "max": 20,
+      "default": 10,
       "unit": 1
     },
     {
@@ -678,7 +738,7 @@
       "title": "패쓰끝표시",
       "descr": "",
       "min": 0,
-      "max": 1,
+      "max": 2,
       "default": 1,
       "unit": 1
     },

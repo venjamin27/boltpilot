@@ -7,7 +7,7 @@ from common.realtime import DT_CTRL
 from common.conversions import Conversions as CV
 from selfdrive.car.hyundai.values import Buttons
 from common.params import Params
-from selfdrive.controls.lib.drive_helpers import V_CRUISE_MAX, V_CRUISE_MIN, CONTROL_N_LAT
+from selfdrive.controls.lib.drive_helpers import V_CRUISE_MAX, V_CRUISE_MIN, CONTROL_N
 from selfdrive.controls.lib.lateral_planner import TRAJECTORY_SIZE
 from selfdrive.car.hyundai.values import CAR
 from selfdrive.car.isotp_parallel_query import IsoTpParallelQuery
@@ -122,6 +122,7 @@ class CruiseHelper:
     self.autoSpeedUptoRoadSpeedLimit = float(int(Params().get("AutoSpeedUptoRoadSpeedLimit", encoding="utf8"))) / 100.
     self.autoSpeedAdjustWithLeadCar = float(int(Params().get("AutoSpeedAdjustWithLeadCar", encoding="utf8"))) / 1.
     self.cruiseButtonMode = int(Params().get("CruiseButtonMode"))
+    self.cruiseSpeedUnit = int(Params().get("CruiseSpeedUnit"))
     self.gapButtonMode = int(Params().get("GapButtonMode"))
     self.autoResumeFromGasSpeedMode = int(Params().get("AutoResumeFromGasSpeedMode"))
     self.myDrivingMode = int(Params().get("InitMyDrivingMode"))
@@ -133,6 +134,7 @@ class CruiseHelper:
     self.cruiseOnDist = float(int(Params().get("CruiseOnDist", encoding="utf8"))) / 100.
     self.steerRatioApply = float(int(Params().get("SteerRatioApply", encoding="utf8"))) / 10.
     self.steerRatioAccelApply = float(int(Params().get("SteerRatioAccelApply", encoding="utf8"))) / 100.
+    self.lateralTorqueCustom = Params().get_bool("LateralTorqueCustom")
 
   def update_params(self, frame):
     if frame % 20 == 0:
@@ -164,10 +166,12 @@ class CruiseHelper:
         self.longControlActiveSound = int(Params().get("LongControlActiveSound"))
       elif self.update_params_count == 8:
         self.autoSpeedUptoRoadSpeedLimit = float(int(Params().get("AutoSpeedUptoRoadSpeedLimit", encoding="utf8"))) / 100.
+        self.lateralTorqueCustom = Params().get_bool("LateralTorqueCustom")
       elif self.update_params_count == 9:
         self.autoSpeedAdjustWithLeadCar = float(int(Params().get("AutoSpeedAdjustWithLeadCar", encoding="utf8"))) / 1.
       elif self.update_params_count == 10:
         self.cruiseButtonMode = int(Params().get("CruiseButtonMode"))
+        self.cruiseSpeedUnit = int(Params().get("CruiseSpeedUnit"))
         self.autoResumeFromGasSpeedMode = int(Params().get("AutoResumeFromGasSpeedMode"))
       elif self.update_params_count == 11:
         #self.myDrivingMode = int(Params().get("InitMyDrivingMode")) #초기에 한번만 읽어옴...
@@ -329,9 +333,6 @@ class CruiseHelper:
     orientationRates = np.array(controls.sm['modelV2'].orientationRate.z, dtype=np.float32)
     # 계산된 결과로, oritetationRates를 나누어 조금더 curvature값이 커지도록 함.
     speed = min(self.turnSpeed_prev / 3.6, clip(CS.vEgo, 0.5, 100.0))
-    speed_diff = max(0, CS.vEgo - speed)
-    # 결과속도와 현재속도의 차이로 좀더 curvature값이 커지도록 함.
-    speed = clip(speed - speed_diff * self.autoCurveSpeedFactorIn, 0.5, 100.0)
     # 12: 약1.4초 미래의 curvature를 계산함.
     curvature = np.max(np.abs(orientationRates[12:])) / speed
     curvature = self.curvatureFilter.process(curvature) * self.autoCurveSpeedFactor
@@ -342,14 +343,16 @@ class CruiseHelper:
     else:
       turnSpeed = 300
 
-    controls.debugText1 = 'CURVE={:5.1f},curvature={:5.4f}'.format(turnSpeed, curvature)
     self.turnSpeed_prev = turnSpeed
+    speed_diff = max(0, CS.vEgo*3.6 - turnSpeed)
+    turnSpeed = turnSpeed - speed_diff * self.autoCurveSpeedFactorIn
+    controls.debugText1 = 'CURVE={:5.1f},curvature={:5.4f}'.format(self.turnSpeed_prev, curvature)
     return turnSpeed
 
   def apilot_curve_old(self, CS, controls):
     curvatures = controls.sm['lateralPlan'].curvatures
     turnSpeed = 300
-    if len(curvatures) == CONTROL_N_LAT:
+    if len(curvatures) == CONTROL_N:
       #curvature = abs(self.curvatureFilter.process(curvatures[self.autoCurveSpeedIndex]))  * self.autoCurveSpeedFactor
       curvature_arr = np.array(curvatures, dtype=np.float32)
       curvature = self.curvatureFilter.process(np.max(np.abs(curvature_arr[10:]))) * self.autoCurveSpeedFactor
@@ -369,7 +372,7 @@ class CruiseHelper:
     if v_cruise_kph < roadSpeed:
       v_cruise_kph = roadSpeed
     else:
-      for speed in range (40, MAX_SET_SPEED_KPH, 10):
+      for speed in range (40, MAX_SET_SPEED_KPH, self.cruiseSpeedUnit):
         if v_cruise_kph < speed:
           v_cruise_kph = speed
           break
@@ -459,7 +462,7 @@ class CruiseHelper:
             v_cruise_kph = self.autoSyncCruiseSpeedMax
           v_cruise_kph_backup = v_cruise_kph
       # 앞차를 추월하기 위해 가속한경우, 앞차와의 거리가 감속가능한 거리가 아닌경우 크루즈OFF: 급격한 감속충격을 막기 위해.. (시험해야함)
-      elif 0 < self.dRel < CS.vEgo ** 2 / (2.5*2):
+      elif 0 < self.dRel < CS.vEgo * 0.9: # 급정거 t_follow 를 0.9로 가정..
         longActiveUser = -2
       #  6. 크루즈속도보다 높을때: 크루즈속도 현재속도셋 : autoSyncCruiseSpeedMax까지
       elif self.v_ego_kph > v_cruise_kph and self.autoSyncCruiseSpeedMax > self.autoResumeFromGasSpeed:
