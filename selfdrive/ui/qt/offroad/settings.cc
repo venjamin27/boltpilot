@@ -629,7 +629,7 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
   toggleLayout->addWidget(new ParamControl("ShowDebugUI", "DISP:Debug Info", "", "../assets/offroad/icon_shell.png", this));
   toggleLayout->addWidget(new CValueControl("ShowDateTime", "DISP:Time Info", "0:None,1:Time/Date,2:Time,3:Date", "../assets/offroad/icon_shell.png", 0, 3, 1));
   toggleLayout->addWidget(new CValueControl("ShowSteerRotate", "DISP:Handle rotate", "0:None,1:Rotate", "../assets/offroad/icon_shell.png", 0, 1, 1));
-  toggleLayout->addWidget(new CValueControl("ShowPathEnd", "DISP:Path End", "0:None,1:Display", "../assets/offroad/icon_shell.png", 0, 1, 1));
+  toggleLayout->addWidget(new CValueControl("ShowPathEnd", "DISP:Path End", "0:None,1:Display", "../assets/offroad/icon_shell.png", 0, 2, 1));
   toggleLayout->addWidget(new CValueControl("ShowAccelRpm", "DISP:Accel meter", "0:None,1:Display,1:Accel+RPM", "../assets/offroad/icon_shell.png", 0, 2, 1));
   toggleLayout->addWidget(new CValueControl("ShowTpms", "DISP:TPMS", "0:None,1:Display", "../assets/offroad/icon_shell.png", 0, 1, 1));
   toggleLayout->addWidget(new CValueControl("ShowSteerMode", "DISP:Handle Display Mode", "0:Black,1:Color,2:None", "../assets/offroad/icon_shell.png", 0, 2, 1));
@@ -684,9 +684,13 @@ TuningPanel::TuningPanel(QWidget* parent) : QWidget(parent) {
     toggleLayout->addWidget(new CValueControl("LateralMotionCost", "LAT: LateralMotionCost(11)", "", "../assets/offroad/icon_road.png", 0, 50, 1));
     toggleLayout->addWidget(new CValueControl("LateralJerkCost", "LAT: LateralJerkCost(4)", "", "../assets/offroad/icon_road.png", 0, 50, 1));
     toggleLayout->addWidget(horizontal_line());
-    toggleLayout->addWidget(new CValueControl("LateralTorqueKp", "LAT: LateralTorqueKp(100)", "", "../assets/offroad/icon_road.png", 0, 200, 1));
-    toggleLayout->addWidget(new CValueControl("LateralTorqueKi", "LAT: LateralTorqueKi(10)", "", "../assets/offroad/icon_road.png", 0, 100, 1));
-    toggleLayout->addWidget(new CValueControl("LateralTorqueKd", "LAT: LateralTorqueKd(0)", "", "../assets/offroad/icon_road.png", 0, 100, 1));
+    toggleLayout->addWidget(new CValueControl("LateralTorqueKp", "LAT: TorqueKp(100)", "", "../assets/offroad/icon_road.png", 0, 200, 1));
+    toggleLayout->addWidget(new CValueControl("LateralTorqueKi", "LAT: TorqueKi(10)", "", "../assets/offroad/icon_road.png", 0, 100, 1));
+    toggleLayout->addWidget(new CValueControl("LateralTorqueKd", "LAT: TorqueKd(0)", "", "../assets/offroad/icon_road.png", 0, 100, 1));
+    toggleLayout->addWidget(new CValueControl("LateralTorqueKf", "LAT: TorqueKf(100)", "", "../assets/offroad/icon_road.png", 0, 200, 1));
+    toggleLayout->addWidget(new CValueControl("LateralTorqueCustom", "LAT: TorqueCustom(0)", "", "../assets/offroad/icon_road.png", 0, 1, 1));
+    toggleLayout->addWidget(new CValueControl("LateralTorqueAccelFactor", "LAT: TorqueAccelFactor(2500)", "", "../assets/offroad/icon_road.png", 1000, 4000, 10));
+    toggleLayout->addWidget(new CValueControl("LateralTorqueFriction", "LAT: TorqueFriction(100)", "", "../assets/offroad/icon_road.png", 0, 1000, 10));
     toggleLayout->addWidget(horizontal_line());
     toggleLayout->addWidget(new CValueControl("SteerActuatorDelay", "LAT:SteerActuatorDelay(30)", "표준", "../assets/offroad/icon_road.png", 0, 100, 1));
     toggleLayout->addWidget(new CValueControl("SteerDeltaUp", "LAT: SteerDeltaUp(3)", "", "../assets/offroad/icon_road.png", 1, 20, 1));
@@ -713,6 +717,7 @@ TuningPanel::TuningPanel(QWidget* parent) : QWidget(parent) {
     toggleLayout->addWidget(new CValueControl("TFollowRatio", "GAP: Apply ratio: Caution(100%)", "선행차와의 간격을 조정합니다. 100%이하로 하면 매우 위험합니다.", "../assets/offroad/icon_road.png", 70, 120, 1));
     
     toggleLayout->addWidget(horizontal_line());
+    toggleLayout->addWidget(new CValueControl("TrafficStopMode", "STOPPING: Traffice Stop Mode (1)", "0:사용안함,1:Apilot모드,2:Mix실험적모드", "../assets/offroad/icon_road.png", 0, 2, 1));
     toggleLayout->addWidget(new CValueControl("TrafficStopAccel", "STOPPING: DECEL. rate (80%)", "신호를 만나면 서서히 감속하여 정지합니다.", "../assets/offroad/icon_road.png", 10, 120, 10));
     toggleLayout->addWidget(new CValueControl("ApplyModelDistOrder", "STOPPING: DECEL. model (30)", "숫자가적을수록 미리감속하고 서서히 정지합니다.", "../assets/offroad/icon_road.png", 1, 32, 1));
     toggleLayout->addWidget(new CValueControl("TrafficStopUpdateDist", "STOPPING: Stop line update dist (10M)", "", "../assets/offroad/icon_road.png", 0, 30, 1));
@@ -763,6 +768,7 @@ CruisePanel::CruisePanel(QWidget* parent) : QWidget(parent) {
     toggleLayout->addWidget(new CValueControl("MyEcoModeFactor", "DRIVEMODE: ECO Accel ratio(80%)", "Acceleartion ratio in ECO mode", "../assets/offroad/icon_road.png", 10, 95, 5));
     toggleLayout->addWidget(new CValueControl("MySafeModeFactor", "DRIVEMODE: SAFE ratio(80%)", "Accel/StopDistance/DecelRatio/Gap control ratio", "../assets/offroad/icon_road.png", 10, 90, 10));
     toggleLayout->addWidget(new CValueControl("CruiseButtonMode", "Button: Cruise Speed Mode", "0:Normal,1:User1, 2:User2, 3:User3, 4:User4", "../assets/offroad/icon_road.png", 0, 4, 1));
+    toggleLayout->addWidget(new CValueControl("CruiseSpeedUnit", "Button: Cruise Speed Unit", "", "../assets/offroad/icon_road.png", 1, 20, 1));
     toggleLayout->addWidget(new CValueControl("GapButtonMode", "Button: Cruise Gap Mode", "0:1,2,3,4(Auto),1:1,2,3,4(Auto),5(Cruise OFF),2:4(Auto),5(Cruise OFF),3:Cruise ON/OFF(Auto)", "../assets/offroad/icon_road.png", 0, 3, 1));
     toggleLayout->addWidget(new CValueControl("PrevCruiseGap", "CruiseGap: On boot(4)", "1,2,3,4(Auto)", "../assets/offroad/icon_road.png", 1, 4, 1));
     toggleLayout->addWidget(new CValueControl("CruiseSpeedMin", "Cruise Speed: Lower limit(10)", "Cruise control MIN speed", "../assets/offroad/icon_road.png", 5, 50, 1));

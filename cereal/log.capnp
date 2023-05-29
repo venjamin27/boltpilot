@@ -3,6 +3,7 @@ $Cxx.namespace("cereal");
 
 using Car = import "car.capnp";
 using Legacy = import "legacy.capnp";
+using Custom = import "custom.capnp";
 
 @0xf3b1f17e25a4285b;
 
@@ -606,6 +607,7 @@ struct LiveCalibrationData {
   rpyCalib @7 :List(Float32);
   rpyCalibSpread @8 :List(Float32);
   wideFromDeviceEuler @10 :List(Float32);
+  height @12 :List(Float32);
 
   warpMatrixDEPRECATED @0 :List(Float32);
   calStatusDEPRECATED @1 :Int8;
@@ -2023,6 +2025,8 @@ struct CameraOdometry {
   rotStd @3 :List(Float32); # std rad/s in device frame
   wideFromDeviceEuler @6 :List(Float32);
   wideFromDeviceEulerStd @7 :List(Float32);
+  roadTransformTrans @8 :List(Float32);
+  roadTransformTransStd @9 :List(Float32);
 }
 
 struct Sentinel {
@@ -2251,7 +2255,7 @@ struct Event {
     userFlag @93 :UserFlag;
     uiDebug @102 :UIDebug;
     # neokii
-    roadLimitSpeed @107 :RoadLimitSpeed;
+    roadLimitSpeed @117 :RoadLimitSpeed;
 
     # *********** debug ***********
     testJoystick @52 :Joystick;
@@ -2259,6 +2263,18 @@ struct Event {
     driverEncodeData @87 :EncodeData;
     wideRoadEncodeData @88 :EncodeData;
     qRoadEncodeData @89 :EncodeData;
+
+    # *********** Custom: reserved for forks ***********
+    customReserved0 @107 :Custom.CustomReserved0;
+    customReserved1 @108 :Custom.CustomReserved1;
+    customReserved2 @109 :Custom.CustomReserved2;
+    customReserved3 @110 :Custom.CustomReserved3;
+    customReserved4 @111 :Custom.CustomReserved4;
+    customReserved5 @112 :Custom.CustomReserved5;
+    customReserved6 @113 :Custom.CustomReserved6;
+    customReserved7 @114 :Custom.CustomReserved7;
+    customReserved8 @115 :Custom.CustomReserved8;
+    customReserved9 @116 :Custom.CustomReserved9;
 
     # *********** legacy + deprecated ***********
     model @9 :Legacy.ModelData; # TODO: rename modelV2 and mark this as deprecated
