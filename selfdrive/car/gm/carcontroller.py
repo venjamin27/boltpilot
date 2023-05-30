@@ -105,6 +105,15 @@ class CarController:
 
     if self.CP.openpilotLongitudinalControl:
       # Gas/regen, brakes, and UI commands - all at 25Hz
+
+
+      if CC.longActive and actuators.accel < -0.50 :
+        can_sends.append(gmcan.create_regen_paddle_command(self.packer_pt, CanBus.POWERTRAIN))
+        actuators.regenPaddle = True  # for icon
+      else:
+        actuators.regenPaddle = False # for icon
+
+
       if self.frame % 4 == 0:
         if not CC.longActive:
           # ASCM sends max regen when not enabled
@@ -131,7 +140,7 @@ class CarController:
             # Shrink gas request to 0.85, have it start at 0.2
             # Shrink brake request to 0.85, first 0.15 gives regen, rest gives AEB
 
-            zero = interp(CS.out.vEgo,[0., 5], [0.156, 0.24])
+            zero = interp(CS.out.vEgo,[0., 5, 30], [0.156, 0.22, 0.24])
             accGain = interp(CS.out.vEgo,[0., 5], [0.25, 0.1667])
             pedal_gas = clip((actuators.accel * accGain + zero), 0., 1.)
 
@@ -151,12 +160,7 @@ class CarController:
 
           if not CC.longActive:
             pedal_gas = 0.0  # May not be needed with the enable param
-          else :
-            if CC.longActive and actuators.accel < -0.50 :
-              can_sends.append(gmcan.create_regen_paddle_command(self.packer_pt, CanBus.POWERTRAIN))
-              actuators.regenPaddle = True  # for icon
-            else:
-              actuators.regenPaddle = False # for icon
+
 
           idx = (self.frame // 4) % 4
           can_sends.append(create_gas_interceptor_command(self.packer_pt, pedal_gas, idx))
