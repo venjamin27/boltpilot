@@ -770,7 +770,7 @@ void Device::updateBrightness(const UIState &s) {
     }
 
     // Scale back to 10% to 100%
-    clipped_brightness = std::clamp(100.0f * clipped_brightness, 10.0f, 100.0f);
+    clipped_brightness = std::clamp(100.0f * clipped_brightness, 10.0f, 85.0f); //as 85%
   }
 
   int brightness = brightness_filter.update(clipped_brightness);
