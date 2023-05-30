@@ -759,12 +759,12 @@ class LongitudinalMpc:
       if carstate.gasPressed:
         self.xState = XState.e2eCruisePrepare
         stop_x = 1000.0
-      elif self.trafficStopMode==2:
-        if self.trafficState == 2:
-          if v_ego_kph > 30:
-             self.xState = XState.e2eCruise
-          elif True:#carstate.aEgo > 1.0:
-            self.mpcEvent = EventName.trafficSignGreen
+      #elif self.trafficStopMode==2:
+      #  if self.trafficState == 2:
+      #    if v_ego_kph > 30:
+      #       self.xState = XState.e2eCruise
+      #    elif True:#carstate.aEgo > 1.0:
+      #      self.mpcEvent = EventName.trafficSignGreen
       else:
         if v_ego < 0.1:
           if self.trafficDetectBrightness < self.lightSensor:
