@@ -46,10 +46,10 @@ class Plant:
     time.sleep(1)
     self.sm = messaging.SubMaster(['longitudinalPlan'])
 
-    from selfdrive.car.honda.values import CAR
-    from selfdrive.car.honda.interface import CarInterface
+    from selfdrive.car.gm.values import CAR
+    from selfdrive.car.gm.interface import CarInterface
 
-    self.planner = LongitudinalPlanner(CarInterface.get_non_essential_params(CAR.CIVIC), init_v=self.speed)
+    self.planner = LongitudinalPlanner(CarInterface.get_non_essential_params(CAR.BOLT_CC), init_v=self.speed)
 
   @property
   def current_time(self):
