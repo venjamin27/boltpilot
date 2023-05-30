@@ -1381,12 +1381,12 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
         }
 
         bool regen_valid = car_control.getActuators().getRegenPaddle();
-        const float img_alpha = 0.8f;
+        float img_alpha = 0.8f;
         img_alpha = regen_valid ? 1.0f : 0.15f;
 //        bg_alpha = regen_valid ? 0.3f : 0.1f;
         //ui_draw_image(s, { bx - 60, by - 50, 120, 150 }, "ic_road_speed", 1.0f);
         //ui_draw_image(s, { bx - 100, by - 60, 350, 150 }, "ic_speed_bg", 1.0f);
-        ui_draw_image(s, { bx - 60 + (  120 + 120 ), by - 50, 150, 150 },ic_regenPaddle, img_alpha);
+        ui_draw_image(s, { bx - 60 + (  120 + 120 ), by - 50, 150, 150 }, "ic_regenPaddle", img_alpha);
     }
     // Tpms...
     if (s->show_tpms) {
