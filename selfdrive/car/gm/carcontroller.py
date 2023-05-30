@@ -131,7 +131,7 @@ class CarController:
             # Shrink gas request to 0.85, have it start at 0.2
             # Shrink brake request to 0.85, first 0.15 gives regen, rest gives AEB
 
-            zero = interp(CS.out.vEgo,[10, 30], [0.24, 0.24]) 
+            zero = interp(CS.out.vEgo,[0., 17, 30], [0.156, 0.22, 0.24]) 
             pedal_gas = clip((actuators.accel * 0.1667 + zero), 0., 1.)
 
             # if actuators.accel > 0.:
