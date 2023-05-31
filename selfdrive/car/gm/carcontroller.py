@@ -59,6 +59,8 @@ class CarController:
     self.packer_obj = CANPacker(DBC[self.CP.carFingerprint]['radar'])
     self.packer_ch = CANPacker(DBC[self.CP.carFingerprint]['chassis'])
 
+    self.pedalGas_valueStore = 0.0
+
   def update(self, CC, CS, now_nanos):
     actuators = CC.actuators
     hud_control = CC.hudControl
@@ -106,13 +108,11 @@ class CarController:
     if self.CP.openpilotLongitudinalControl:
       # Gas/regen, brakes, and UI commands - all at 25Hz
 
-
-      if CC.longActive and actuators.accel < -0.50 :
+      if CC.longActive and actuators.accel < -0.50:
         can_sends.append(gmcan.create_regen_paddle_command(self.packer_pt, CanBus.POWERTRAIN))
         actuators.regenPaddle = True  # for icon
       else:
         actuators.regenPaddle = False # for icon
-
 
       if self.frame % 4 == 0:
         if not CC.longActive:
@@ -163,7 +163,7 @@ class CarController:
 
 
           idx = (self.frame // 4) % 4
-          actuators.pedalGas = pedal_gas # for debug ui
+          self.pedalGas_valueStore = pedal_gas # for debug ui
           can_sends.append(create_gas_interceptor_command(self.packer_pt, pedal_gas, idx))
           # END INTERCEPTOR ############################
         else:
@@ -235,6 +235,8 @@ class CarController:
       steer_alert = hud_alert in (VisualAlert.steerRequired, VisualAlert.ldw)
       can_sends.append(gmcan.create_lka_icon_command(CanBus.SW_GMLAN, lka_active, lka_critical, steer_alert))
       self.lka_icon_status_last = lka_icon_status
+
+    actuators.pedalGas = self.pedalGas_valueStore
 
     new_actuators = actuators.copy()
     new_actuators.steer = self.apply_steer_last / self.params.STEER_MAX
