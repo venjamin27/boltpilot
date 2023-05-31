@@ -253,7 +253,6 @@ class LongitudinalMpc:
     self.applyCruiseGap = 1.
     self.applyModelDistOrder = 32
     self.trafficStopUpdateDist = 10.0
-    self.trafficDetectBrightness = 300
     self.fakeCruiseDistance = 0.0
     self.stopDist = 0.0
     self.e2eCruiseCount = 0
@@ -589,7 +588,6 @@ class LongitudinalMpc:
       self.stopDistance = float(int(Params().get("StopDistance", encoding="utf8"))) / 100.
     elif self.lo_timer == 100:
       self.applyDynamicTFollow = float(int(Params().get("ApplyDynamicTFollow", encoding="utf8"))) / 100.
-      self.trafficDetectBrightness = int(Params().get("TrafficDetectBrightness", encoding="utf8"))
     elif self.lo_timer == 120:
       self.applyDynamicTFollowApart = float(int(Params().get("ApplyDynamicTFollowApart", encoding="utf8"))) / 100.
       self.applyDynamicTFollowDecel = float(int(Params().get("ApplyDynamicTFollowDecel", encoding="utf8"))) / 100.
@@ -655,10 +653,7 @@ class LongitudinalMpc:
     if v_ego_kph < 1.0: 
       stopSign = model_x < 20.0 and model_v < 10.0
     elif v_ego_kph < 80.0:
-      if self.trafficDetectBrightness < self.lightSensor:
-        stopSign = model_x < 110.0 and ((model_v < 3.0) or (model_v < v[0]*0.6)) and abs(y[-1]) < 20.0
-      else:
-        stopSign = model_x < 130.0 and ((model_v < 3.0) or (model_v < v[0]*0.7)) and abs(y[-1]) < 20.0
+      stopSign = model_x < 130.0 and ((model_v < 3.0) or (model_v < v[0]*0.7)) and abs(y[-1]) < 20.0
     else:
       stopSign = False
 
@@ -767,14 +762,6 @@ class LongitudinalMpc:
       #      self.mpcEvent = EventName.trafficSignGreen
       else:
         if v_ego < 0.1:
-          if self.trafficDetectBrightness < self.lightSensor:
-            self.trafficError = True
-            self.mpcEvent = EventName.trafficError
-            ## 조도가 높고, 정지중, +키를 누르면 출발!
-            if cruiseButtonCounterDiff > 0:
-                self.xState = XState.e2eCruisePrepare
-                self.e2eCruiseCount = 3 * DT_MDL
-                self.mpcEvent = EventName.trafficSignGreen
           if self.trafficState == 2  and (not self.trafficError or (self.trafficError and cruiseButtonCounterDiff > 0)):
               self.xState = XState.e2eCruisePrepare
               self.e2eCruiseCount = 3 * DT_MDL

@@ -143,7 +143,6 @@ def manager_init() -> None:
     ("SoftHoldMode", "1"),       
     ("ApplyModelDistOrder", "30"),       
     ("TrafficStopUpdateDist", "10"),       
-    ("TrafficDetectBrightness", "100"),       
     ("SteeringRateCost", "700"),       
     ("LateralMotionCost", "11"),       
     ("LateralAccelCost", "0"),       
