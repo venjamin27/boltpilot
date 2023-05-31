@@ -718,8 +718,8 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
 
   EventName.wrongGear: {
     ET.USER_DISABLE: EngagementAlert(AudibleAlert.disengage),
-    #ET.SOFT_DISABLE: user_soft_disable_alert("Gear not D"),
-    ET.NO_ENTRY: NoEntryAlert("Gear not D"),
+    #ET.SOFT_DISABLE: user_soft_disable_alert("Gear not L"),
+    ET.NO_ENTRY: NoEntryAlert("Gear not L"),
   },
 
   # This alert is thrown when the calibration angles are outside of the acceptable range.
@@ -893,7 +893,7 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
     #  Priority.LOW, VisualAlert.none, AudibleAlert.none, 1., creation_delay=1.),
     #ET.NO_ENTRY: NoEntryAlert("CAN Bus Disconnected: Check Connections"),
     ET.USER_DISABLE: EngagementAlert(AudibleAlert.disengage),
-    #ET.SOFT_DISABLE: user_soft_disable_alert("Gear not D"),
+    #ET.SOFT_DISABLE: user_soft_disable_alert("Gear not L"),
     ET.NO_ENTRY: NoEntryAlert("CAN Bus Disconnected"),
 
   },

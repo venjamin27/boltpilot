@@ -163,6 +163,7 @@ class CarController:
 
 
           idx = (self.frame // 4) % 4
+          actuators.pedalGas = pedal_gas # for debug ui
           can_sends.append(create_gas_interceptor_command(self.packer_pt, pedal_gas, idx))
           # END INTERCEPTOR ############################
         else:

@@ -1503,20 +1503,26 @@ void DrawApilot::drawDebugText(UIState* s) {
 
     int y = 150, dy = 40;
 
+     y += (dy*5); // 강제로 5줄 내리고 시작. plot을 가리니까.
+
     const int text_x = s->fb_w - 20;
     const auto live_torque_params = sm["liveTorqueParameters"].getLiveTorqueParameters();
+    const auto car_control = sm["carControl"].getCarControl();
     
     sprintf(str, "LT[%.0f]:%s (%.4f/%.4f)", live_torque_params.getTotalBucketPoints(), live_torque_params.getLiveValid() ? "ON" : "OFF", live_torque_params.getLatAccelFactorFiltered(), live_torque_params.getFrictionCoefficientFiltered());
     ui_draw_text(s, text_x, y, str, 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
 
-    qstr = QString::fromStdString(live_torque_params.getDebugText().cStr());
-    y += dy;
-    ui_draw_text(s, text_x, y, qstr.toStdString().c_str(), 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
+//
+//    qstr = QString::fromStdString(live_torque_params.getDebugText().cStr());
+//    y += dy;
+//    ui_draw_text(s, text_x, y, qstr.toStdString().c_str(), 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
 
-    const auto lp = sm["longitudinalPlan"].getLongitudinalPlan();
-    qstr = QString::fromStdString(lp.getDebugLongText1().cStr());
-    y += dy;
-    ui_draw_text(s, text_x, y, qstr.toStdString().c_str(), 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
+//    const auto lp = sm["longitudinalPlan"].getLongitudinalPlan();
+//    qstr = QString::fromStdString(lp.getDebugLongText1().cStr());
+//    y += dy;
+//    ui_draw_text(s, text_x, y, qstr.toStdString().c_str(), 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
+
+
     const auto live_params = sm["liveParameters"].getLiveParameters();
     float   liveSteerRatio = live_params.getSteerRatio();
     sprintf(str, "LiveSR = %.2f", liveSteerRatio);
@@ -1524,14 +1530,23 @@ void DrawApilot::drawDebugText(UIState* s) {
     ui_draw_text(s, text_x, y, str, 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
 
     auto controls_state = sm["controlsState"].getControlsState();
-    qstr = QString::fromStdString(controls_state.getDebugText1().cStr());
-    y += dy;
-    ui_draw_text(s, text_x, y, qstr.toStdString().c_str(), 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
+//    qstr = QString::fromStdString(controls_state.getDebugText1().cStr());
+//    y += dy;
+//    ui_draw_text(s, text_x, y, qstr.toStdString().c_str(), 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
+
     qstr = QString::fromStdString(controls_state.getDebugText2().cStr());
     y += dy;
     ui_draw_text(s, text_x, y, qstr.toStdString().c_str(), 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
     //p.drawText(text_x, y + 160, QString::fromStdString(controls_state.getDebugText2().cStr()));
     //p.drawText(text_x, y + 240, QString::fromStdString(controls_state.getDebugText1().cStr()));
+
+    float accel = car_control.getActuators().getAccel();
+    float pedalGas = car_control.getActuators().getPedalGas();
+    y += dy;
+    sprintf(str, "ACC : [%.4f]  pGas : [%.4f]", accel, pedalGas);
+    ui_draw_text(s, text_x, y, str, 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
+
+
 }
 DrawApilot::DrawApilot() {
 
