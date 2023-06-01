@@ -394,6 +394,7 @@ struct CarControl {
 
     regenPaddle @9: Bool;
     pedalGas @10: Float32;
+    pedalGasRaw @11: Float32;
 
     enum LongControlState @0xe40f3a917d908282{
       off @0;
