@@ -239,7 +239,8 @@ class CarController:
       self.lka_icon_status_last = lka_icon_status
 
     actuators.pedalGas = self.pedalGas_valueStore
-    actuators.pedalGasRaw = self.pedalGas_valueStore
+    actuators.pedalGasRaw = self.pedalGasRaw_valueStore
+
 
     new_actuators = actuators.copy()
     new_actuators.steer = self.apply_steer_last / self.params.STEER_MAX
