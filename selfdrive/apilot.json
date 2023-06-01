@@ -394,6 +394,16 @@
     },
     {
       "group": "주행튜닝",
+      "name": "LongitudinalTuningKf",
+      "title": "Kf게인(100)",
+      "descr": "피드포워드 게인",
+      "min": 0,
+      "max": 200,
+      "default": 100,
+      "unit": 1
+    },
+    {
+      "group": "주행튜닝",
       "name": "AChangeCost",
       "title": "A_CHANGE_COST(200)",
       "descr": "적으면 선행차에 대한 반응이 빨라집니다.",
