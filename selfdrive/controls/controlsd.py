@@ -898,8 +898,8 @@ class Controls:
 
     #ajouatom
     controlsState.debugText1 = self.debugText1
-    #self.debugText2 = self.LoC.debugLoCText
-    self.debugText2 = self.LaC.latDebugText
+    self.debugText2 = self.LoC.debugLoCText
+    # self.debugText2 = self.LaC.latDebugText
     controlsState.debugText2 = self.debugText2
     controlsState.longActiveUser = self.cruise_helper.longActiveUser
     controlsState.longActiveUserReady = self.cruise_helper.longActiveUserReady

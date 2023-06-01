@@ -539,7 +539,7 @@ static void ui_draw_plotting(const UIState* s, int start, float x, float y[], in
         float plot_y = plotY + plotHeight - (data - plotMin) * plotRatio;
         if (i == 0) {
             nvgMoveTo(s->vg, x + (size - i)*dx, plot_y);
-            sprintf(str, "%.1f", data);
+            sprintf(str, "%.4f", data);
             ui_draw_text(s, x + (size - i)*dx + 50, plot_y + 40, str, 40, *color, BOLD);
         }
         else nvgLineTo(s->vg, x + (size - i)*dx, plot_y);
@@ -1542,8 +1542,9 @@ void DrawApilot::drawDebugText(UIState* s) {
 
     float accel = car_control.getActuators().getAccel();
     float pedalGas = car_control.getActuators().getPedalGas();
+    float pedalGasRaw = car_control.getActuators().getPedalGasRaw();
     y += dy;
-    sprintf(str, "ACC : [%.4f]  pGas : [%.4f]", accel, pedalGas);
+    sprintf(str, "ACC : [%.4f]  pGas/Raw : [%.4f]/[%.4f]", accel, pedalGas, pedalGasRaw);
     ui_draw_text(s, text_x, y, str, 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
 
 

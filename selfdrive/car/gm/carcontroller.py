@@ -21,9 +21,9 @@ CAMERA_CANCEL_DELAY_FRAMES = 10
 MIN_STEER_MSG_INTERVAL_MS = 15
 
 
-def actuator_hystereses(final_pedal, pedal_steady):
+def actuator_hystereses(final_pedal, pedal_steady, pedal_hyst_gap=0.01):
   # hyst params... TODO: move these to VehicleParams
-  pedal_hyst_gap = 0.01    # don't change pedal command for small oscillations within this value
+      # don't change pedal command for small oscillations within this value
 
   # for small pedal oscillations within pedal_hyst_gap, don't change the pedal command
   if math.isclose(final_pedal, 0.0):
@@ -60,6 +60,7 @@ class CarController:
     self.packer_ch = CANPacker(DBC[self.CP.carFingerprint]['chassis'])
 
     self.pedalGas_valueStore = 0.0
+    self.pedalGasRaw_valueStore = 0.0
 
   def update(self, CC, CS, now_nanos):
     actuators = CC.actuators
@@ -155,7 +156,8 @@ class CarController:
             pedal_gas = clip(actuators.accel, 0., 1.)
 
           # apply pedal hysteresis and clip the final output to valid values.
-          pedal_final, self.pedal_steady = actuator_hystereses(pedal_gas, self.pedal_steady)
+          self.pedalGasRaw_valueStore = pedal_gas
+          pedal_final, self.pedal_steady = actuator_hystereses(pedal_gas, self.pedal_steady, 0.01 / 5.0)
           pedal_gas = clip(pedal_final, 0., 1.)
 
           if not CC.longActive:
@@ -237,6 +239,8 @@ class CarController:
       self.lka_icon_status_last = lka_icon_status
 
     actuators.pedalGas = self.pedalGas_valueStore
+    actuators.pedalGasRaw = self.pedalGasRaw_valueStore
+
 
     new_actuators = actuators.copy()
     new_actuators.steer = self.apply_steer_last / self.params.STEER_MAX
