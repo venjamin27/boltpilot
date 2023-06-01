@@ -124,6 +124,7 @@ def manager_init() -> None:
     ("CustomMapbox", "0"),    
     ("LongitudinalTuningKpV", "100"),     
     ("LongitudinalTuningKiV", "200"),     
+    ("LongitudinalTuningKf", "100"),     
     ("LongitudinalActuatorDelayUpperBound", "50"),     
     ("LongitudinalActuatorDelayLowerBound", "50"),     
     ("EnableRadarTracks", "0"),      
