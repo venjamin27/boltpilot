@@ -1,4 +1,4 @@
-﻿#include "selfdrive/ui/paint.h"
+#include "selfdrive/ui/paint.h"
 
 #include <cassert>
 #include <cmath>
@@ -1538,7 +1538,7 @@ void DrawApilot::drawDebugText(UIState* s) {
 
     auto car_state = sm["carState"].getCarState();
     const auto vEgoClu = car_state.getVEgoClu();
-    string vEgoCluString(std::to_string(vEgoClu));
+    std::string vEgoCluString(std::to_string(vEgoClu));
     const auto live_params = sm["liveParameters"].getLiveParameters();
     float   liveSteerRatio = live_params.getSteerRatio();
     sprintf(str, "LiveSR = %.2f / tempCluSpeed = %s", liveSteerRatio,vEgoCluString.c_str()); /// unknown type.
