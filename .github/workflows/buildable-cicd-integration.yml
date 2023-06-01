@@ -1,15 +1,15 @@
 # This is a basic workflow to help you get started with Actions
 
-name: commaai Build
+name: commaai Build - all set
 
 # Controls when the action will run. Triggers the workflow on push or pull request
 # events but only for the 075-kegman-lqr branch
 on:
   push:
     branches:
-    - develop  # Support wildcard matching
-    - feature/*  # Support wildcard matching
-    - release
+#    - develop  # Support wildcard matching
+    - feature/cicd*  # Support wildcard matching
+#    - release
 #    - comma2_Eon-final # no more comma2,,,
   pull_request_target:
 
@@ -286,87 +286,87 @@ jobs:
       if: always()
       run: cat selfdrive/test/valgrind_logs.txt
 
-#  unit_tests:
-#    name: unit tests
-#    runs-on: ubuntu-20.04
-#    steps:
-#    - uses: actions/checkout@v3
-#      with:
-#        submodules: true
-#    - uses: ./.github/workflows/setup
-#    - name: Build openpilot
-#      run: ${{ env.RUN }} "scons -j$(nproc)"
-#    - name: Run unit tests
-#    #####                        ./selfdrive/ui/tests/create_test_translations.sh && \
-#            ##                        QT_QPA_PLATFORM=offscreen ./selfdrive/ui/tests/test_translations && \
-#            ##                        ./selfdrive/ui/tests/test_translations.py && \
-#            #                        selfdrive/locationd/test/_test_locationd_lib.py && \
-#            #                        ./system/ubloxd/tests/test_glonass_runner && \
-#
-#      run: |
-#        ${{ env.RUN }} "export SKIP_LONG_TESTS=1 && \
-#                        $UNIT_TEST common && \
-#                        $UNIT_TEST opendbc/can && \
-#                        $UNIT_TEST selfdrive/boardd && \
-#                        $UNIT_TEST selfdrive/controls && \
-#                        $UNIT_TEST selfdrive/monitoring && \
-#                        $UNIT_TEST system/loggerd && \
-#                        $UNIT_TEST selfdrive/car/gm && \
-#                        $UNIT_TEST selfdrive/locationd && \
-#                        $UNIT_TEST system/ubloxd && \
-#                        $UNIT_TEST selfdrive/athena && \
-#                        $UNIT_TEST selfdrive/thermald && \
-#                        $UNIT_TEST system/hardware/tici && \
-#                        $UNIT_TEST tools/lib/tests && \
-#                        ./common/tests/test_util && \
-#                        ./common/tests/test_swaglog && \
-#                        ./selfdrive/boardd/tests/test_boardd_usbprotocol && \
-#                        ./system/loggerd/tests/test_logger &&\
-#                        ./system/proclogd/tests/test_proclog && \
-#                        ./tools/replay/tests/test_replay && \
-#                        ./tools/cabana/tests/test_cabana && \
-#                        ./system/camerad/test/ae_gray_test && \
-#                        coverage xml"
-#    - name: "Upload coverage to Codecov"
-#      uses: codecov/codecov-action@v2
+  unit_tests:
+    name: unit tests
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+    - uses: ./.github/workflows/setup
+    - name: Build openpilot
+      run: ${{ env.RUN }} "scons -j$(nproc)"
+    - name: Run unit tests
+    #####                        ./selfdrive/ui/tests/create_test_translations.sh && \
+            ##                        QT_QPA_PLATFORM=offscreen ./selfdrive/ui/tests/test_translations && \
+            ##                        ./selfdrive/ui/tests/test_translations.py && \
+            #                        selfdrive/locationd/test/_test_locationd_lib.py && \
+            #                        ./system/ubloxd/tests/test_glonass_runner && \
 
-#  process_replay:
-#    name: process replay
-#    runs-on: ubuntu-20.04
-#    steps:
-#    - uses: actions/checkout@v3
-#      with:
-#        submodules: true
-#    - uses: ./.github/workflows/setup
-#    - name: Cache test routes
-#      id: dependency-cache
-#      uses: actions/cache@v3
-#      with:
-#        path: /tmp/comma_download_cache
-#        key: proc-replay-${{ hashFiles('.github/workflows/selfdrive_tests.yaml', 'selfdrive/test/process_replay/ref_commit') }}
-#    - name: Build openpilot
-#      run: |
-#        ${{ env.RUN }} "scons -j$(nproc)"
-#    - name: Run replay
-#      run: |
-#        ${{ env.RUN }} "CI=1 coverage run selfdrive/test/process_replay/test_processes.py -j$(nproc) && \
-#                        coverage xml"
-#    - name: Print diff
-#      id: print-diff
-#      if: always()
-#      run: cat selfdrive/test/process_replay/diff.txt
-#    - uses: actions/upload-artifact@v2
-#      if: always()
-#      continue-on-error: true
-#      with:
-#        name: process_replay_diff.txt
-#        path: selfdrive/test/process_replay/diff.txt
-#    - name: Upload reference logs
-#      if: ${{ failure() && steps.print-diff.outcome == 'success' && github.repository == 'commaai/openpilot' && env.AZURE_TOKEN != '' }}
-#      run: |
-#        ${{ env.RUN }} "CI=1 AZURE_TOKEN='$AZURE_TOKEN' python selfdrive/test/process_replay/test_processes.py -j$(nproc) --upload-only"
-#    - name: "Upload coverage to Codecov"
-#      uses: codecov/codecov-action@v2
+      run: |
+        ${{ env.RUN }} "export SKIP_LONG_TESTS=1 && \
+                        $UNIT_TEST common && \
+                        $UNIT_TEST opendbc/can && \
+                        $UNIT_TEST selfdrive/boardd && \
+                        $UNIT_TEST selfdrive/controls && \
+                        $UNIT_TEST selfdrive/monitoring && \
+                        $UNIT_TEST system/loggerd && \
+                        $UNIT_TEST selfdrive/car/gm && \
+                        $UNIT_TEST selfdrive/locationd && \
+                        $UNIT_TEST system/ubloxd && \
+                        $UNIT_TEST selfdrive/athena && \
+                        $UNIT_TEST selfdrive/thermald && \
+                        $UNIT_TEST system/hardware/tici && \
+                        $UNIT_TEST tools/lib/tests && \
+                        ./common/tests/test_util && \
+                        ./common/tests/test_swaglog && \
+                        ./selfdrive/boardd/tests/test_boardd_usbprotocol && \
+                        ./system/loggerd/tests/test_logger &&\
+                        ./system/proclogd/tests/test_proclog && \
+                        ./tools/replay/tests/test_replay && \
+                        ./tools/cabana/tests/test_cabana && \
+                        ./system/camerad/test/ae_gray_test && \
+                        coverage xml"
+    - name: "Upload coverage to Codecov"
+      uses: codecov/codecov-action@v2
+
+  process_replay:
+    name: process replay
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+    - uses: ./.github/workflows/setup
+    - name: Cache test routes
+      id: dependency-cache
+      uses: actions/cache@v3
+      with:
+        path: /tmp/comma_download_cache
+        key: proc-replay-${{ hashFiles('.github/workflows/selfdrive_tests.yaml', 'selfdrive/test/process_replay/ref_commit') }}
+    - name: Build openpilot
+      run: |
+        ${{ env.RUN }} "scons -j$(nproc)"
+    - name: Run replay
+      run: |
+        ${{ env.RUN }} "CI=1 coverage run selfdrive/test/process_replay/test_processes.py -j$(nproc) && \
+                        coverage xml"
+    - name: Print diff
+      id: print-diff
+      if: always()
+      run: cat selfdrive/test/process_replay/diff.txt
+    - uses: actions/upload-artifact@v2
+      if: always()
+      continue-on-error: true
+      with:
+        name: process_replay_diff.txt
+        path: selfdrive/test/process_replay/diff.txt
+    - name: Upload reference logs
+      if: ${{ failure() && steps.print-diff.outcome == 'success' && github.repository == 'commaai/openpilot' && env.AZURE_TOKEN != '' }}
+      run: |
+        ${{ env.RUN }} "CI=1 AZURE_TOKEN='$AZURE_TOKEN' python selfdrive/test/process_replay/test_processes.py -j$(nproc) --upload-only"
+    - name: "Upload coverage to Codecov"
+      uses: codecov/codecov-action@v2
 
   test_modeld:
     name: model tests
@@ -393,59 +393,59 @@ jobs:
     - name: "Upload coverage to Codecov"
       uses: codecov/codecov-action@v2
 
-#  test_longitudinal:
-#    name: longitudinal
-#    runs-on: ubuntu-20.04
-#    steps:
-#    - uses: actions/checkout@v3
-#      with:
-#        submodules: true
-#    - uses: ./.github/workflows/setup
-#    - name: Build openpilot
-#      run: |
-#        ${{ env.RUN }} "scons -j$(nproc)"
-#    - name: Test longitudinal
-#      run: |
-#        ${{ env.RUN }} "mkdir -p selfdrive/test/out && \
-#                        cd selfdrive/test/longitudinal_maneuvers && \
-#                        coverage run ./test_longitudinal.py && \
-#                        coverage xml"
-#    - name: "Upload coverage to Codecov"
-#      uses: codecov/codecov-action@v2
-#    - uses: actions/upload-artifact@v2
-#      if: always()
-#      continue-on-error: true
-#      with:
-#        name: longitudinal
-#        path: selfdrive/test/longitudinal_maneuvers/out/longitudinal/
+  test_longitudinal:
+    name: longitudinal
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+    - uses: ./.github/workflows/setup
+    - name: Build openpilot
+      run: |
+        ${{ env.RUN }} "scons -j$(nproc)"
+    - name: Test longitudinal
+      run: |
+        ${{ env.RUN }} "mkdir -p selfdrive/test/out && \
+                        cd selfdrive/test/longitudinal_maneuvers && \
+                        coverage run ./test_longitudinal.py && \
+                        coverage xml"
+    - name: "Upload coverage to Codecov"
+      uses: codecov/codecov-action@v2
+    - uses: actions/upload-artifact@v2
+      if: always()
+      continue-on-error: true
+      with:
+        name: longitudinal
+        path: selfdrive/test/longitudinal_maneuvers/out/longitudinal/
 
-#  test_cars:
-#    name: cars
-#    runs-on: ubuntu-20.04
-#    strategy:
-#      fail-fast: false
-#      matrix:
-#        job: [0, 1, 2, 3, 4]
-#    steps:
-#    - uses: actions/checkout@v3
-#      with:
-#        submodules: true
-#    - uses: ./.github/workflows/setup
-#    - name: Cache test routes
-#      id: dependency-cache
-#      uses: actions/cache@03e00da99d75a2204924908e1cca7902cafce66b
-#      with:
-#        path: /tmp/comma_download_cache
-#        key: car_models-${{ hashFiles('selfdrive/car/tests/test_models.py', 'selfdrive/car/tests/routes.py') }}-${{ matrix.job }}
-#    - name: Build openpilot
-#      run: ${{ env.RUN }} "scons -j$(nproc)"
-#    - name: Test car models
-#      run: |
-#        ${{ env.RUN }} "coverage run -m pytest selfdrive/car/tests/test_models.py && \
-#                        coverage xml && \
-#                        chmod -R 777 /tmp/comma_download_cache"
-#      env:
-#        NUM_JOBS: 5
-#        JOB_ID: ${{ matrix.job }}
-#    - name: "Upload coverage to Codecov"
-#      uses: codecov/codecov-action@v2
+  test_cars:
+    name: cars
+    runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: false
+      matrix:
+        job: [0, 1, 2, 3, 4]
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+    - uses: ./.github/workflows/setup
+    - name: Cache test routes
+      id: dependency-cache
+      uses: actions/cache@03e00da99d75a2204924908e1cca7902cafce66b
+      with:
+        path: /tmp/comma_download_cache
+        key: car_models-${{ hashFiles('selfdrive/car/tests/test_models.py', 'selfdrive/car/tests/routes.py') }}-${{ matrix.job }}
+    - name: Build openpilot
+      run: ${{ env.RUN }} "scons -j$(nproc)"
+    - name: Test car models
+      run: |
+        ${{ env.RUN }} "coverage run -m pytest selfdrive/car/tests/test_models.py && \
+                        coverage xml && \
+                        chmod -R 777 /tmp/comma_download_cache"
+      env:
+        NUM_JOBS: 5
+        JOB_ID: ${{ matrix.job }}
+    - name: "Upload coverage to Codecov"
+      uses: codecov/codecov-action@v2
