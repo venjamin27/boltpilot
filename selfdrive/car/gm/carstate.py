@@ -75,13 +75,13 @@ class CarState(CarStateBase):
     ###for neokii integration of former BoltPilot
     self.cluster_speed_counter += 1
     if self.cluster_speed_counter > CLUSTER_SAMPLE_RATE:
-      self.cluster_speed = (pt_cp.vl["ECMVehicleSpeed"]["VehicleSpeed"] * CV.MPH_TO_MS)
+      self.cluster_speed = (pt_cp.vl["ECMVehicleSpeed"]["VehicleSpeed"])
       self.cluster_speed_counter = 0
 
 
       #Consider only BolTEV
       # if not self.is_metric and self.CP.carFingerprint not in (CAR.KIA_SORENTO,):
-      self.cluster_speed = math.floor(self.cluster_speed * CV.MPH_TO_MS + CV.MPH_TO_MS)
+      self.cluster_speed = math.floor(self.cluster_speed * CV.MPH_TO_MS)
 
     vEgoRawClu = (pt_cp.vl["ECMVehicleSpeed"]["VehicleSpeed"] * CV.MPH_TO_MS)
     vEgoClu, aEgoClu = self.update_clu_speed_kf(vEgoRawClu)
@@ -89,6 +89,14 @@ class CarState(CarStateBase):
     self.ECMVehicleSpeed = pt_cp.vl["ECMVehicleSpeed"]
     ret.vCluRatio = (ret.vEgo / vEgoClu) if (vEgoClu > 3. and ret.vEgo > 3.) else 1.0
     ###for neokii integration of former BoltPilot ends
+
+####### for longcontrol, use ECMVehicleSpeed,
+    ret.vEgoRaw = vEgoRawClu
+    ret.vEgo = vEgoClu
+    ret.aEgo = aEgoClu
+
+###test purpose
+    ret.vEgoClu = pt_cp.vl["SPEED_RELATED"]["ClusterSpeed"]
 
 
     # sample rear wheel speeds, standstill=True if ECM allows engagement with brake
@@ -160,7 +168,8 @@ class CarState(CarStateBase):
     ret.leftBlinker = pt_cp.vl["BCMTurnSignals"]["TurnSignals"] == 1
     ret.rightBlinker = pt_cp.vl["BCMTurnSignals"]["TurnSignals"] == 2
 
-    ret.parkingBrake = pt_cp.vl["VehicleIgnitionAlt"]["ParkBrake"] == 1
+    # ret.parkingBrake = pt_cp.vl["VehicleIgnitionAlt"]["ParkBrake"] == 1
+    ret.parkingBrake = pt_cp.vl["EPBStatus"]["EPBClosed"]
     ret.cruiseState.available = pt_cp.vl["ECMEngineStatus"]["CruiseMainOn"] != 0
     ret.espDisabled = pt_cp.vl["ESPStatus"]["TractionControlOn"] != 1
     ret.accFaulted = (pt_cp.vl["AcceleratorPedal2"]["CruiseState"] == AccState.FAULTED or
@@ -247,6 +256,8 @@ class CarState(CarStateBase):
       ("BrakePressed", "ECMEngineStatus"),
 
       ("VehicleSpeed", "ECMVehicleSpeed"),
+      ("ClusterSpeed", "SPEED_RELATED"),
+      ("EPBClosed", "EPBStatus"),
     ]
 
     checks = [
@@ -264,7 +275,9 @@ class CarState(CarStateBase):
       ("ECMEngineStatus", 100),
       ("PSCMSteeringAngle", 100),
       ("ECMAcceleratorPos", 80),
-      ("ECMVehicleSpeed", 50),
+      ("ECMVehicleSpeed", 100),
+      ("SPEED_RELATED", 100),
+      ("EPBStatus",5),
     ]
 
     # Used to read back last counter sent to PT by camera
@@ -280,7 +293,7 @@ class CarState(CarStateBase):
 
     if CP.transmissionType == TransmissionType.direct:
       signals.append(("RegenPaddle", "EBCMRegenPaddle"))
-      checks.append(("EBCMRegenPaddle", 50))
+      checks.append(("EBCMRegenPaddle", 100))
 
     if CP.carFingerprint in CC_ONLY_CAR:
       signals.remove(("BrakePedalPos", "ECMAcceleratorPos"))
