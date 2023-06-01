@@ -188,7 +188,7 @@ public:
   bool show_tpms = true;
   int show_accel = 2;
   bool show_steer_rotate = true;
-  bool show_path_end = true;
+  int show_path_end = true;
   int show_steer_mode = 0;
   bool show_device_stat = true;
   bool show_conn_info = true;

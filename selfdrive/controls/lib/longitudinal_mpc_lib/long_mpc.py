@@ -253,7 +253,6 @@ class LongitudinalMpc:
     self.applyCruiseGap = 1.
     self.applyModelDistOrder = 32
     self.trafficStopUpdateDist = 10.0
-    self.trafficDetectBrightness = 300
     self.fakeCruiseDistance = 0.0
     self.stopDist = 0.0
     self.e2eCruiseCount = 0
@@ -589,7 +588,6 @@ class LongitudinalMpc:
       self.stopDistance = float(int(Params().get("StopDistance", encoding="utf8"))) / 100.
     elif self.lo_timer == 100:
       self.applyDynamicTFollow = float(int(Params().get("ApplyDynamicTFollow", encoding="utf8"))) / 100.
-      self.trafficDetectBrightness = int(Params().get("TrafficDetectBrightness", encoding="utf8"))
     elif self.lo_timer == 120:
       self.applyDynamicTFollowApart = float(int(Params().get("ApplyDynamicTFollowApart", encoding="utf8"))) / 100.
       self.applyDynamicTFollowDecel = float(int(Params().get("ApplyDynamicTFollowDecel", encoding="utf8"))) / 100.
@@ -649,20 +647,18 @@ class LongitudinalMpc:
     startSign = (model_v > 5.0 or model_v > (v[0]+2)) # and model_x > 50.0
 
     ## 시그널이 10M이상 떨리면... 신호가 잘못된걸로...
-    if (self.prev_x - model_x) > 10:
-      startSign = False
+    #if (self.prev_x - model_x) > 10:
+    #  startSign = False
     self.prev_x = model_x
     if v_ego_kph < 1.0: 
       stopSign = model_x < 20.0 and model_v < 10.0
     elif v_ego_kph < 80.0:
-      if self.trafficDetectBrightness < self.lightSensor:
-        stopSign = model_x < 110.0 and ((model_v < 3.0) or (model_v < v[0]*0.6)) and abs(y[-1]) < 10.0
-      else:
-        stopSign = model_x < 130.0 and ((model_v < 3.0) or (model_v < v[0]*0.7)) and abs(y[-1]) < 10.0
+      stopSign = model_x < 130.0 and ((model_v < 3.0) or (model_v < v[0]*0.7)) and abs(y[-1]) < 20.0
     else:
       stopSign = False
 
-    self.stopSignCount = self.stopSignCount + 1 if (stopSign and (model_x > get_safe_obstacle_distance(v_ego, t_follow=0, comfort_brake=COMFORT_BRAKE, stop_distance=-1.0))) else 0
+    #self.stopSignCount = self.stopSignCount + 1 if (stopSign and (model_x > get_safe_obstacle_distance(v_ego, t_follow=0, comfort_brake=COMFORT_BRAKE, stop_distance=-1.0))) else 0
+    self.stopSignCount = self.stopSignCount + 1 if stopSign else 0
     self.startSignCount = self.startSignCount + 1 if startSign and not stopSign else 0
 
     if self.stopSignCount * DT_MDL > 0.0 and carstate.rightBlinker == False:
@@ -758,22 +754,14 @@ class LongitudinalMpc:
       if carstate.gasPressed:
         self.xState = XState.e2eCruisePrepare
         stop_x = 1000.0
-      elif self.trafficStopMode==2:
-        if self.trafficState == 2:
-          if v_ego_kph > 30:
-             self.xState = XState.e2eCruise
-          elif carstate.aEgo > 1.0:
-            self.mpcEvent = EventName.trafficSignGreen
+      #elif self.trafficStopMode==2:
+      #  if self.trafficState == 2:
+      #    if v_ego_kph > 30:
+      #       self.xState = XState.e2eCruise
+      #    elif True:#carstate.aEgo > 1.0:
+      #      self.mpcEvent = EventName.trafficSignGreen
       else:
         if v_ego < 0.1:
-          if self.trafficDetectBrightness < self.lightSensor:
-            self.trafficError = True
-            self.mpcEvent = EventName.trafficError
-            ## 조도가 높고, 정지중, +키를 누르면 출발!
-            if cruiseButtonCounterDiff > 0:
-                self.xState = XState.e2eCruisePrepare
-                self.e2eCruiseCount = 3 * DT_MDL
-                self.mpcEvent = EventName.trafficSignGreen
           if self.trafficState == 2  and (not self.trafficError or (self.trafficError and cruiseButtonCounterDiff > 0)):
               self.xState = XState.e2eCruisePrepare
               self.e2eCruiseCount = 3 * DT_MDL
@@ -816,11 +804,12 @@ class LongitudinalMpc:
         self.xState = XState.e2eStop
         self.stopDist = 2.0 # 너무짧아도 리턴전에 계산할것임..
         self.trafficError = True
-      elif cruiseButtonCounterDiff != 0: #신호감지무시중 버튼이 눌리면 다시 재개함.
-        self.xState = XState.e2eCruise
-      elif v_ego_kph < 1.0 and self.trafficState != 2:  ## 출발신호이지만.... 정지신호로 바뀐경우(모델신호 변심) 다시 정지하는걸로..
+      #elif cruiseButtonCounterDiff != 0: #신호감지무시중 버튼이 눌리면 다시 재개함.
+      #  self.xState = XState.e2eCruise
+      elif v_ego_kph < 2.0 and (self.trafficState != 2 or cruiseButtonCounterDiff > 0):  ## 출발신호이지만.... 정지신호로 바뀐경우(모델신호 변심) 다시 정지하는걸로..
         self.xState = XState.e2eStop
-      elif (v_ego_kph > 30.0 and (stop_x > 60.0 and abs(y[-1])<2.0)):
+        self.stopDist = 2.0
+      elif (v_ego_kph > 5.0 and (stop_x > 60.0 and abs(y[-1])<2.0)):
         self.xState = XState.e2eCruise
       else:
         #self.trafficState = 0
@@ -843,7 +832,8 @@ class LongitudinalMpc:
         stop_x = 1000.0
 
     if self.trafficStopMode == 2:
-      mode = 'blended' if self.xState in [XState.e2eStop, XState.e2eCruisePrepare] else 'acc'
+      #mode = 'blended' if self.xState in [XState.e2eStop, XState.e2eCruisePrepare] else 'acc'
+      mode = 'blended' if self.xState in [XState.e2eCruisePrepare] else 'acc'
 
     self.comfort_brake *= self.mySafeModeFactor
     self.longActiveUser = controls.longActiveUser
@@ -855,7 +845,7 @@ class LongitudinalMpc:
     elif stop_x == 1000.0:
       self.stopDist = 0.0
     elif self.stopDist > 0:
-      stop_dist = v_ego ** 2 / (2.8 * 2) # 2.8m/s^2 으로 감속할경우 필요한 거리.
+      stop_dist = v_ego ** 2 / (3.5 * 2) # 3.5m/s^2 으로 감속할경우 필요한 거리.
       self.stopDist = self.stopDist if self.stopDist > stop_dist else stop_dist
       stop_x = 0.0
 #    else:
