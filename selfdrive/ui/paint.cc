@@ -1526,6 +1526,7 @@ void DrawApilot::drawDebugText(UIState* s) {
 
 
     auto controls_state = sm["controlsState"].getControlsState();
+
 //    qstr = QString::fromStdString(controls_state.getDebugText1().cStr());
 //    y += dy;
 //    ui_draw_text(s, text_x, y, qstr.toStdString().c_str(), 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
@@ -1536,9 +1537,12 @@ void DrawApilot::drawDebugText(UIState* s) {
     //p.drawText(text_x, y + 160, QString::fromStdString(controls_state.getDebugText2().cStr()));
     //p.drawText(text_x, y + 240, QString::fromStdString(controls_state.getDebugText1().cStr()));
 
+    float upAccelCmd = controls_state.getUpAccelCmd();
+    float uiAccelCmd = controls_state.getUiAccelCmd();
+    float ufAccelCmd = controls_state.getUfAccelCmd();
     const auto live_params = sm["liveParameters"].getLiveParameters();
     float   liveSteerRatio = live_params.getSteerRatio();
-    sprintf(str, "LiveSR = %.2f", liveSteerRatio); /// unknown type.
+    sprintf(str, "LiveSR = %.2f P: %.3f  I: %.3f F: %.3f", liveSteerRatio,upAccelCmd, uiAccelCmd,ufAccelCmd); /// unknown type.
     y += dy;
     ui_draw_text(s, text_x, y, str, 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
 
