@@ -706,7 +706,7 @@ UIState::UIState(QObject *parent) : QObject(parent) {
     "wideRoadCameraState", "managerState", "navInstruction", "navRoute", "uiPlan",
     "lateralPlan", "longitudinalPlan", "gpsLocationExternal", "carControl", "liveParameters", "roadLimitSpeed",
     "liveTorqueParameters",
-  });
+  };
   std::vector<const char*> poll = {"modelV2"};
   sm = std::make_unique<SubMaster>(socks, poll);
 
