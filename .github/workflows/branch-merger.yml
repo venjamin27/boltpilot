@@ -8,10 +8,13 @@ name: auto merger
 on:
   push:
     branches:
-    - develop  # Support wildcard matching
-    - feature/*  # Support wildcard matching
-    - release
+    - test-purpose-cicd  # Support wildcard matching
+    - feature/test-purpose-cicd
 #    - comma2_Eon-final # no more comma2,,,
+  pull_request:
+    types:
+      - labeled
+
   workflow_call:
 
 env:
@@ -30,24 +33,6 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: true
-      - name: pull-request
-        uses: repo-sync/pull-request@v2
-        id: open-pr
-        with:
-          source_branch: "feature/opgm-ap-integration"
-          destination_branch: "feature/test-purpose-cicd"
-          github_token:  ${{ secrets.REPO_SECRET }}
-  #          pr_assignee: "jc01rho"
-          pr_label: "automerge"
-      - name: pull-request
-        uses: repo-sync/pull-request@v2
-        id: open-pr-sec
-        with:
-          source_branch: "feature/opgm-ap-integration"
-          destination_branch: "feature-develop"
-          github_token:  ${{ secrets.REPO_SECRET }}
-  #          pr_assignee: "jc01rho"
-          pr_label: "automerge"
       - id: automerge
         name: automerge
         uses: "pascalgn/automerge-action@v0.15.6"
