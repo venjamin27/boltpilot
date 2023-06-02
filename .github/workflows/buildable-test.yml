@@ -41,6 +41,36 @@ env:
 
 
 jobs:
+  auto-merge:
+    name: automerge
+    if: github.ref == 'refs/heads/feature/opgm-ap-integration' && github.repository == 'jc01rho-openpilot-BoltEV2019-KoKr/boltpilot'
+    runs-on: ubuntu-20.04
+    steps:
+    - name: pull-request
+      uses: repo-sync/pull-request@v2
+      id: open-pr
+      with:
+        source_branch: "feature/opgm=ap-integration"
+        destination_branch: "feature/test-purpose-cicd"
+        github_token:  ${{ secrets.REPO_SECRET }}
+#          pr_assignee: "jc01rho"
+        pr_label: "automerge"
+    - name: pull-request
+      uses: repo-sync/pull-request@v2
+      id: open-pr
+      with:
+        source_branch: "feature/opgm=ap-integration"
+        destination_branch: "feature-develop"
+        github_token:  ${{ secrets.REPO_SECRET }}
+#          pr_assignee: "jc01rho"
+        pr_label: "automerge"
+    - id: automerge
+      name: automerge
+      uses: "pascalgn/automerge-action@v0.15.6"
+      env:
+        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        MERGE_LABELS: "automerge"
+        MERGE_FORKS: "false"
 #  build_release:
 #    name: build release
 #    runs-on: ubuntu-20.04

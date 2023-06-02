@@ -145,7 +145,7 @@ class CarController:
             accGain = interp(CS.out.vEgo, [0., 5], [0.2500, 0.2750])
 
             zero = interp(CS.out.vEgo,[0., 5], [0.1560, 0.2200])
-            zeroGain = interp(actuators.accel , [-1.2500, 0.0000] , [0.0000, 1.0000])
+            zeroGain = interp(actuators.accel , [-1.2500 , -0.8000, -0.3500] , [0.0000, 0.6500, 1.0000])
 
 
             # accGain = interp(CS.out.vEgo,[0., 5], [0.25, 0.1667])
@@ -163,7 +163,7 @@ class CarController:
 
           # apply pedal hysteresis and clip the final output to valid values.
           self.pedalGasRaw_valueStore = pedal_gas
-          pedal_final, self.pedal_steady = actuator_hystereses(pedal_gas, self.pedal_steady, 5.0) # gap을 기존보다 5배 더 자세히
+          pedal_final, self.pedal_steady = actuator_hystereses(pedal_gas, self.pedal_steady, 2.0) # gap을 기존보다 2배 더 자세히
           pedal_gas = clip(pedal_final, 0., 1.)
 
           if not CC.longActive:
