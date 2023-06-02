@@ -167,7 +167,7 @@ struct CarState {
   adaptiveCruise @56 :Bool;
   mainOn @54 :Bool;
   lkasEnable @57 :Bool;
-  vEgoClu @58 :Float32;
+
 
   # CAN health
   canValid @26 :Bool;       # invalid counter/checksums

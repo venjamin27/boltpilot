@@ -96,7 +96,7 @@ class CarState(CarStateBase):
     ret.aEgo = aEgoClu
 
 ###test purpose
-    ret.vEgoClu = pt_cp.vl["SPEED_RELATED"]["ClusterSpeed"]
+    # ret.vEgoClu = pt_cp.vl["SPEED_RELATED"]["ClusterSpeed"]
 
 
     # sample rear wheel speeds, standstill=True if ECM allows engagement with brake
@@ -256,7 +256,7 @@ class CarState(CarStateBase):
       ("BrakePressed", "ECMEngineStatus"),
 
       ("VehicleSpeed", "ECMVehicleSpeed"),
-      ("ClusterSpeed", "SPEED_RELATED"),
+      # ("ClusterSpeed", "SPEED_RELATED"),
       ("EPBClosed", "EPBStatus"),
     ]
 
@@ -276,7 +276,7 @@ class CarState(CarStateBase):
       ("PSCMSteeringAngle", 100),
       ("ECMAcceleratorPos", 80),
       ("ECMVehicleSpeed", 100),
-      ("SPEED_RELATED", 100),
+      # ("SPEED_RELATED", 100),
       ("EPBStatus", 5),
     ]
 

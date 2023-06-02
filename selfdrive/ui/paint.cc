@@ -1536,12 +1536,9 @@ void DrawApilot::drawDebugText(UIState* s) {
     //p.drawText(text_x, y + 160, QString::fromStdString(controls_state.getDebugText2().cStr()));
     //p.drawText(text_x, y + 240, QString::fromStdString(controls_state.getDebugText1().cStr()));
 
-    auto car_state = sm["carState"].getCarState();
-    const auto vEgoClu = car_state.getVEgoClu();
-    std::string vEgoCluString(std::to_string(vEgoClu));
     const auto live_params = sm["liveParameters"].getLiveParameters();
     float   liveSteerRatio = live_params.getSteerRatio();
-    sprintf(str, "LiveSR = %.2f / tempCluSpeed = %s", liveSteerRatio,vEgoCluString.c_str()); /// unknown type.
+    sprintf(str, "LiveSR = %.2f", liveSteerRatio); /// unknown type.
     y += dy;
     ui_draw_text(s, text_x, y, str, 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
 
