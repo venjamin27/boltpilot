@@ -168,8 +168,8 @@ class CarState(CarStateBase):
     ret.leftBlinker = pt_cp.vl["BCMTurnSignals"]["TurnSignals"] == 1
     ret.rightBlinker = pt_cp.vl["BCMTurnSignals"]["TurnSignals"] == 2
 
-    # ret.parkingBrake = pt_cp.vl["VehicleIgnitionAlt"]["ParkBrake"] == 1
-    ret.parkingBrake = pt_cp.vl["EPBStatus"]["EPBClosed"]
+    ret.parkingBrake = pt_cp.vl["VehicleIgnitionAlt"]["ParkBrake"] == 1
+    self.parkingBrakeEPB = pt_cp.vl["EPBStatus"]["EPBClosed"]
     ret.cruiseState.available = pt_cp.vl["ECMEngineStatus"]["CruiseMainOn"] != 0
     ret.espDisabled = pt_cp.vl["ESPStatus"]["TractionControlOn"] != 1
     ret.accFaulted = (pt_cp.vl["AcceleratorPedal2"]["CruiseState"] == AccState.FAULTED or
@@ -277,7 +277,7 @@ class CarState(CarStateBase):
       ("ECMAcceleratorPos", 80),
       ("ECMVehicleSpeed", 100),
       ("SPEED_RELATED", 100),
-      ("EPBStatus",5),
+      ("EPBStatus", 5),
     ]
 
     # Used to read back last counter sent to PT by camera

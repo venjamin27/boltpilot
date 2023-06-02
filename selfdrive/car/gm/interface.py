@@ -286,6 +286,8 @@ class CarInterface(CarInterfaceBase):
     if below_min_enable_speed and not (ret.standstill and ret.brake >= 20 and
                                        self.CP.networkLocation == NetworkLocation.fwdCamera):
       events.add(EventName.belowEngageSpeed)
+    if self.CS.parkingBrakeEPB:
+      events.add(EventName.parkBrake)
     if ret.cruiseState.standstill:
       events.add(EventName.resumeRequired)
     # belowsteerspeed alertevent는 내지 않도록 한다. 텍스트로 표시만 따로 하여 debug ui 출력을 확보한다.  
