@@ -7,11 +7,15 @@ name: commaai Build
 on:
   push:
     branches:
-    - develop  # Support wildcard matching
-    - feature/*  # Support wildcard matching
-    - release
+      - develop  # Support wildcard matching
+      - feature/*  # Support wildcard matching
+      - release
 #    - comma2_Eon-final # no more comma2,,,
   pull_request_target:
+    branches:
+      - develop  # Support wildcard matching
+      - feature/*  # Support wildcard matching
+      - release
 
 
 concurrency:
