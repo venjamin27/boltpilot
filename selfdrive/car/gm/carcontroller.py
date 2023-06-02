@@ -141,11 +141,11 @@ class CarController:
             # Shrink gas request to 0.85, have it start at 0.2
             # Shrink brake request to 0.85, first 0.15 gives regen, rest gives AEB
 
+            accGain = interp(CS.out.vEgo, [0., 5], [0.2500, 0.1667])
+            # accGain = interp(CS.out.vEgo, [0., 5], [0.2500, 0.2750])
 
-            accGain = interp(CS.out.vEgo, [0., 5], [0.2500, 0.2750])
-
-            zero = interp(CS.out.vEgo,[0., 5], [0.1560, 0.2200])
-            zeroGain = interp(actuators.accel , [-1.2500 , -0.8000, -0.3500] , [0.0000, 0.6500, 1.0000])
+            zero = interp(CS.out.vEgo,[0., 5], [0.1560, 0.2210])
+            zeroGain = interp(actuators.accel , [-1.2500 , -0.6000, -0.2500] , [0.0000, 0.6500, 1.0000])
 
 
             # accGain = interp(CS.out.vEgo,[0., 5], [0.25, 0.1667])
