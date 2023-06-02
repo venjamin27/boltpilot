@@ -43,7 +43,7 @@ env:
 jobs:
   auto-merge:
     name: automerge
-    if: github.ref == 'refs/heads/feature/opgm-ap-integration' && github.repository == 'jc01rho-openpilot-BoltEV2019-KoKr/boltpilot'
+    if: github.repository == 'jc01rho-openpilot-BoltEV2019-KoKr/boltpilot'
     runs-on: ubuntu-20.04
     steps:
     - name: pull-request
