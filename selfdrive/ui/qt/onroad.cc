@@ -119,6 +119,8 @@ void OnroadWindow::updateState(const UIState &s) {
     bg = bgColor;
     update();
   }
+  nvg->repaint();
+
 }
 
 void OnroadWindow::mouseReleaseEvent(QMouseEvent* e) {
