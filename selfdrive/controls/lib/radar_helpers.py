@@ -132,7 +132,7 @@ class Cluster():
       "aLeadTau": float(self.aLeadTau)
     }
 
-  def get_RadarState2(self, model_prob, lead_msg, mixRadarInfo, model_v_ego):
+  def get_RadarState2(self, model_prob, lead_msg, mixRadarInfo):
     useVisionMix = False
     if mixRadarInfo>0 and float(lead_msg.prob) > 0.5 and abs(float(self.aLeadK)) < abs(float(lead_msg.a[0])):
       useVisionMix = True
