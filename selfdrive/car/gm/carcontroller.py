@@ -145,7 +145,7 @@ class CarController:
             # accGain = interp(CS.out.vEgo, [0., 5], [0.2500, 0.2750])
 
             zero = interp(CS.out.vEgo,[0., 5], [0.1560, 0.2210])
-            zeroGain = interp(actuators.accel , [-1.2500 , -0.6000, -0.2500] , [0.0000, 0.6500, 1.0000])
+            zeroGain = interp(actuators.accel , [-1.2500 , -0.5500, -0.2500] , [0.0000, 0.4000, 1.0000])
 
 
             # accGain = interp(CS.out.vEgo,[0., 5], [0.25, 0.1667])
