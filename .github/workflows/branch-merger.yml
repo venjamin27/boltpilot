@@ -1,0 +1,54 @@
+
+# This is a basic workflow to help you get started with Actions
+
+name: auto merger
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the 075-kegman-lqr branch
+on:
+  push:
+    branches:
+    - develop  # Support wildcard matching
+    - feature/*  # Support wildcard matching
+    - release
+#    - comma2_Eon-final # no more comma2,,,
+  workflow_call:
+
+env:
+  ## Sets environment variable
+  GITHUB_TOKEN:  ${{secrets.GITHUB_TOKEN}}
+  ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+  PRNUMBER: -1
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  auto-merge:
+    name: automerge
+    if: github.repository == 'jc01rho-openpilot-BoltEV2019-KoKr/boltpilot'
+    runs-on: ubuntu-20.04
+    steps:
+      - name: pull-request
+        uses: repo-sync/pull-request@v2
+        id: open-pr
+        with:
+          source_branch: "feature/opgm=ap-integration"
+          destination_branch: "feature/test-purpose-cicd"
+          github_token:  ${{ secrets.REPO_SECRET }}
+  #          pr_assignee: "jc01rho"
+          pr_label: "automerge"
+      - name: pull-request
+        uses: repo-sync/pull-request@v2
+        id: open-pr
+        with:
+          source_branch: "feature/opgm=ap-integration"
+          destination_branch: "feature-develop"
+          github_token:  ${{ secrets.REPO_SECRET }}
+  #          pr_assignee: "jc01rho"
+          pr_label: "automerge"
+      - id: automerge
+        name: automerge
+        uses: "pascalgn/automerge-action@v0.15.6"
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          MERGE_LABELS: "automerge"
+          MERGE_FORKS: "false"
