@@ -598,7 +598,7 @@ class LongitudinalMpc:
     elif self.lo_timer == 160:
       self.applyModelDistOrder = int(Params().get("ApplyModelDistOrder", encoding="utf8"))
       self.trafficStopUpdateDist = int(Params().get("TrafficStopUpdateDist", encoding="utf8"))
-      self.trafficStopAdjustRatio = float(int(Params().get("TrafficStopUpdateDist", encoding="utf8"))) / 100.
+      self.trafficStopAdjustRatio = float(int(Params().get("TrafficStopAdjustRatio", encoding="utf8"))) / 100.
 
   def update_gap_tf(self, controls, radarstate, v_ego, a_ego):
     v_ego_kph = v_ego * CV.MS_TO_KPH
