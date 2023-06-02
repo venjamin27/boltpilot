@@ -38,7 +38,7 @@ jobs:
           pr_label: "automerge"
       - name: pull-request
         uses: repo-sync/pull-request@v2
-        id: open-pr
+        id: open-pr-sec
         with:
           source_branch: "feature/opgm=ap-integration"
           destination_branch: "feature-develop"
