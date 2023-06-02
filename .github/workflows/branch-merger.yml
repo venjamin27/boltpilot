@@ -1,0 +1,42 @@
+
+# This is a basic workflow to help you get started with Actions
+
+name: auto merger
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the 075-kegman-lqr branch
+on:
+  push:
+    branches:
+    - test-purpose-cicd  # Support wildcard matching
+    - feature/test-purpose-cicd
+#    - comma2_Eon-final # no more comma2,,,
+  pull_request:
+    types:
+      - labeled
+
+  workflow_call:
+
+env:
+  ## Sets environment variable
+  GITHUB_TOKEN:  ${{secrets.GITHUB_TOKEN}}
+  ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+  PRNUMBER: -1
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  auto-merge:
+    name: automerge
+    if: github.repository == 'jc01rho-openpilot-BoltEV2019-KoKr/boltpilot'
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - id: automerge
+        name: automerge
+        uses: "pascalgn/automerge-action@v0.15.6"
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          MERGE_LABELS: "automerge"
+          MERGE_FORKS: "false"
