@@ -474,6 +474,16 @@
     },
     {
       "group": "감속제어",
+      "name": "TrafficStopAdjustRatio",
+      "title": "신호정지선 보정비율 (100%)",
+      "descr": "급한신호정지를 막기위해 미리 속도를 줄일수 있는...",
+      "min": 1,
+      "max": 200,
+      "default": 100,
+      "unit": 1
+    },
+    {
+      "group": "감속제어",
       "name": "AutoCurveSpeedFactor",
       "title": "커브속도조절비율(130%)",
       "descr": "높으면 커브속도가 느려집니다.",

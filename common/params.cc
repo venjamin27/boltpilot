@@ -318,6 +318,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     { "SoftHoldMode", PERSISTENT },
     { "ApplyModelDistOrder", PERSISTENT },
     { "TrafficStopUpdateDist", PERSISTENT },
+    { "TrafficStopAdjustRatio", PERSISTENT },
     { "SteeringRateCost", PERSISTENT },
     { "LateralMotionCost", PERSISTENT },
     { "LateralAccelCost", PERSISTENT },
