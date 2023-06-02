@@ -27,6 +27,9 @@ jobs:
     if: github.repository == 'jc01rho-openpilot-BoltEV2019-KoKr/boltpilot'
     runs-on: ubuntu-20.04
     steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
       - name: pull-request
         uses: repo-sync/pull-request@v2
         id: open-pr
