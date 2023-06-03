@@ -571,7 +571,10 @@ static void make_plot_data(const UIState* s, float& data1, float& data2, float& 
     float   speeds_0 = lp.getSpeeds()[0];
 
     float pedalGas = car_control.getActuators().getPedalGas();
-
+    int      datasize = 2;
+  
+  
+  
     const cereal::ModelDataV2::Reader& model = sm["modelV2"].getModelV2();
     const auto position = model.getPosition();
     const auto velocity = model.getVelocity();
@@ -647,14 +650,14 @@ void ui_draw_plot(const UIState* s) {
 
     if(s->show_plot_mode == 1)  {
         plotQueue[2][plotIndex] = _data2;
-        
+        datasize = 3;
         plotMin = std::min({plotMin, _data2});
         plotMax = std::max({plotMax, _data2});
 
     }
 
     NVGcolor color[3] = { COLOR_YELLOW, COLOR_GREEN, COLOR_RED };
-    for (int i = 0; i < datasizse; i++) {
+    for (int i = 0; i < datasize; i++) {
         //ui_draw_plotting(s, i, plotX, plotQueue[i], plotSize, &color[i], nullptr);
         ui_draw_plotting(s, plotIndex, plotX, plotQueue[i], plotSize, &color[i], 3.0f);
     }
