@@ -786,13 +786,13 @@ void AnnotatedCameraWidget::paintEvent(QPaintEvent *event) {
 #ifdef __TEST
   printf("elapsed = %.2f\n", cur_draw_t - start_draw_t);
 #endif
+  ui_update_params(uiState());
 
 }
 
 void AnnotatedCameraWidget::showEvent(QShowEvent *event) {
   CameraWidget::showEvent(event);
 
-  printf("update_params...\n");
   ui_update_params(uiState());
   prev_draw_t = millis_since_boot();
 }
