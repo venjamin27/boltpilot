@@ -632,8 +632,8 @@ void ui_draw_plot(const UIState* s) {
 //    if (plotMin > _data1) plotMin = _data1;
 //    if (plotMax < _data1) plotMax = _data1;
 
-    plotMin = std::min({_data0, _data1})
-    plotMax = std::max({_data0, _data1})
+    plotMin = std::min({_data0, _data1});
+    plotMax = std::max({_data0, _data1});
 
     plotIndex = (plotIndex + 1) % PLOT_MAX;
     plotQueue[0][plotIndex] = _data;
@@ -1561,7 +1561,7 @@ void DrawApilot::drawDebugText(UIState* s) {
     float uiAccelCmd = controls_state.getUiAccelCmd();
     float ufAccelCmd = controls_state.getUfAccelCmd();
     const auto live_params = sm["liveParameters"].getLiveParameters();
-    float   liveSteerRatio = live_params.getSteerRatio();
+//    float   liveSteerRatio = live_params.getSteerRatio();
 //    sprintf(str, "LiveSR = %.2f P: %.3f  I: %.3f F: %.3f", liveSteerRatio,upAccelCmd, uiAccelCmd,ufAccelCmd);
     sprintf(str, "long P: %.3f  I: %.3f F: %.3f", upAccelCmd, uiAccelCmd,ufAccelCmd);
     y += dy;
