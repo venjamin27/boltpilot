@@ -78,25 +78,14 @@ class CarState(CarStateBase):
       self.cluster_speed = (pt_cp.vl["ECMVehicleSpeed"]["VehicleSpeed"])
       self.cluster_speed_counter = 0
 
-
-      #Consider only BolTEV
-      # if not self.is_metric and self.CP.carFingerprint not in (CAR.KIA_SORENTO,):
-      self.cluster_speed = math.floor(self.cluster_speed * CV.MPH_TO_MS)
-
     vEgoRawClu = (pt_cp.vl["ECMVehicleSpeed"]["VehicleSpeed"] * CV.MPH_TO_MS)
     vEgoClu, aEgoClu = self.update_clu_speed_kf(vEgoRawClu)
-    ret.vEgoCluster = vEgoRawClu
     self.ECMVehicleSpeed = pt_cp.vl["ECMVehicleSpeed"]
+
+    ret.vEgoCluster = vEgoRawClu
     ret.vCluRatio = (ret.vEgo / vEgoClu) if (vEgoClu > 3. and ret.vEgo > 3.) else 1.0
     ###for neokii integration of former BoltPilot ends
 
-####### for longcontrol, use ECMVehicleSpeed,
-    ret.vEgoRaw = vEgoRawClu
-    ret.vEgo = vEgoClu
-    ret.aEgo = aEgoClu
-
-###test purpose
-    # ret.vEgoClu = pt_cp.vl["SPEED_RELATED"]["ClusterSpeed"]
 
 
     # sample rear wheel speeds, standstill=True if ECM allows engagement with brake
