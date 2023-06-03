@@ -518,7 +518,7 @@ void DrawApilot::drawLaneLines(const UIState* s) {
 
 int     plotSize = 0;
 int     plotIndex = 0;
-float   plotQueue[2][PLOT_MAX];
+float   plotQueue[3][PLOT_MAX];
 float   plotMin = 0.;
 float   plotMax = 0.;
 float   plotShift = 0.0;
@@ -648,8 +648,8 @@ void ui_draw_plot(const UIState* s) {
     if(s->show_plot_mode == 1)  {
         plotQueue[2][plotIndex] = _data2;
         datasizse = 3;
-        plotMin = std::min({plotMin, _data2})
-        plotMax = std::max({plotMax, _data2})
+        plotMin = std::min({plotMin, _data2});
+        plotMax = std::max({plotMax, _data2});
 
     }
 
@@ -1572,7 +1572,7 @@ void DrawApilot::drawDebugText(UIState* s) {
     float pedalGasRaw = car_control.getActuators().getPedalGasRaw();
     float pedalGasAvg = car_control.getActuators().getPedalGasAvg();
     y += dy;
-    sprintf(str, "ACC : [%.4f]  pRaw/Avg/Gas : [%.4f]/[%.4f]", accel, pedalGasRaw, pedalGasAvg, pedalGas);
+    sprintf(str, "ACC : [%.4f]  pRaw/Avg/Gas : [%.4f]/[%.4f]/[%.4f]", accel, pedalGasRaw, pedalGasAvg, pedalGas);
     ui_draw_text(s, text_x, y, str, 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
 
 
