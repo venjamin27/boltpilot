@@ -8,6 +8,7 @@ from opendbc.can.packer import CANPacker
 from selfdrive.car import apply_driver_steer_torque_limits, create_gas_interceptor_command
 from selfdrive.car.gm import gmcan
 from selfdrive.car.gm.values import DBC, CanBus, CarControllerParams, CruiseButtons, CC_ONLY_CAR
+from collections import deque
 
 VisualAlert = car.CarControl.HUDControl.VisualAlert
 NetworkLocation = car.CarParams.NetworkLocation
@@ -61,6 +62,10 @@ class CarController:
 
     self.pedalGas_valueStore = 0.0
     self.pedalGasRaw_valueStore = 0.0
+    self.pedalGasAvg_valueStore = 0.0
+    self.pedalGasWindowSize = 25
+    self.pedalGasWindow = deque(maxlen=self.pedalGasWindowSize)
+
 
   def update(self, CC, CS, now_nanos):
     actuators = CC.actuators
@@ -141,7 +146,7 @@ class CarController:
             # Shrink gas request to 0.85, have it start at 0.2
             # Shrink brake request to 0.85, first 0.15 gives regen, rest gives AEB
 
-            accGain = interp(CS.out.vEgo, [0., 5], [0.2500, 0.2250])
+            accGain = interp(CS.out.vEgo, [0., 5], [0.2000, 0.3000])
             # accGain = interp(CS.out.vEgo, [0., 5], [0.2500, 0.2750])
 
             zero = interp(CS.out.vEgo,[0., 5], [0.1560, 0.2210])
@@ -150,6 +155,8 @@ class CarController:
 
             # accGain = interp(CS.out.vEgo,[0., 5], [0.25, 0.1667])
             pedal_gas = clip((actuators.accel * accGain + zero * zeroGain ), 0., 1.)
+
+
 
             # if actuators.accel > 0.:
             #   # Scales the accel from 0-1 to 0.156-1
@@ -163,7 +170,21 @@ class CarController:
 
           # apply pedal hysteresis and clip the final output to valid values.
           self.pedalGasRaw_valueStore = pedal_gas
-          pedal_final, self.pedal_steady = actuator_hystereses(pedal_gas, self.pedal_steady, 2.0) # gap을 기존보다 2배 더 자세히
+
+
+          if CS.out.vEgo > 5.0 :
+            self.pedalGasWindow.append(pedal_gas)
+            pedal_gas = sum(self.pedalGasWindow) / (len(self.pedalGasWindow)*1.0)
+            actuator_hystereses_divider = 8
+          else :
+            actuator_hystereses_divider = 1.5
+            if len(self.pedalGasWindow) > 0 :
+              self.pedalGasWindow = deque(maxlen=self.pedalGasWindowSize)
+            # pedal_gas = 0.0
+
+          self.pedalGasAvg_valueStore = pedal_gas
+
+          pedal_final, self.pedal_steady = actuator_hystereses(pedal_gas, self.pedal_steady, actuator_hystereses_divider) # gap을 기존보다 2배 더 자세히
           pedal_gas = clip(pedal_final, 0., 1.)
 
           if not CC.longActive:
@@ -246,6 +267,7 @@ class CarController:
 
     actuators.pedalGas = self.pedalGas_valueStore
     actuators.pedalGasRaw = self.pedalGasRaw_valueStore
+    actuators.pedalGasAvg = self.pedalGasAvg_valueStore
 
 
     new_actuators = actuators.copy()
