@@ -12,7 +12,8 @@ on:
 #    - release
 #    - comma2_Eon-final # no more comma2,,,
   pull_request_target:
-
+    branches:
+    - feature/cicd*  # Support wildcard matching
 
 concurrency:
   group: ${{ github.event_name == 'push' && github.run_id || github.head_ref || github.ref }}-${{ github.workflow }}-${{ github.event_name }}
