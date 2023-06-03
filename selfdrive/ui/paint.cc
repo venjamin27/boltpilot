@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <cmath>
+#include <algorithm>
 
 //#define __TEST
 
@@ -554,7 +555,7 @@ static void ui_draw_plotting(const UIState* s, int start, float x, float y[], in
 }
 
 // 에잉 시간텀... ㅠㅠ
-static void make_plot_data(const UIState* s, float& data1, float& data2) {
+static void make_plot_data(const UIState* s, float& data1, float& data2, float& data3) {
     SubMaster& sm = *(s->sm);
     auto    car_state = sm["carState"].getCarState();
     float   a_ego = car_state.getAEgo();
@@ -569,6 +570,8 @@ static void make_plot_data(const UIState* s, float& data1, float& data2) {
     const auto lp = sm["longitudinalPlan"].getLongitudinalPlan();
     float   speeds_0 = lp.getSpeeds()[0];
 
+    float pedalGas = car_control.getActuators().getPedalGas();
+
     const cereal::ModelDataV2::Reader& model = sm["modelV2"].getModelV2();
     const auto position = model.getPosition();
     const auto velocity = model.getVelocity();
@@ -578,6 +581,7 @@ static void make_plot_data(const UIState* s, float& data1, float& data2) {
     case 1:
         data1 = a_ego;
         data2 = accel;
+        data3 = pedalGas
         break;
     case 2:
         data1 = (curvature * v_ego * v_ego) - (roll * 9.81);
@@ -608,10 +612,11 @@ void ui_draw_plot(const UIState* s) {
 
     if (s->show_plot_mode == 0) return;
 
-    float _data = 0.;
+    float _data0 = 0.;
     float _data1 = 0.;
+    float _data2 = 0.;
 
-    make_plot_data(s, _data, _data1);
+    make_plot_data(s, _data0, _data1, _data2);
 
 #ifdef __TEST
     static float _data_s = 0.0;
@@ -622,19 +627,34 @@ void ui_draw_plot(const UIState* s) {
 
     _data_s = _data;
 #endif
-    if (plotMin > _data) plotMin = _data;
-    if (plotMax < _data) plotMax = _data;
-    if (plotMin > _data1) plotMin = _data1;
-    if (plotMax < _data1) plotMax = _data1;
+//    if (plotMin > _data) plotMin = _data0;
+//    if (plotMax < _data) plotMax = _data0;
+//    if (plotMin > _data1) plotMin = _data1;
+//    if (plotMax < _data1) plotMax = _data1;
+
+    plotMin = std::min({_data0, _data1})
+    plotMax = std::max({_data0, _data1})
+
     plotIndex = (plotIndex + 1) % PLOT_MAX;
     plotQueue[0][plotIndex] = _data;
     plotQueue[1][plotIndex] = _data1;
+
     if (plotSize < PLOT_MAX - 1) plotSize++;
 
     if (s->fb_w < 1200) return;
 
-    NVGcolor color[2] = { COLOR_YELLOW, COLOR_GREEN };
-    for (int i = 0; i < 2; i++) {
+    int datasizse = 2;
+
+    if(s->show_plot_mode == 1)  {
+        plotQueue[2][plotIndex] = _data2;
+        datasizse = 3;
+        plotMin = std::min({plotMin, _data2})
+        plotMax = std::max({plotMax, _data2})
+
+    }
+
+    NVGcolor color[datasizse] = { COLOR_YELLOW, COLOR_GREEN, COLOR_RED };
+    for (int i = 0; i < datasizse; i++) {
         //ui_draw_plotting(s, i, plotX, plotQueue[i], plotSize, &color[i], nullptr);
         ui_draw_plotting(s, plotIndex, plotX, plotQueue[i], plotSize, &color[i], 3.0f);
     }
@@ -1542,15 +1562,17 @@ void DrawApilot::drawDebugText(UIState* s) {
     float ufAccelCmd = controls_state.getUfAccelCmd();
     const auto live_params = sm["liveParameters"].getLiveParameters();
     float   liveSteerRatio = live_params.getSteerRatio();
-    sprintf(str, "LiveSR = %.2f P: %.3f  I: %.3f F: %.3f", liveSteerRatio,upAccelCmd, uiAccelCmd,ufAccelCmd); /// unknown type.
+//    sprintf(str, "LiveSR = %.2f P: %.3f  I: %.3f F: %.3f", liveSteerRatio,upAccelCmd, uiAccelCmd,ufAccelCmd);
+    sprintf(str, "long P: %.3f  I: %.3f F: %.3f", upAccelCmd, uiAccelCmd,ufAccelCmd);
     y += dy;
     ui_draw_text(s, text_x, y, str, 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
 
     float accel = car_control.getActuators().getAccel();
     float pedalGas = car_control.getActuators().getPedalGas();
     float pedalGasRaw = car_control.getActuators().getPedalGasRaw();
+    float pedalGasAvg = car_control.getActuators().getPedalGasAvg();
     y += dy;
-    sprintf(str, "ACC : [%.4f]  pGas/Raw : [%.4f]/[%.4f]", accel, pedalGas, pedalGasRaw);
+    sprintf(str, "ACC : [%.4f]  pRaw/Avg/Gas : [%.4f]/[%.4f]", accel, pedalGasRaw, pedalGasAvg, pedalGas);
     ui_draw_text(s, text_x, y, str, 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
 
 
