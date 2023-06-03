@@ -571,7 +571,7 @@ static void make_plot_data(const UIState* s, float& data1, float& data2, float& 
     float   speeds_0 = lp.getSpeeds()[0];
 
     float pedalGas = car_control.getActuators().getPedalGas();
-    int      datasize = 2;
+    
   
   
   
@@ -618,6 +618,7 @@ void ui_draw_plot(const UIState* s) {
     float _data0 = 0.;
     float _data1 = 0.;
     float _data2 = 0.;
+    int datasize = 2;
 
     make_plot_data(s, _data0, _data1, _data2);
 
