@@ -746,7 +746,7 @@ void AnnotatedCameraWidget::paintEvent(QPaintEvent *event) {
       }
     }
 
-    drawLaneLines(painter, s);
+    if(s->show_mode == 0) drawLaneLines(painter, s);
 
     if (s->show_mode == 0 && s->scene.longitudinal_control) {
       auto lead_one = radar_state.getLeadOne();
