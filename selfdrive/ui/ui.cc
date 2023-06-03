@@ -556,7 +556,7 @@ void update_dmonitoring(UIState *s, const cereal::DriverStateV2::Reader &drivers
 }
 
 static void update_sockets(UIState *s) {
-  s->sm->update(500);
+  s->sm->update(0);
 }
 
 static void update_state(UIState *s) {
@@ -614,6 +614,9 @@ static void update_state(UIState *s) {
 
 void ui_update_params(UIState *s) {
   auto params = Params();
+  s->scene.is_metric = params.getBool("IsMetric");
+  s->scene.map_on_left = params.getBool("NavSettingLeftSide");
+  
   static int updateSeq = 0;
   if (updateSeq++ > 100) updateSeq = 0;
   switch(updateSeq) {
@@ -690,25 +693,16 @@ void UIState::updateStatus() {
     started_prev = scene.started;
     emit offroadTransition(!scene.started);
   }
-
-  // Handle prime type change
-  if (prime_type != prime_type_prev) {
-    prime_type_prev = prime_type;
-    emit primeTypeChanged(prime_type);
-    Params().put("PrimeType", std::to_string(prime_type));
-  }
 }
 
 UIState::UIState(QObject *parent) : QObject(parent) {
-  std::vector<const char*> socks = {
+  sm = std::make_unique<SubMaster, const std::initializer_list<const char *>>({
     "modelV2", "controlsState", "liveCalibration", "radarState", "deviceState", "roadCameraState",
     "pandaStates", "carParams", "driverMonitoringState", "carState", "liveLocationKalman", "driverStateV2",
     "wideRoadCameraState", "managerState", "navInstruction", "navRoute", "uiPlan",
     "lateralPlan", "longitudinalPlan", "gpsLocationExternal", "carControl", "liveParameters", "roadLimitSpeed",
     "liveTorqueParameters",
-  };
-  std::vector<const char*> poll = {"modelV2"};
-  sm = std::make_unique<SubMaster>(socks, poll);
+  });
 
   Params params;
   prime_type = std::atoi(params.get("PrimeType").c_str());
@@ -718,7 +712,6 @@ UIState::UIState(QObject *parent) : QObject(parent) {
   timer = new QTimer(this);
   QObject::connect(timer, &QTimer::timeout, this, &UIState::update);
   timer->start(1000 / UI_FREQ);
-  //timer->start(0);
 }
 
 void UIState::update() {
@@ -730,6 +723,14 @@ void UIState::update() {
     watchdog_kick(nanos_since_boot());
   }
   emit uiUpdate(*this);
+}
+
+void UIState::setPrimeType(int type) {
+  if (type != prime_type) {
+    prime_type = type;
+    Params().put("PrimeType", std::to_string(prime_type));
+    emit primeTypeChanged(prime_type);
+  }
 }
 
 Device::Device(QObject *parent) : brightness_filter(BACKLIGHT_OFFROAD, BACKLIGHT_TS, BACKLIGHT_DT), QObject(parent) {
