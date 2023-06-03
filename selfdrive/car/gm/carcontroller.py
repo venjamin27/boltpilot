@@ -64,7 +64,7 @@ class CarController:
     self.pedalGasRaw_valueStore = 0.0
     self.pedalGasAvg_valueStore = 0.0
     self.pedalGasWindowSize = 25
-    self.pedalGasWindow = deque(maxlen=pedalGasWindowSize)
+    self.pedalGasWindow = deque(maxlen=self.pedalGasWindowSize)
 
 
   def update(self, CC, CS, now_nanos):
@@ -179,7 +179,7 @@ class CarController:
           else :
             actuator_hystereses_divider = 1.5
             if len(self.pedalGasWindow) > 0 :
-              self.pedalGasWindow = deque(maxlen=pedalGasWindowSize)
+              self.pedalGasWindow = deque(maxlen=self.pedalGasWindowSize)
             # pedal_gas = 0.0
 
           self.pedalGasAvg_valueStore = pedal_gas
