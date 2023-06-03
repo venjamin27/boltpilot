@@ -1003,10 +1003,10 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
             showBg = false;
         }
         if (showBg) {
-            nvgBeginPath(s->vg);
-            nvgCircle(s->vg, x, y, circle_size/2.);
-            nvgFillColor(s->vg, bgColor);
-            nvgFill(s->vg);
+            //nvgBeginPath(s->vg);
+            //nvgCircle(s->vg, x, y, circle_size/2.);
+            //nvgFillColor(s->vg, bgColor);
+            //nvgFill(s->vg);
 
         }
 
