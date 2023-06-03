@@ -631,8 +631,8 @@ void ui_draw_plot(const UIState* s) {
 
     _data_s = _data;
 #endif
-    if (plotMin > _data) plotMin = _data0;
-    if (plotMax < _data) plotMax = _data0;
+    if (plotMin > _data0) plotMin = _data0;
+    if (plotMax < _data0) plotMax = _data0;
     if (plotMin > _data1) plotMin = _data1;
     if (plotMax < _data1) plotMax = _data1;
 
