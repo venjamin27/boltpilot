@@ -771,7 +771,6 @@ void AnnotatedCameraWidget::paintEvent(QPaintEvent *event) {
   double cur_draw_t = millis_since_boot();
   double dt = cur_draw_t - prev_draw_t;
   double fps = fps_filter.update(1. / dt * 1000);
-  m_fps = fps;
   extern int g_fps;
   g_fps = fps;
   if (fps < 15) {
