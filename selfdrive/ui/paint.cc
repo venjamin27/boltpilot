@@ -518,7 +518,7 @@ void DrawApilot::drawLaneLines(const UIState* s) {
 
 int     plotSize = 0;
 int     plotIndex = 0;
-float   plotQueue[2][PLOT_MAX];
+float   plotQueue[3][PLOT_MAX];
 float   plotMin = 0.;
 float   plotMax = 0.;
 float   plotShift = 0.0;
