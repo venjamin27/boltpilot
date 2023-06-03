@@ -648,8 +648,8 @@ void ui_draw_plot(const UIState* s) {
     if(s->show_plot_mode == 1)  {
         plotQueue[2][plotIndex] = _data2;
         datasizse = 3;
-        plotMin = std::min({plotMin, _data2})
-        plotMax = std::max({plotMax, _data2})
+        plotMin = std::min({plotMin, _data2});
+        plotMax = std::max({plotMax, _data2});
 
     }
 
