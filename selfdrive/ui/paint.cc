@@ -531,7 +531,7 @@ int     show_plot_mode_prev = -1;
 static void ui_draw_plotting(const UIState* s, int start, float x, float y[], int size, NVGcolor* color, float stroke = 0.0) {
 
     nvgBeginPath(s->vg);
-    plotRatio = (plotMax - plotMin) < 1.0 ? plotHeight : plotHeight / (plotMax - plotMin);
+    plotRatio = std::abs(plotMax - plotMin) < 1.0 ? plotHeight : plotHeight / std::abs(plotMax - plotMin);
     float dx = 2.0;
     char str[128];
 
@@ -631,13 +631,13 @@ void ui_draw_plot(const UIState* s) {
 
     _data_s = _data;
 #endif
-    if (plotMin > _data0) plotMin = _data0;
-    if (plotMax < _data0) plotMax = _data0;
-    if (plotMin > _data1) plotMin = _data1;
-    if (plotMax < _data1) plotMax = _data1;
+//    if (plotMin > _data0) plotMin = _data0;
+//    if (plotMax < _data0) plotMax = _data0;
+//    if (plotMin > _data1) plotMin = _data1;
+//    if (plotMax < _data1) plotMax = _data1;
 
-//    plotMin = std::min({_data0, _data1});
-//    plotMax = std::max({_data0, _data1});
+    plotMin = std::min({_data0, _data1});
+    plotMax = std::max({_data0, _data1});
 
     plotIndex = (plotIndex + 1) % PLOT_MAX;
     plotQueue[0][plotIndex] = _data0;
@@ -652,11 +652,13 @@ void ui_draw_plot(const UIState* s) {
     if(s->show_plot_mode == 1)  {
         plotQueue[2][plotIndex] = _data2;
         datasize = 3;
-//        plotMin = std::min({plotMin, _data2});
-//        plotMax = std::max({plotMax, _data2});
-    if (plotMin > _data2) plotMin = _data2;
-    if (plotMax < _data2) plotMax = _data2;
+        plotMin = std::min({plotMin, _data2});
+        plotMax = std::max({plotMax, _data2});
+//    if (plotMin > _data2) plotMin = _data2;
+//    if (plotMax < _data2) plotMax = _data2;
 
+    } else {
+        plotQueue[2][plotIndex] = 0.0f;
     }
 
     NVGcolor color[3] = { COLOR_YELLOW, COLOR_GREEN, COLOR_RED };
