@@ -63,7 +63,7 @@ class CarController:
     self.pedalGas_valueStore = 0.0
     self.pedalGasRaw_valueStore = 0.0
     self.pedalGasAvg_valueStore = 0.0
-    self.pedalGasWindowSize = 25
+    self.pedalGasWindowSize = 40
     self.pedalGasWindow = deque(maxlen=self.pedalGasWindowSize)
 
 
@@ -146,11 +146,11 @@ class CarController:
             # Shrink gas request to 0.85, have it start at 0.2
             # Shrink brake request to 0.85, first 0.15 gives regen, rest gives AEB
 
-            accGain = interp(CS.out.vEgo, [0., 5], [0.2000, 0.3000])
+            accGain = interp(CS.out.vEgo, [0., 5], [0.1900, 0.2200])
             # accGain = interp(CS.out.vEgo, [0., 5], [0.2500, 0.2750])
 
             zero = interp(CS.out.vEgo,[0., 5], [0.1560, 0.2210])
-            zeroGain = interp(actuators.accel , [-1.2500 , -0.5250, -0.2500] , [0.0000, 0.4000, 1.0000])
+            zeroGain = interp(actuators.accel , [-1.2500 , -0.5250, -0.2500] , [0.0000, 0.2500, 1.0000])
 
 
             # accGain = interp(CS.out.vEgo,[0., 5], [0.25, 0.1667])
@@ -175,7 +175,7 @@ class CarController:
           if CS.out.vEgo > 5.0 :
             self.pedalGasWindow.append(pedal_gas)
             pedal_gas = sum(self.pedalGasWindow) / (len(self.pedalGasWindow)*1.0)
-            actuator_hystereses_divider = 8
+            actuator_hystereses_divider = 3
           else :
             actuator_hystereses_divider = 1.5
             if len(self.pedalGasWindow) > 0 :

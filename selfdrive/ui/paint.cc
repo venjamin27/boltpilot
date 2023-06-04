@@ -518,7 +518,7 @@ void DrawApilot::drawLaneLines(const UIState* s) {
 
 int     plotSize = 0;
 int     plotIndex = 0;
-float   plotQueue[2][PLOT_MAX];
+float   plotQueue[3][PLOT_MAX];
 float   plotMin = 0.;
 float   plotMax = 0.;
 float   plotShift = 0.0;
@@ -571,7 +571,10 @@ static void make_plot_data(const UIState* s, float& data1, float& data2, float& 
     float   speeds_0 = lp.getSpeeds()[0];
 
     float pedalGas = car_control.getActuators().getPedalGas();
-
+    
+  
+  
+  
     const cereal::ModelDataV2::Reader& model = sm["modelV2"].getModelV2();
     const auto position = model.getPosition();
     const auto velocity = model.getVelocity();
@@ -581,7 +584,7 @@ static void make_plot_data(const UIState* s, float& data1, float& data2, float& 
     case 1:
         data1 = a_ego;
         data2 = accel;
-        data3 = pedalGas
+        data3 = pedalGas;
         break;
     case 2:
         data1 = (curvature * v_ego * v_ego) - (roll * 9.81);
@@ -615,6 +618,7 @@ void ui_draw_plot(const UIState* s) {
     float _data0 = 0.;
     float _data1 = 0.;
     float _data2 = 0.;
+    int datasize = 2;
 
     make_plot_data(s, _data0, _data1, _data2);
 
@@ -627,34 +631,36 @@ void ui_draw_plot(const UIState* s) {
 
     _data_s = _data;
 #endif
-//    if (plotMin > _data) plotMin = _data0;
-//    if (plotMax < _data) plotMax = _data0;
-//    if (plotMin > _data1) plotMin = _data1;
-//    if (plotMax < _data1) plotMax = _data1;
+    if (plotMin > _data0) plotMin = _data0;
+    if (plotMax < _data0) plotMax = _data0;
+    if (plotMin > _data1) plotMin = _data1;
+    if (plotMax < _data1) plotMax = _data1;
 
-    plotMin = std::min({_data0, _data1})
-    plotMax = std::max({_data0, _data1})
+//    plotMin = std::min({_data0, _data1});
+//    plotMax = std::max({_data0, _data1});
 
     plotIndex = (plotIndex + 1) % PLOT_MAX;
-    plotQueue[0][plotIndex] = _data;
+    plotQueue[0][plotIndex] = _data0;
     plotQueue[1][plotIndex] = _data1;
 
     if (plotSize < PLOT_MAX - 1) plotSize++;
 
     if (s->fb_w < 1200) return;
 
-    int datasizse = 2;
+    
 
     if(s->show_plot_mode == 1)  {
         plotQueue[2][plotIndex] = _data2;
-        datasizse = 3;
-        plotMin = std::min({plotMin, _data2})
-        plotMax = std::max({plotMax, _data2})
+        datasize = 3;
+//        plotMin = std::min({plotMin, _data2});
+//        plotMax = std::max({plotMax, _data2});
+    if (plotMin > _data2) plotMin = _data2;
+    if (plotMax < _data2) plotMax = _data2;
 
     }
 
-    NVGcolor color[datasizse] = { COLOR_YELLOW, COLOR_GREEN, COLOR_RED };
-    for (int i = 0; i < datasizse; i++) {
+    NVGcolor color[3] = { COLOR_YELLOW, COLOR_GREEN, COLOR_RED };
+    for (int i = 0; i < datasize; i++) {
         //ui_draw_plotting(s, i, plotX, plotQueue[i], plotSize, &color[i], nullptr);
         ui_draw_plotting(s, plotIndex, plotX, plotQueue[i], plotSize, &color[i], 3.0f);
     }
@@ -1560,8 +1566,8 @@ void DrawApilot::drawDebugText(UIState* s) {
     float upAccelCmd = controls_state.getUpAccelCmd();
     float uiAccelCmd = controls_state.getUiAccelCmd();
     float ufAccelCmd = controls_state.getUfAccelCmd();
-    const auto live_params = sm["liveParameters"].getLiveParameters();
-    float   liveSteerRatio = live_params.getSteerRatio();
+//    const auto live_params = sm["liveParameters"].getLiveParameters();
+//    float   liveSteerRatio = live_params.getSteerRatio();
 //    sprintf(str, "LiveSR = %.2f P: %.3f  I: %.3f F: %.3f", liveSteerRatio,upAccelCmd, uiAccelCmd,ufAccelCmd);
     sprintf(str, "long P: %.3f  I: %.3f F: %.3f", upAccelCmd, uiAccelCmd,ufAccelCmd);
     y += dy;
@@ -1572,7 +1578,7 @@ void DrawApilot::drawDebugText(UIState* s) {
     float pedalGasRaw = car_control.getActuators().getPedalGasRaw();
     float pedalGasAvg = car_control.getActuators().getPedalGasAvg();
     y += dy;
-    sprintf(str, "ACC : [%.4f]  pRaw/Avg/Gas : [%.4f]/[%.4f]", accel, pedalGasRaw, pedalGasAvg, pedalGas);
+    sprintf(str, "ACC : [%.4f]  pRaw/Avg/Gas : [%.4f]/[%.4f]/[%.4f]", accel, pedalGasRaw, pedalGasAvg, pedalGas);
     ui_draw_text(s, text_x, y, str, 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
 
 
