@@ -665,7 +665,7 @@ class LongitudinalMpc:
 
     if self.stopSignCount * DT_MDL > 0.0 and carstate.rightBlinker == False:
       self.trafficState = 1
-    elif self.startSignCount * DT_MDL > 0.5:
+    elif self.startSignCount * DT_MDL > 0.3:
       self.trafficState = 2  
     else:
       self.trafficState = 0
@@ -812,7 +812,8 @@ class LongitudinalMpc:
       elif v_ego_kph < 2.0 and (self.trafficState != 2 or cruiseButtonCounterDiff > 0):  ## 출발신호이지만.... 정지신호로 바뀐경우(모델신호 변심) 다시 정지하는걸로..
         self.xState = XState.e2eStop
         self.stopDist = 2.0
-      elif (v_ego_kph > 5.0 and (stop_x > 60.0 and abs(y[-1])<2.0)):
+      #elif (v_ego_kph > 5.0 and (stop_x > 60.0 and abs(y[-1])<2.0)):
+      elif v_ego_kph > 5.0 and stop_x > 60.0:
         self.xState = XState.e2eCruise
       else:
         #self.trafficState = 0
