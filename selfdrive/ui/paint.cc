@@ -985,7 +985,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
                 }
             }
             else ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2, icon_size, icon_size }, "ic_steer_momo", 0.7f);
-            bgColor = nvgRGBA(0, 0, 0, 160);
+            bgColor = nvgRGBA(0, 0, 0, 0);
         }
         else if (s->show_steer_mode == 0) {            
             if (uiDrawSteeringRotate) {      
@@ -993,20 +993,20 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
             }
             else ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2, icon_size, icon_size }, "ic_steer_momo", 0.7f);
             switch (trafficMode) {
-            case 0: bgColor = nvgRGBA(0, 0, 0, 90); break;
-            case 1: bgColor = nvgRGBA(255, 0, 0, 160); break;
-            case 2: bgColor = nvgRGBA(0, 255, 0, 160); break;
-            case 3: bgColor = nvgRGBA(255, 255, 0, 160); break;
+            case 0: bgColor = nvgRGBA(0, 0, 0, 0); break;
+            case 1: bgColor = nvgRGBA(255, 0, 0, 100); break;
+            case 2: bgColor = nvgRGBA(0, 255, 0, 100); break;
+            case 3: bgColor = nvgRGBA(255, 255, 0, 100); break;
             }
         }
         else {
             showBg = false;
         }
         if (showBg) {
-            //nvgBeginPath(s->vg);
-            //nvgCircle(s->vg, x, y, circle_size/2.);
-            //nvgFillColor(s->vg, bgColor);
-            //nvgFill(s->vg);
+            nvgBeginPath(s->vg);
+            nvgCircle(s->vg, x, y, circle_size/2.);
+            nvgFillColor(s->vg, bgColor);
+            nvgFill(s->vg);
 
         }
 
