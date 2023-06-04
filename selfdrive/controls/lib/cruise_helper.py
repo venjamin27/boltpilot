@@ -525,6 +525,7 @@ class CruiseHelper:
         if 0 < self.dRel:   # 전방에 차량이 있는경우
           if self.dRel > self.autoResumeFromBrakeReleaseDist: ## 설정값 이상의 거리에서만 작동함... 가까울때는 왜 안하게 했지? 
             longActiveUser = 3
+            v_cruise_kph = self.v_ego_kph_set
         elif self.trafficState == 1:  # 신호감지된경우
           if self.v_ego_kph < 70.0 and self.autoResumeFromBrakeReleaseTrafficSign:  #속도가 70키로 미만이면 
             longActiveUser = 3
