@@ -200,6 +200,9 @@ class Controls:
 
     self.startup_event = get_startup_event(car_recognized, controller_available, len(self.CP.carFw) > 0)
 
+    #boltEV Only
+    self.enableMainCruiseOnOff = self.params.get_bool("EnableMainCruiseOnOff")
+
     if not sounds_available:
       self.events.add(EventName.soundsUnavailable, static=True)
     if not car_recognized:
@@ -637,6 +640,8 @@ class Controls:
     standstill = CS.vEgo <= max(self.CP.minSteerSpeed, MIN_LATERAL_CONTROL_SPEED) or CS.standstill
     CC.latEnabled = True if self.active and CS.gearShifter in [GearShifter.drive, GearShifter.low] else False
     CC.longEnabled = True if self.enabled and CS.gearShifter in [GearShifter.drive, GearShifter.low] else False
+    if self.enableMainCruiseOnOff:
+      CC.longEnabled = CC.longEnabled and CS.cruiseState.available #disable long control when MainCruise is On
     CC.latActive = self.active and not CS.steerFaultTemporary and not CS.steerFaultPermanent and \
                    (not standstill or self.joystick_mode) and CC.latEnabled
     #CC.longActive = self.active and not self.events.any(ET.OVERRIDE_LONGITUDINAL) and self.CP.openpilotLongitudinalControl

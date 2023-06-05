@@ -1408,13 +1408,15 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
             ui_draw_text(s, bx, by + 75, str, 50, COLOR_BLACK, BOLD, 0.0f, 0.0f);
         }
 
-        bool regen_valid = car_control.getActuators().getRegenPaddle();
-        float img_alpha = 0.8f;
-        img_alpha = regen_valid ? 1.0f : 0.15f;
-//        bg_alpha = regen_valid ? 0.3f : 0.1f;
-        //ui_draw_image(s, { bx - 60, by - 50, 120, 150 }, "ic_road_speed", 1.0f);
-        //ui_draw_image(s, { bx - 100, by - 60, 350, 150 }, "ic_speed_bg", 1.0f);
-        ui_draw_image(s, { bx - 60 + (  120 + 120 ), by - 50, 150, 150 }, "ic_regenPaddle", img_alpha);
+        //BoltEV
+        if (true) { //show regenPaddle activation
+            float img_alpha = car_control.getActuators().getRegenPaddle() ? 1.0f : 0.15f;
+            ui_draw_image(s, { bx - 60 + (  120 + 120 ), by - 50, 150, 150 }, "ic_regenPaddle", img_alpha);
+        }
+        if (Params().getBool("EnableMainCruiseOnOff")) {  //show if mainCruise(longControl) is enabled.
+            float img_alpha = car_state.getCruiseState().getAvailable() ? 0.1f : 1.0f;
+            ui_draw_image(s, { bx - 60 + ( 50 ), by - 50, 150, 150 }, "ic_latMainOn", img_alpha);
+        }
     }
     // Tpms...
     if (s->show_tpms) {
@@ -1685,7 +1687,7 @@ void ui_nvg_init(UIState *s) {
   {"ic_navi","../assets/images/img_navi.png"},
   {"ic_scc2", "../assets/images/img_scc2.png"},
   {"ic_radartracks", "../assets/images/img_radartracks.png"},
-
+  {"ic_latMainOn", "../assets/images/img_lat_icon.png"},
   {"ic_regenPaddle", "../assets/images/img_regen.png"},
 
 
