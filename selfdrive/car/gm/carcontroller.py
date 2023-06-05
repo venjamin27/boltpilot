@@ -175,9 +175,9 @@ class CarController:
           if CS.out.vEgo > 5.0 :
             self.pedalGasWindow.append(pedal_gas)
             pedal_gas = sum(self.pedalGasWindow) / (len(self.pedalGasWindow)*1.0)
-            actuator_hystereses_divider = 3
+            actuator_hystereses_divider = 2.0
           else :
-            actuator_hystereses_divider = 1.5
+            actuator_hystereses_divider = 1.0
             if len(self.pedalGasWindow) > 0 :
               self.pedalGasWindow = deque(maxlen=self.pedalGasWindowSize)
             # pedal_gas = 0.0
