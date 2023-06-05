@@ -229,7 +229,8 @@ ExperimentalButton::ExperimentalButton(QWidget *parent) : QPushButton(parent) {
   setCheckable(true);
 
   params = Params();
-  engage_img = loadPixmap("../assets/img_chffr_wheel.png", {img_size, img_size});
+  //engage_img = loadPixmap("../assets/img_chffr_wheel.png", { img_size, img_size });
+  engage_img = loadPixmap("../assets/img_apilot.png", { img_size, img_size });
   experimental_img = loadPixmap("../assets/img_experimental.svg", {img_size, img_size});
 
   QObject::connect(this, &QPushButton::toggled, [=](bool checked) {
@@ -262,8 +263,8 @@ void ExperimentalButton::paintEvent(QPaintEvent *event) {
 
   p.setOpacity(1.0);
   p.setPen(Qt::NoPen);
-  p.setBrush(QColor(0, 0, 0, 166));
-  p.drawEllipse(center, btn_size / 2, btn_size / 2);
+  //p.setBrush(QColor(0, 0, 0, 166));
+  //p.drawEllipse(center, btn_size / 2, btn_size / 2);
   p.setOpacity(isDown() ? 0.8 : 1.0);
   p.drawPixmap((btn_size - img_size) / 2, (btn_size - img_size) / 2, img);
 }
