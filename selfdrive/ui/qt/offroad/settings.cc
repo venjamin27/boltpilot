@@ -611,6 +611,7 @@ CommunityPanel::CommunityPanel(QWidget* parent) : QWidget(parent) {
   toggleLayout->addWidget(new CValueControl("PowerOffTime", "PowerOffTime(0:Always On)", "0:Always On,  X:Power Off after X(Hours)", "../assets/offroad/icon_shell.png", 0, 100, 1));
   toggleLayout->addWidget(new CValueControl("PedalPressedThreshold", "PedalPressedThreshold(20)", "PedalPressedThreshold(0 - 255)", "../assets/offroad/icon_shell.png", 0, 255, 5));
   toggleLayout->addWidget(new CValueControl("MixRadarInfo", "MixRadarInfo for SCC Rardar", "0:Not used,1:Use", "../assets/offroad/icon_shell.png", 0, 1, 1));
+  toggleLayout->addWidget(new CValueControl("EnableMainCruiseOnOff", "EnableMainCruiseOnOff(0:Disabled)", "0:Disabled,  1:LongCon gets disabled when MainCruise is On.", "../assets/offroad/icon_shell.png", 0, 1, 1));
 
   toggleLayout->addWidget(horizontal_line());
   toggleLayout->addWidget(new CValueControl("AutoNaviSpeedCtrl", tr("SpeedCameraControl(1)"), tr("0:Not used, 1:NDA"), "../assets/offroad/icon_road.png", 0, 1, 1));

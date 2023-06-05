@@ -109,7 +109,7 @@ protected:
   QPixmap ic_turn_signal_l;
   QPixmap ic_turn_signal_r;
   QPixmap ic_satellite;
-
+  QPixmap ic_latMainOn;
   QPixmap ic_regenPaddle;
 
 
