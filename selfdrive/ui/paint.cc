@@ -531,7 +531,7 @@ int     show_plot_mode_prev = -1;
 static void ui_draw_plotting(const UIState* s, int start, float x, float y[], int size, NVGcolor* color, float stroke = 0.0) {
 
     nvgBeginPath(s->vg);
-    plotRatio = (plotMax - plotMin) < 1.0 ? plotHeight : plotHeight / (plotMax - plotMin);
+    plotRatio = std::abs(plotMax - plotMin) < 1.0 ? plotHeight : plotHeight / std::abs(plotMax - plotMin);
     float dx = 2.0;
     char str[128];
 
@@ -631,13 +631,13 @@ void ui_draw_plot(const UIState* s) {
 
     _data_s = _data;
 #endif
-    if (plotMin > _data0) plotMin = _data0;
-    if (plotMax < _data0) plotMax = _data0;
-    if (plotMin > _data1) plotMin = _data1;
-    if (plotMax < _data1) plotMax = _data1;
+//    if (plotMin > _data0) plotMin = _data0;
+//    if (plotMax < _data0) plotMax = _data0;
+//    if (plotMin > _data1) plotMin = _data1;
+//    if (plotMax < _data1) plotMax = _data1;
 
-//    plotMin = std::min({_data0, _data1});
-//    plotMax = std::max({_data0, _data1});
+    plotMin = std::min({plotMin, _data0, _data1});
+    plotMax = std::max({plotMax, _data0, _data1});
 
     plotIndex = (plotIndex + 1) % PLOT_MAX;
     plotQueue[0][plotIndex] = _data0;
@@ -652,11 +652,13 @@ void ui_draw_plot(const UIState* s) {
     if(s->show_plot_mode == 1)  {
         plotQueue[2][plotIndex] = _data2;
         datasize = 3;
-//        plotMin = std::min({plotMin, _data2});
-//        plotMax = std::max({plotMax, _data2});
-    if (plotMin > _data2) plotMin = _data2;
-    if (plotMax < _data2) plotMax = _data2;
+        plotMin = std::min({plotMin, _data0, _data1,_data2});
+        plotMax = std::max({plotMax, ,_data0, _data1,_data2});
+//    if (plotMin > _data2) plotMin = _data2;
+//    if (plotMax < _data2) plotMax = _data2;
 
+    } else {
+        plotQueue[2][plotIndex] = 0.0f;
     }
 
     NVGcolor color[3] = { COLOR_YELLOW, COLOR_GREEN, COLOR_RED };
@@ -1406,13 +1408,15 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
             ui_draw_text(s, bx, by + 75, str, 50, COLOR_BLACK, BOLD, 0.0f, 0.0f);
         }
 
-        bool regen_valid = car_control.getActuators().getRegenPaddle();
-        float img_alpha = 0.8f;
-        img_alpha = regen_valid ? 1.0f : 0.15f;
-//        bg_alpha = regen_valid ? 0.3f : 0.1f;
-        //ui_draw_image(s, { bx - 60, by - 50, 120, 150 }, "ic_road_speed", 1.0f);
-        //ui_draw_image(s, { bx - 100, by - 60, 350, 150 }, "ic_speed_bg", 1.0f);
-        ui_draw_image(s, { bx - 60 + (  120 + 120 ), by - 50, 150, 150 }, "ic_regenPaddle", img_alpha);
+        //BoltEV
+        if (true) { //show regenPaddle activation
+            float img_alpha = car_control.getActuators().getRegenPaddle() ? 1.0f : 0.15f;
+            ui_draw_image(s, { bx - 60 + (  120 + 120 ), by - 50, 150, 150 }, "ic_regenPaddle", img_alpha);
+        }
+        if (Params().getBool("EnableMainCruiseOnOff")) {  //show if mainCruise(longControl) is enabled.
+            float img_alpha = car_state.getCruiseState().getAvailable() ? 0.1f : 1.0f;
+            ui_draw_image(s, { bx - 60 + ( 50 ), by - 50, 150, 150 }, "ic_latMainOn", img_alpha);
+        }
     }
     // Tpms...
     if (s->show_tpms) {
@@ -1683,7 +1687,7 @@ void ui_nvg_init(UIState *s) {
   {"ic_navi","../assets/images/img_navi.png"},
   {"ic_scc2", "../assets/images/img_scc2.png"},
   {"ic_radartracks", "../assets/images/img_radartracks.png"},
-
+  {"ic_latMainOn", "../assets/images/img_lat_icon.png"},
   {"ic_regenPaddle", "../assets/images/img_regen.png"},
 
 

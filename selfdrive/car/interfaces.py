@@ -74,6 +74,7 @@ class CarInterfaceBase(ABC):
     self.can_parsers = []
 
     self.keepEngage = Params().get_bool("KeepEngage")
+    self.enableMainCruiseOnOff = Params().get_bool("EnableMainCruiseOnOff")
 
     if CarState is not None:
       self.CS = CarState(CP)
@@ -254,7 +255,8 @@ class CarInterfaceBase(ABC):
     if not self.keepEngage and cs_out.gearShifter == GearShifter.reverse:
       events.add(EventName.reverseGear)
     if not cs_out.cruiseState.available:
-      events.add(EventName.wrongCarMode)
+      if not self.enableMainCruiseOnOff: #boltEV
+        events.add(EventName.wrongCarMode)
     if cs_out.espDisabled:
       events.add(EventName.espDisabled)
     if cs_out.stockFcw:

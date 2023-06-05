@@ -335,7 +335,8 @@ std::unordered_map<std::string, uint32_t> keys = {
 
     //BoltEV
     {"PowerOffTime", PERSISTENT},
-    { "PedalPressedThreshold", PERSISTENT },    
+    { "PedalPressedThreshold", PERSISTENT },
+    { "EnableMainCruiseOnOff", PERSISTENT },
 };
 
 } // namespace
