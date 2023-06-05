@@ -840,7 +840,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
 #endif
     // 신호등(traffic)그리기.
     // 신호등내부에는 레이더거리, 비젼거리, 정지거리, 신호대기 표시함.
-    //int circle_size = 160;
+    int circle_size = 160;
     NVGcolor bgColor = nvgRGBA(0, 0, 0, 166);
     const auto lp = sm["longitudinalPlan"].getLongitudinalPlan();
     float stop_dist = 0;

@@ -258,7 +258,7 @@ void ExperimentalButton::paintEvent(QPaintEvent *event) {
   QPainter p(this);
   p.setRenderHint(QPainter::Antialiasing);
 
-  QPoint center(btn_size / 2, btn_size / 2);
+  //QPoint center(btn_size / 2, btn_size / 2);
   QPixmap img = isChecked() ? experimental_img : engage_img;
 
   p.setOpacity(1.0);
