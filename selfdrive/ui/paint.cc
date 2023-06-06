@@ -758,7 +758,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
     static float path_fx = s->fb_w / 2;
     static float path_fy = s->fb_h - 400;
     static float path_fwidth = 160;
-    int path_bx = (int)path_fx;
+    static float path_bx = s->fb_w / 2;
     if (len == 4) {
         float x1, y1, x2, y2;
         float sx1, sy1, sx2, sy2;
@@ -781,7 +781,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
             path_fy = path_fy * alpha + _path_y * (1. - alpha);
             if (_path_width < 200.) _path_width = 200.;
             path_fwidth = path_fwidth * alpha + _path_width * (1. - alpha);
-            path_bx = (sx1 + sx2) / 2;
+            path_bx = path_bx * alpha + (sx1 + sx2) / 2 * (1. - alpha);
             //printf("path_fx = %.1f, %.1f, %.1f (%.1f, %.1f, %.1f)\n", path_fx, path_fy, path_fwidth, _path_x, _path_y, _path_width);
             //printf("(%4.0f,%4.0f,%4.0f,%4.0f)(%4.0f,%4.0f,%4.0f,%4.0f)\n", x1, y1, x2, y2, sx1, sy1, sx2, sy2);
         }
