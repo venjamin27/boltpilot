@@ -142,8 +142,10 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
       scc12_accMode = 1
       scc14_accMode = 1
       stopReq = 1
-    comfortBandUpper = 0.9 + accel * 0.2
-    comfortBandLower = 0.8 + accel * 0.2
+    #comfortBandUpper = 0.9 + accel * 0.2
+    #comfortBandLower = 0.8 + accel * 0.2
+    comfortBandUpper = 1.0
+    comfortBandLower = 1.0
     jerkUpperLimit = upper_jerk
     jerkLowerLimit = upper_jerk #5.0
   else:
