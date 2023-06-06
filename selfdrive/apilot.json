@@ -936,7 +936,7 @@
       "group": "화면",
       "name": "ShowPlotMode",
       "title": "디버그플롯(0)",
-      "descr": "",
+      "descr": "1:가속도,2:조향가속도,3:속도,4:모델x",
       "min": 0,
       "max": 5,
       "default": 0,
