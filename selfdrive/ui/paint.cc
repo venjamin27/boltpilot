@@ -565,7 +565,7 @@ static void make_plot_data(const UIState* s, float& data1, float& data2) {
     float   roll = live_parameters.getRoll();
     auto    controls_state = sm["controlsState"].getControlsState();
     float   curvature = controls_state.getCurvature();
-    float   desired_curvature = controls_state.getDesiredCurvature();
+    //float   desired_curvature = controls_state.getDesiredCurvature();
     const auto lp = sm["longitudinalPlan"].getLongitudinalPlan();
     float   speeds_0 = lp.getSpeeds()[0];
     const auto lat_plan = sm["lateralPlan"].getLateralPlan();
