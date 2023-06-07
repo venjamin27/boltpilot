@@ -464,16 +464,6 @@
     },
     {
       "group": "감속제어",
-      "name": "TrafficStopUpdateDist",
-      "title": "신호정지선 갱신 거리 (2M)",
-      "descr": "숫자가 작을수록 정확히(모델의 위치) 감속합니다. 하지만 정지충격이 발생할수 있습니다.",
-      "min": 1,
-      "max": 30,
-      "default": 2,
-      "unit": 1
-    },
-    {
-      "group": "감속제어",
       "name": "TrafficStopAdjustRatio",
       "title": "신호정지선 보정비율 (90%)",
       "descr": "급한신호정지를 막기위해 미리 속도를 줄일수 있는...",

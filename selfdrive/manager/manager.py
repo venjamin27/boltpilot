@@ -145,7 +145,6 @@ def manager_init() -> None:
     ("HapticFeedbackWhenSpeedCamera", "0"),       
     ("SoftHoldMode", "1"),       
     ("ApplyModelDistOrder", "32"),       
-    ("TrafficStopUpdateDist", "2"),       
     ("TrafficStopAdjustRatio", "90"),       
     ("SteeringRateCost", "700"),       
     ("LateralMotionCost", "11"),       
