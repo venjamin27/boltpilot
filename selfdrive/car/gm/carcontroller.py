@@ -63,7 +63,7 @@ class CarController:
     self.pedalGas_valueStore = 0.0
     self.pedalGasRaw_valueStore = 0.0
     self.pedalGasAvg_valueStore = 0.0
-    self.pedalGasWindowSize = 40
+    self.pedalGasWindowSize = 50
     self.pedalGasWindow = deque(maxlen=self.pedalGasWindowSize)
 
 
@@ -150,7 +150,7 @@ class CarController:
             # accGain = interp(CS.out.vEgo, [0., 5], [0.2500, 0.2750])
 
             zero = interp(CS.out.vEgo,[0., 5], [0.1560, 0.2210])
-            zeroGain = interp(actuators.accel , [-1.2500 , -0.5250, -0.2500] , [0.0000, 0.2500, 1.0000])
+            zeroGain = interp(actuators.accel, [-1.2500, -0.5250, -0.2500], [0.0000, 0.2500, 1.0000])
 
 
             # accGain = interp(CS.out.vEgo,[0., 5], [0.25, 0.1667])
@@ -174,11 +174,17 @@ class CarController:
 
           if CS.out.vEgo > 5.0 :
             self.pedalGasWindow.append(pedal_gas)
+            if pedal_gas < 0.15:
+              self.pedalGasWindow.append(pedal_gas)
+            if pedal_gas < 0.1:
+              self.pedalGasWindow.append(pedal_gas)
+            if pedal_gas < 0.05:
+              self.pedalGasWindow.append(pedal_gas)
             pedal_gas = sum(self.pedalGasWindow) / (len(self.pedalGasWindow)*1.0)
-            actuator_hystereses_divider = 2.0
+            actuator_hystereses_divider = 1.75
           else :
-            actuator_hystereses_divider = 1.0
-            if len(self.pedalGasWindow) > 0 :
+            actuator_hystereses_divider = 1.25
+            if len(self.pedalGasWindow) > 0:
               self.pedalGasWindow = deque(maxlen=self.pedalGasWindowSize)
             # pedal_gas = 0.0
 
