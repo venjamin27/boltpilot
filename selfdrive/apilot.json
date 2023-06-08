@@ -446,9 +446,9 @@
       "group": "감속제어",
       "name": "TrafficStopMode",
       "title": "신호정지 방법 (1)",
-      "descr": "0:사용안함,1:Apilot모드,2:Mix 실험적모드",
+      "descr": "0:사용안함,1:사용함",
       "min": 0,
-      "max": 2,
+      "max": 1,
       "default": 1,
       "unit": 1
     },

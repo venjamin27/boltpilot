@@ -833,7 +833,7 @@ class LongitudinalMpc:
       if self.trafficState in [0, 2]: #stop_x > 100.0:
         stop_x = 1000.0
 
-    if self.trafficStopMode == 2:
+    if self.trafficStopMode > 0:
       #mode = 'blended' if self.xState in [XState.e2eStop, XState.e2eCruisePrepare] else 'acc'
       mode = 'blended' if self.xState in [XState.e2eCruisePrepare] else 'acc'
 
