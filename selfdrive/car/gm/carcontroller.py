@@ -174,8 +174,9 @@ class CarController:
             zeroGain = interp(actuators.accel, [-1.2500, -0.5250, -0.2500], [0.0000, 0.2500, 1.0000])
 
 
-            # accGain = interp(CS.out.vEgo,[0., 5], [0.25, 0.1667])
-            pedal_gas = clip((actuators.accel * accGainByVEgo * accGainByAccel + zero * zeroGain), 0., 1.)
+
+            # pedal_gas = clip((actuators.accel * accGainByVEgo * accGainByAccel + zero * zeroGain), 0., 1.)
+            pedal_gas = clip((actuators.accel * accGainByVEgo * accGainByAccel + zero * zeroGain), 0., 0.36)
 
 
           else:
@@ -186,9 +187,12 @@ class CarController:
 
 
           if CS.out.vEgo > 5.0 :
-            self.pedalGasWindow.append(pedal_gas)
-            if sum(self.pedalGasWindow) / (len(self.pedalGasWindow)*1.0) < pedal_gas:
+            if sum(self.pedalGasWindow) / (len(self.pedalGasWindow)*1.0) > pedal_gas:
               self.pedalGasWindow.append(pedal_gas)
+              self.pedalGasWindow.append(pedal_gas)
+
+            self.pedalGasWindow.append(pedal_gas)
+
             if pedal_gas < 0.15:
               self.pedalGasWindow.append(pedal_gas)
             if pedal_gas < 0.1:
