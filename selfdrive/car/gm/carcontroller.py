@@ -64,8 +64,8 @@ class CarController:
     self.pedalGas_valueStore = 0.0
     self.pedalGasRaw_valueStore = 0.0
     self.pedalGasAvg_valueStore = 0.0
-    self.pedalGasWindowSize = 50
-    self.pedalGasWindow = deque(maxlen=self.pedalGasWindowSize)
+    self.pedalGasBufferSize = 50
+    self.pedalGasBuffer = deque(maxlen=self.pedalGasBufferSize)
 
 
   def update(self, CC, CS, now_nanos):
@@ -121,106 +121,102 @@ class CarController:
       else:
         actuators.regenPaddle = False # for icon
 
-      if self.frame % 4 == 0:
+
+      if not CC.longActive:
+        # ASCM sends max regen when not enabled
+        self.apply_gas = self.params.INACTIVE_REGEN
+        self.apply_brake = 0
+      elif CC.longActive and self.CP.carFingerprint in CC_ONLY_CAR and not CS.CP.enableGasInterceptor:
+        # BEGIN CC-ACC ######
+        # TODO: Cleanup the timing - normal is every 30ms...
+
+        cruiseBtn = CruiseButtons.INIT
+        # We will spam the up/down buttons till we reach the desired speed
+        # TODO: Apparently there are rounding issues.
+        speedSetPoint = int(round(CS.out.cruiseState.speed * CV.MS_TO_MPH))
+        speedActuator = math.floor(actuators.speed * CV.MS_TO_MPH)
+        speedDiff = (speedActuator - speedSetPoint)
+
+        # We will spam the up/down buttons till we reach the desired speed
+        rate = 0.64
+        if speedDiff < 0:
+          cruiseBtn = CruiseButtons.DECEL_SET
+          rate = 0.2
+        elif speedDiff > 0:
+          cruiseBtn = CruiseButtons.RES_ACCEL
+
+        # Check rlogs closely - our message shouldn't show up on the pt bus for us
+        # Or bus 2, since we're forwarding... but I think it does
+        # TODO: Cleanup the timing - normal is every 30ms...
+        if (cruiseBtn != CruiseButtons.INIT) and ((self.frame - self.last_button_frame) * DT_CTRL > rate):
+          self.last_button_frame = self.frame
+          can_sends.append(gmcan.create_buttons(self.packer_pt, CanBus.POWERTRAIN, CS.buttons_counter, cruiseBtn))
+          # END CC-ACC #######
+        self.apply_gas = int(round(interp(actuators.accel, self.params.GAS_LOOKUP_BP, self.params.GAS_LOOKUP_V)))
+        self.apply_brake = int(round(interp(actuators.accel, self.params.BRAKE_LOOKUP_BP, self.params.BRAKE_LOOKUP_V)))
+
+      # BEGIN INTERCEPTOR ############################
+      if CS.CP.enableGasInterceptor:
+        # TODO: JJS Detect saturated battery?
+        if CS.single_pedal_mode:
+
+          # From Felger's Bolt Fort
+          # It seems in L mode, accel / decel point is around 1/5
+          # -1-------AEB------0----regen---0.15-------accel----------+1
+          # Shrink gas request to 0.85, have it start at 0.2
+          # Shrink brake request to 0.85, first 0.15 gives regen, rest gives AEB
+
+          accGainByVEgo = interp(CS.out.vEgo, [0., 5], [0.1500, 0.1750])
+          accGainByAccel = interp(actuators.accel, [-0.0001, 0], [1.3000, 1.0000])
+          # accGain = interp(CS.out.vEgo, [0., 5], [0.2500, 0.2750])
+
+          zero = interp(CS.out.vEgo,[0., 5], [0.1560, 0.2125])
+          zeroGain = interp(actuators.accel, [-1.2500, -0.5250, -0.2500], [0.0000, 0.2500, 1.0000])
+
+          # pedal_gas = clip((actuators.accel * accGainByVEgo * accGainByAccel + zero * zeroGain), 0., 1.)
+          pedal_gas = clip((actuators.accel * accGainByVEgo * accGainByAccel + zero * zeroGain), 0., 0.35)
+
+        else:
+          pedal_gas = clip(actuators.accel, 0., 1.)
+
+        # apply pedal hysteresis and clip the final output to valid values.
+        self.pedalGasRaw_valueStore = pedal_gas
+
+        if CS.out.vEgo > 5.0 :
+          self.pedalGasBuffer.append(pedal_gas)
+          if sum(self.pedalGasBuffer) / (len(self.pedalGasBuffer) * 1.0) > pedal_gas:
+            self.pedalGasBuffer.append(pedal_gas)
+            self.pedalGasBuffer.append(pedal_gas)
+
+          if pedal_gas < 0.100:
+            self.pedalGasBuffer.append(pedal_gas)
+
+          if pedal_gas < 0.075:
+            self.pedalGasBuffer.append(pedal_gas)
+
+          pedal_gas = sum(self.pedalGasBuffer) / (len(self.pedalGasBuffer) * 1.0)
+          actuator_hystereses_divider = 2.0
+        else :
+          actuator_hystereses_divider = 1.5
+          if len(self.pedalGasBuffer) > 0:
+            self.pedalGasBuffer = deque(maxlen=self.pedalGasBufferSize)
+          # pedal_gas = 0.0
+
+        self.pedalGasAvg_valueStore = pedal_gas
+
+        pedal_final, self.pedal_steady = actuator_hystereses(pedal_gas, self.pedal_steady, actuator_hystereses_divider)
+        pedal_gas = clip(pedal_final, 0., 1.)
+
         if not CC.longActive:
-          # ASCM sends max regen when not enabled
-          self.apply_gas = self.params.INACTIVE_REGEN
-          self.apply_brake = 0
-        elif CC.longActive and self.CP.carFingerprint in CC_ONLY_CAR and not CS.CP.enableGasInterceptor:
-          # BEGIN CC-ACC ######
-          # TODO: Cleanup the timing - normal is every 30ms...
+          pedal_gas = 0.0  # May not be needed with the enable param
 
-          cruiseBtn = CruiseButtons.INIT
-          # We will spam the up/down buttons till we reach the desired speed
-          # TODO: Apparently there are rounding issues.
-          speedSetPoint = int(round(CS.out.cruiseState.speed * CV.MS_TO_MPH))
-          speedActuator = math.floor(actuators.speed * CV.MS_TO_MPH)
-          speedDiff = (speedActuator - speedSetPoint)
-
-          # We will spam the up/down buttons till we reach the desired speed
-          rate = 0.64
-          if speedDiff < 0:
-            cruiseBtn = CruiseButtons.DECEL_SET
-            rate = 0.2
-          elif speedDiff > 0:
-            cruiseBtn = CruiseButtons.RES_ACCEL
-
-          # Check rlogs closely - our message shouldn't show up on the pt bus for us
-          # Or bus 2, since we're forwarding... but I think it does
-          # TODO: Cleanup the timing - normal is every 30ms...
-          if (cruiseBtn != CruiseButtons.INIT) and ((self.frame - self.last_button_frame) * DT_CTRL > rate):
-            self.last_button_frame = self.frame
-            can_sends.append(gmcan.create_buttons(self.packer_pt, CanBus.POWERTRAIN, CS.buttons_counter, cruiseBtn))
-            # END CC-ACC #######
-          self.apply_gas = int(round(interp(actuators.accel, self.params.GAS_LOOKUP_BP, self.params.GAS_LOOKUP_V)))
-          self.apply_brake = int(round(interp(actuators.accel, self.params.BRAKE_LOOKUP_BP, self.params.BRAKE_LOOKUP_V)))
-
-        # BEGIN INTERCEPTOR ############################
-        if CS.CP.enableGasInterceptor:
-          # TODO: JJS Detect saturated battery?
-          if CS.single_pedal_mode:
-
-            # From Felger's Bolt Fort
-            # It seems in L mode, accel / decel point is around 1/5
-            # -1-------AEB------0----regen---0.15-------accel----------+1
-            # Shrink gas request to 0.85, have it start at 0.2
-            # Shrink brake request to 0.85, first 0.15 gives regen, rest gives AEB
-
-            accGainByVEgo = interp(CS.out.vEgo, [0., 5], [0.1500, 0.1750])
-            accGainByAccel = interp(actuators.accel, [-0.001, 0], [1.3000, 1.0000])
-            # accGain = interp(CS.out.vEgo, [0., 5], [0.2500, 0.2750])
-
-            zero = interp(CS.out.vEgo,[0., 5], [0.1560, 0.2125])
-            zeroGain = interp(actuators.accel, [-1.2500, -0.5250, -0.2500], [0.0000, 0.2500, 1.0000])
-
-
-
-            # pedal_gas = clip((actuators.accel * accGainByVEgo * accGainByAccel + zero * zeroGain), 0., 1.)
-            pedal_gas = clip((actuators.accel * accGainByVEgo * accGainByAccel + zero * zeroGain), 0., 0.35)
-
-
-          else:
-            pedal_gas = clip(actuators.accel, 0., 1.)
-
-          # apply pedal hysteresis and clip the final output to valid values.
-          self.pedalGasRaw_valueStore = pedal_gas
-
-
-          if CS.out.vEgo > 5.0 :
-            self.pedalGasWindow.append(pedal_gas)
-            if sum(self.pedalGasWindow) / (len(self.pedalGasWindow)*1.0) > pedal_gas:
-              self.pedalGasWindow.append(pedal_gas)
-              self.pedalGasWindow.append(pedal_gas)
-
-            
-
-            if pedal_gas < 0.15:
-              self.pedalGasWindow.append(pedal_gas)
-            if pedal_gas < 0.1:
-              self.pedalGasWindow.append(pedal_gas)
-
-            pedal_gas = sum(self.pedalGasWindow) / (len(self.pedalGasWindow)*1.0)
-            actuator_hystereses_divider = 2.0
-          else :
-            actuator_hystereses_divider = 1.5
-            if len(self.pedalGasWindow) > 0:
-              self.pedalGasWindow = deque(maxlen=self.pedalGasWindowSize)
-            # pedal_gas = 0.0
-
-          self.pedalGasAvg_valueStore = pedal_gas
-
-          pedal_final, self.pedal_steady = actuator_hystereses(pedal_gas, self.pedal_steady, actuator_hystereses_divider) # gap을 기존보다 2배 더 자세히
-          pedal_gas = clip(pedal_final, 0., 1.)
-
-          if not CC.longActive:
-            pedal_gas = 0.0  # May not be needed with the enable param
-
-
+        if self.frame % 4 == 0:
           idx = (self.frame // 4) % 4
           self.pedalGas_valueStore = pedal_gas # for debug ui
           can_sends.append(create_gas_interceptor_command(self.packer_pt, pedal_gas, idx))
-          # END INTERCEPTOR ############################
-        else:
+        # END INTERCEPTOR ############################
+      else:
+        if self.frame % 4 == 0:
           idx = (self.frame // 4) % 4
 
           at_full_stop = CC.longActive and CS.out.standstill
