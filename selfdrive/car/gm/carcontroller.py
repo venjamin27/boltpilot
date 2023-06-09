@@ -64,8 +64,8 @@ class CarController:
     self.pedalGas_valueStore = 0.0
     self.pedalGasRaw_valueStore = 0.0
     self.pedalGasAvg_valueStore = 0.0
-    self.pedalGasWindowSize = 50
-    self.pedalGasWindow = deque(maxlen=self.pedalGasWindowSize)
+    self.pedalGasBufferSize = 50
+    self.pedalGasBuffer = deque(maxlen=self.pedalGasBufferSize)
 
 
   def update(self, CC, CS, now_nanos):
@@ -183,23 +183,23 @@ class CarController:
         self.pedalGasRaw_valueStore = pedal_gas
 
         if CS.out.vEgo > 5.0 :
-          self.pedalGasWindow.append(pedal_gas)
-          if sum(self.pedalGasWindow) / (len(self.pedalGasWindow)*1.0) > pedal_gas:
-            self.pedalGasWindow.append(pedal_gas)
-            self.pedalGasWindow.append(pedal_gas)
+          self.pedalGasBuffer.append(pedal_gas)
+          if sum(self.pedalGasBuffer) / (len(self.pedalGasBuffer) * 1.0) > pedal_gas:
+            self.pedalGasBuffer.append(pedal_gas)
+            self.pedalGasBuffer.append(pedal_gas)
 
           if pedal_gas < 0.100:
-            self.pedalGasWindow.append(pedal_gas)
+            self.pedalGasBuffer.append(pedal_gas)
 
           if pedal_gas < 0.075:
-            self.pedalGasWindow.append(pedal_gas)
+            self.pedalGasBuffer.append(pedal_gas)
 
-          pedal_gas = sum(self.pedalGasWindow) / (len(self.pedalGasWindow)*1.0)
+          pedal_gas = sum(self.pedalGasBuffer) / (len(self.pedalGasBuffer) * 1.0)
           actuator_hystereses_divider = 2.0
         else :
           actuator_hystereses_divider = 1.5
-          if len(self.pedalGasWindow) > 0:
-            self.pedalGasWindow = deque(maxlen=self.pedalGasWindowSize)
+          if len(self.pedalGasBuffer) > 0:
+            self.pedalGasBuffer = deque(maxlen=self.pedalGasBufferSize)
           # pedal_gas = 0.0
 
         self.pedalGasAvg_valueStore = pedal_gas
