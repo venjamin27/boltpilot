@@ -73,7 +73,6 @@ class CarInterface(CarInterfaceBase):
     ret.carName = "gm"
     ret.safetyConfigs = [get_safety_config(car.CarParams.SafetyModel.gm)]
     ret.autoResumeSng = False
-    use_off_car_defaults = len(fingerprint[0]) == 0  # Pick sensible carParams during offline doc generation/CI jobs
 
     ret.enableGasInterceptor = 0x201 in fingerprint[0]
 
@@ -108,11 +107,17 @@ class CarInterface(CarInterfaceBase):
         ret.pcmCruise = False
         ret.openpilotLongitudinalControl = True
         ret.safetyConfigs[0].safetyParam |= Panda.FLAG_GM_HW_CAM_LONG
+      if candidate in CC_ONLY_CAR and not ret.enableGasInterceptor:
+        # TODO: Add Toggle
+        # TODO: panda flag?
+        ret.minEnableSpeed = -1
+        ret.openpilotLongitudinalControl = True
+        ret.pcmCruise = False
 
     else:  # ASCM, OBD-II harness
       ret.openpilotLongitudinalControl = True
       ret.networkLocation = NetworkLocation.gateway
-      ret.radarUnavailable = RADAR_HEADER_MSG not in fingerprint[CanBus.OBSTACLE] and not use_off_car_defaults
+      ret.radarUnavailable = RADAR_HEADER_MSG not in fingerprint[CanBus.OBSTACLE] and not docs
       ret.pcmCruise = False  # stock non-adaptive cruise control is kept off
       # supports stop and go, but initial engage must (conservatively) be above 18mph
       ret.minEnableSpeed = 18 * CV.MPH_TO_MS
@@ -236,13 +241,22 @@ class CarInterface(CarInterfaceBase):
       ret.centerToFront = ret.wheelbase * 0.4
       CarInterfaceBase.configure_torque_tune(candidate, ret.lateralTuning)
 
+    elif candidate == CAR.TRAILBLAZER:
+      ret.mass = 1345. + STD_CARGO_KG
+      ret.wheelbase = 2.64
+      ret.steerRatio = 16.8
+      ret.centerToFront = ret.wheelbase * 0.4
+      tire_stiffness_factor = 1.0
+      ret.steerActuatorDelay = 0.2
+      CarInterfaceBase.configure_torque_tune(candidate, ret.lateralTuning)
+
     if ret.enableGasInterceptor:
       ret.minEnableSpeed = -1
       ret.pcmCruise = False
       ret.openpilotLongitudinalControl = True
       # Note: Low speed, stop and go not tested. Should be fairly smooth on highway
-      ret.longitudinalTuning.kpBP = [0. , 1.]
-      ret.longitudinalTuning.kpV = [1.0, 1.0]
+      ret.longitudinalTuning.kpBP = [0.]
+      ret.longitudinalTuning.kpV = [1.0]
       ret.longitudinalTuning.kiBP = [0.]
       ret.longitudinalTuning.kiV = [0.0]
       ret.longitudinalTuning.kf = 0.3

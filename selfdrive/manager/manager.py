@@ -35,6 +35,8 @@ def manager_init() -> None:
 
   params = Params()
   params.clear_all(ParamKeyType.CLEAR_ON_MANAGER_START)
+  params.clear_all(ParamKeyType.CLEAR_ON_ONROAD_TRANSITION)
+  params.clear_all(ParamKeyType.CLEAR_ON_OFFROAD_TRANSITION)
 
   default_params: List[Tuple[str, Union[str, bytes]]] = [
     ("CompletedTrainingVersion", "0"),
@@ -75,7 +77,7 @@ def manager_init() -> None:
     ("OpkrPrebuiltOn", "0"),
     ("AutoCurveSpeedCtrlUse", "1"),
     ("AutoCurveSpeedFactor", "100"),
-    ("AutoCurveSpeedFactorIn", "0"),
+    ("AutoCurveSpeedFactorIn", "10"),
     ("AutoTurnControl", "0"),
     ("AutoTurnSpeed", "40"),
     ("AutoTurnTimeMax", "200"),
@@ -136,14 +138,14 @@ def manager_init() -> None:
     ("TFollowRatio", "110"),
     ("JerkUpperLowerLimit", "8"),    
     ("KeepEngage", "1"),
-    ("UseLaneLineSpeed", "80"),    
+    ("UseLaneLineSpeed", "0"),    
     ("PathOffset", "0"),  
     ("PathCostApply", "100"),
     ("PathCostApplyLow", "100"),
     ("HapticFeedbackWhenSpeedCamera", "0"),       
     ("SoftHoldMode", "1"),       
-    ("ApplyModelDistOrder", "30"),       
-    ("TrafficStopUpdateDist", "10"),       
+    ("ApplyModelDistOrder", "32"),       
+    ("TrafficStopAdjustRatio", "90"),       
     ("SteeringRateCost", "700"),       
     ("LateralMotionCost", "11"),       
     ("LateralAccelCost", "0"),       
@@ -202,6 +204,7 @@ def manager_init() -> None:
   params.put("GitBranch", get_short_branch(default=""))
   params.put("GitRemote", get_origin(default=""))
   params.put_bool("IsTestedBranch", is_tested_branch())
+  params.put_bool("IsReleaseBranch", is_release_branch())
 
   # set dongle id
   reg_res = register(show_spinner=True)

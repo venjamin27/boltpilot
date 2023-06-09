@@ -566,9 +566,11 @@ static void make_plot_data(const UIState* s, float& data1, float& data2, float& 
     float   roll = live_parameters.getRoll();
     auto    controls_state = sm["controlsState"].getControlsState();
     float   curvature = controls_state.getCurvature();
-    float   desired_curvature = controls_state.getDesiredCurvature();
+    //float   desired_curvature = controls_state.getDesiredCurvature();
     const auto lp = sm["longitudinalPlan"].getLongitudinalPlan();
     float   speeds_0 = lp.getSpeeds()[0];
+    const auto lat_plan = sm["lateralPlan"].getLateralPlan();
+    float   curvatures_0 = lat_plan.getCurvatures()[0];
 
     float pedalGas = car_control.getActuators().getPedalGas();
     
@@ -587,8 +589,10 @@ static void make_plot_data(const UIState* s, float& data1, float& data2, float& 
         data3 = pedalGas;
         break;
     case 2:
+        // curvature * v * v : 원심가속도
         data1 = (curvature * v_ego * v_ego) - (roll * 9.81);
-        data2 = (desired_curvature * v_ego * v_ego) - (roll * 9.81);
+        //data2 = (desired_curvature * v_ego * v_ego) - (roll * 9.81);
+        data2 = (curvatures_0 * v_ego * v_ego) - (roll * 9.81);
         break;
     case 3:
         data1 = v_ego;
@@ -782,7 +786,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
     static float path_fx = s->fb_w / 2;
     static float path_fy = s->fb_h - 400;
     static float path_fwidth = 160;
-    int path_bx = (int)path_fx;
+    static float path_bx = s->fb_w / 2;
     if (len == 4) {
         float x1, y1, x2, y2;
         float sx1, sy1, sx2, sy2;
@@ -805,7 +809,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
             path_fy = path_fy * alpha + _path_y * (1. - alpha);
             if (_path_width < 200.) _path_width = 200.;
             path_fwidth = path_fwidth * alpha + _path_width * (1. - alpha);
-            path_bx = (sx1 + sx2) / 2;
+            path_bx = path_bx * alpha + (sx1 + sx2) / 2 * (1. - alpha);
             //printf("path_fx = %.1f, %.1f, %.1f (%.1f, %.1f, %.1f)\n", path_fx, path_fy, path_fwidth, _path_x, _path_y, _path_width);
             //printf("(%4.0f,%4.0f,%4.0f,%4.0f)(%4.0f,%4.0f,%4.0f,%4.0f)\n", x1, y1, x2, y2, sx1, sy1, sx2, sy2);
         }
@@ -1013,7 +1017,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
                 }
             }
             else ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2, icon_size, icon_size }, "ic_steer_momo", 0.7f);
-            bgColor = nvgRGBA(0, 0, 0, 160);
+            bgColor = nvgRGBA(0, 0, 0, 0);
         }
         else if (s->show_steer_mode == 0) {            
             if (uiDrawSteeringRotate) {      
@@ -1021,10 +1025,10 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
             }
             else ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2, icon_size, icon_size }, "ic_steer_momo", 0.7f);
             switch (trafficMode) {
-            case 0: bgColor = nvgRGBA(0, 0, 0, 90); break;
-            case 1: bgColor = nvgRGBA(255, 0, 0, 160); break;
-            case 2: bgColor = nvgRGBA(0, 255, 0, 160); break;
-            case 3: bgColor = nvgRGBA(255, 255, 0, 160); break;
+            case 0: bgColor = nvgRGBA(0, 0, 0, 0); break;
+            case 1: bgColor = nvgRGBA(255, 0, 0, 100); break;
+            case 2: bgColor = nvgRGBA(0, 255, 0, 100); break;
+            case 3: bgColor = nvgRGBA(255, 255, 0, 100); break;
             }
         }
         else {
@@ -1518,7 +1522,7 @@ void DrawApilot::drawDeviceState(UIState* s) {
         ui_draw_text(s, s->fb_w - 20, 35, str, 35, textColor, BOLD);
         float engineRpm = car_state.getEngineRpm();
         float motorRpm = car_state.getMotorRpm();
-        sprintf(str, "FPS: %d, %s: %.0f CHARGE: %.0f%%", g_fps, (motorRpm > 0.0) ? "MOTOR" : "RPM", (motorRpm > 0.0) ? motorRpm : engineRpm, car_state.getChargeMeter());
+        sprintf(str, "FPS: %d, %s: %.0f CHARGE: %.0f%%                      ", g_fps, (motorRpm > 0.0) ? "MOTOR" : "RPM", (motorRpm > 0.0) ? motorRpm : engineRpm, car_state.getChargeMeter());
         ui_draw_text(s, s->fb_w - 20, 90, str, 35, textColor, BOLD);
     }
 
@@ -1531,7 +1535,7 @@ void DrawApilot::drawDebugText(UIState* s) {
 
     nvgTextAlign(s->vg, NVG_ALIGN_RIGHT | NVG_ALIGN_BOTTOM);
 
-    int y = 150, dy = 40;
+    int y = 350, dy = 40;
 
      y += (dy*5); // 강제로 5줄 내리고 시작. plot을 가리니까.
 
