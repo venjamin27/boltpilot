@@ -176,7 +176,7 @@ class CarController:
 
 
             # pedal_gas = clip((actuators.accel * accGainByVEgo * accGainByAccel + zero * zeroGain), 0., 1.)
-            pedal_gas = clip((actuators.accel * accGainByVEgo * accGainByAccel + zero * zeroGain), 0., 0.36)
+            pedal_gas = clip((actuators.accel * accGainByVEgo * accGainByAccel + zero * zeroGain), 0., 0.35)
 
 
           else:
