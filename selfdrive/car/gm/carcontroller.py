@@ -187,11 +187,12 @@ class CarController:
 
 
           if CS.out.vEgo > 5.0 :
+            self.pedalGasWindow.append(pedal_gas)
             if sum(self.pedalGasWindow) / (len(self.pedalGasWindow)*1.0) > pedal_gas:
               self.pedalGasWindow.append(pedal_gas)
               self.pedalGasWindow.append(pedal_gas)
 
-            self.pedalGasWindow.append(pedal_gas)
+            
 
             if pedal_gas < 0.15:
               self.pedalGasWindow.append(pedal_gas)
