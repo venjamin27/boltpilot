@@ -133,12 +133,6 @@ class CarController:
         if CS.CP.enableGasInterceptor:
           # TODO: JJS Detect saturated battery?
           if CS.single_pedal_mode:
-            # In L Mode, Pedal applies regen at a fixed coast-point (TODO: max regen in L mode may be different per car)
-            # This will apply to EVs in L mode.
-            # accel values below zero down to a cutoff point
-            #  that approximates the percentage of braking regen can handle should be scaled between 0 and the coast-point
-            # accell values below this point will need to be add-on future hijacked AEB
-            # TODO: Determine (or guess) at regen percentage
 
             # From Felger's Bolt Fort
             # It seems in L mode, accel / decel point is around 1/5
@@ -146,25 +140,18 @@ class CarController:
             # Shrink gas request to 0.85, have it start at 0.2
             # Shrink brake request to 0.85, first 0.15 gives regen, rest gives AEB
 
-            accGain = interp(CS.out.vEgo, [0., 5], [0.1900, 0.2200])
+            accGainByVEgo = interp(CS.out.vEgo, [0., 5], [0.1500, 0.1750])
+            accGainByAccel = interp(actuators.accel, [-0.001, 0], [1.3000, 1.0000])
             # accGain = interp(CS.out.vEgo, [0., 5], [0.2500, 0.2750])
 
-            zero = interp(CS.out.vEgo,[0., 5], [0.1560, 0.2210])
+            zero = interp(CS.out.vEgo,[0., 5], [0.1560, 0.2125])
             zeroGain = interp(actuators.accel, [-1.2500, -0.5250, -0.2500], [0.0000, 0.2500, 1.0000])
 
 
             # accGain = interp(CS.out.vEgo,[0., 5], [0.25, 0.1667])
-            pedal_gas = clip((actuators.accel * accGain + zero * zeroGain ), 0., 1.)
+            pedal_gas = clip((actuators.accel * accGainByVEgo * accGainByAccel + zero * zeroGain), 0., 1.)
 
 
-
-            # if actuators.accel > 0.:
-            #   # Scales the accel from 0-1 to 0.156-1
-            #   pedal_gas = clip(((1 - zero) * actuators.accel * pedalAccGain + zero), 0., 1.)
-            # else:
-            #   # if accel is negative, -0.1 -> 0.015625
-            #   pedal_gas = clip(zero + actuators.accel*pedalDecelgain, 0., zero)  # Make brake the same size as gas, but clip to regen
-            #   # aeb = actuators.brake*(1-zero)-regen # For use later, braking more than regen
           else:
             pedal_gas = clip(actuators.accel, 0., 1.)
 
@@ -174,16 +161,17 @@ class CarController:
 
           if CS.out.vEgo > 5.0 :
             self.pedalGasWindow.append(pedal_gas)
+            if sum(self.pedalGasWindow) / (len(self.pedalGasWindow)*1.0) < pedal_gas:
+              self.pedalGasWindow.append(pedal_gas)
             if pedal_gas < 0.15:
               self.pedalGasWindow.append(pedal_gas)
             if pedal_gas < 0.1:
               self.pedalGasWindow.append(pedal_gas)
-            if pedal_gas < 0.05:
-              self.pedalGasWindow.append(pedal_gas)
+
             pedal_gas = sum(self.pedalGasWindow) / (len(self.pedalGasWindow)*1.0)
-            actuator_hystereses_divider = 1.75
+            actuator_hystereses_divider = 2.0
           else :
-            actuator_hystereses_divider = 1.25
+            actuator_hystereses_divider = 1.5
             if len(self.pedalGasWindow) > 0:
               self.pedalGasWindow = deque(maxlen=self.pedalGasWindowSize)
             # pedal_gas = 0.0
