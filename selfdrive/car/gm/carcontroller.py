@@ -167,17 +167,14 @@ class CarController:
           # Shrink brake request to 0.85, first 0.15 gives regen, rest gives AEB
 
           accGainByVEgo = interp(CS.out.vEgo, [0., 5], [0.1500, 0.1750])
-          accGainByAccel = interp(actuators.accel, [-0.001, 0], [1.3000, 1.0000])
+          accGainByAccel = interp(actuators.accel, [-0.0001, 0], [1.3000, 1.0000])
           # accGain = interp(CS.out.vEgo, [0., 5], [0.2500, 0.2750])
 
           zero = interp(CS.out.vEgo,[0., 5], [0.1560, 0.2125])
           zeroGain = interp(actuators.accel, [-1.2500, -0.5250, -0.2500], [0.0000, 0.2500, 1.0000])
 
-
-
           # pedal_gas = clip((actuators.accel * accGainByVEgo * accGainByAccel + zero * zeroGain), 0., 1.)
           pedal_gas = clip((actuators.accel * accGainByVEgo * accGainByAccel + zero * zeroGain), 0., 0.35)
-
 
         else:
           pedal_gas = clip(actuators.accel, 0., 1.)
@@ -185,20 +182,17 @@ class CarController:
         # apply pedal hysteresis and clip the final output to valid values.
         self.pedalGasRaw_valueStore = pedal_gas
 
-
         if CS.out.vEgo > 5.0 :
           self.pedalGasWindow.append(pedal_gas)
           if sum(self.pedalGasWindow) / (len(self.pedalGasWindow)*1.0) > pedal_gas:
             self.pedalGasWindow.append(pedal_gas)
             self.pedalGasWindow.append(pedal_gas)
 
-
           if pedal_gas < 0.100:
             self.pedalGasWindow.append(pedal_gas)
 
           if pedal_gas < 0.075:
             self.pedalGasWindow.append(pedal_gas)
-
 
           pedal_gas = sum(self.pedalGasWindow) / (len(self.pedalGasWindow)*1.0)
           actuator_hystereses_divider = 2.0
