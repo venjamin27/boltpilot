@@ -586,24 +586,29 @@ static void make_plot_data(const UIState* s, float& data1, float& data2, float& 
     case 1:
         data1 = a_ego;
         data2 = accel;
-        data3 = pedalGas;
+//        data3 = pedalGas;
         break;
     case 2:
+        data1 = a_ego;
+        data2 = accel;
+        data3 = pedalGas;
+        break;
+    case 3:
         // curvature * v * v : 원심가속도
         data1 = (curvature * v_ego * v_ego) - (roll * 9.81);
         //data2 = (desired_curvature * v_ego * v_ego) - (roll * 9.81);
         data2 = (curvatures_0 * v_ego * v_ego) - (roll * 9.81);
         break;
-    case 3:
+    case 4:
         data1 = v_ego;
         data2 = speeds_0;
         break;
-    case 4:
+    case 5:
         data1 = position.getX()[32];
         data2 = velocity.getX()[32];
         break;
     default:
-        data1 = data2 = 0;
+        data1 = data2 = = data3 0;
         break;
     }
     if (s->show_plot_mode != show_plot_mode_prev) {
@@ -657,7 +662,7 @@ void ui_draw_plot(const UIState* s) {
 
     
 
-    if(s->show_plot_mode == 1)  {
+    if(s->show_plot_mode == 2)  {
         plotQueue[2][plotIndex] = _data2;
         datasize = 3;
 
