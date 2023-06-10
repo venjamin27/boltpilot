@@ -1385,9 +1385,9 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
         if (enabled && longActiveUser > 0 && applyMaxSpeed > 0 && applyMaxSpeed != cruiseMaxSpeed) {
             ui_draw_text(s, bx + 250, by - 50, str, 50, COLOR_GREEN, BOLD, 1.0, 5.0, COLOR_BLACK, COLOR_BLACK);
         }
-        //static float _applyMaxSpeed = 0.;
-        //if(_applyMaxSpeed != applyMaxSpeed) ui_draw_text_a(s, bx + 250, by - 50, str, 50, COLOR_GREEN, BOLD);
-        //_applyMaxSpeed = applyMaxSpeed;
+        static char _speed_str[128]="";
+        if(strcmp(_speed_str,str)) ui_draw_text_a(s, bx + 250, by - 50, str, 50, COLOR_GREEN, BOLD);
+        strcpy(_speed_str, str);
         if (true) {
             if (enabled && curveSpeed > 0 && curveSpeed < 150) {
                 sprintf(str, "%d", (int)(curveSpeed + 0.5));
