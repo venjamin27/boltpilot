@@ -86,11 +86,12 @@ char a_string[256] = "";
 NVGcolor a_color = COLOR_WHITE;
 static void ui_draw_text_a2(const UIState* s) {
     if (a_time <= 0) return;
+    nvgTextAlign(s->vg, NVG_ALIGN_CENTER | NVG_ALIGN_BOTTOM);
     a_time-=10;
     int a_time1 = a_time;
     if (a_time1 > 100) a_time1 = 100;
     int x = (s->fb_w / 2 * a_time1 + a_x * (a_max - a_time1)) / a_max;
-    int y = (s->fb_h / 2 + 300 * a_time1 + a_y * (a_max - a_time1)) / a_max;
+    int y = ((s->fb_h - 400) * a_time1 + a_y * (a_max - a_time1)) / a_max;
     int size = (350 * a_time1 + a_size * (a_max - a_time1)) / a_max;
     if(a_time>=100) ui_draw_text(s, x, y, a_string, size, a_color, a_font, 9.0, 8.0, COLOR_BLACK, COLOR_BLACK);
     else ui_draw_text(s, x, y, a_string, size, a_color, a_font);
