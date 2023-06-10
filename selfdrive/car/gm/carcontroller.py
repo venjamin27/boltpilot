@@ -167,7 +167,7 @@ class CarController:
           # Shrink brake request to 0.85, first 0.15 gives regen, rest gives AEB
 
           accGainByVEgo = interp(CS.out.vEgo, [0., 5], [0.1500, 0.1750])
-          accGainByAccel = interp(actuators.accel, [-0.0001, 0], [1.3000, 1.0000])
+          accGainByAccel = interp(actuators.accel, [-0.5, -0.3 , 0], [1.3000, 1.1950, 1.0000])
           # accGain = interp(CS.out.vEgo, [0., 5], [0.2500, 0.2750])
 
           zero = interp(CS.out.vEgo,[0., 5], [0.1560, 0.2125])
