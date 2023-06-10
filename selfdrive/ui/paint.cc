@@ -661,8 +661,8 @@ void ui_draw_plot(const UIState* s) {
         plotQueue[2][plotIndex] = _data2;
         datasize = 3;
 
-    plotMax = std::max( *std::max_element(plotQueue[0] , plotQueue[0] + plotSize), *std::max_element(plotQueue[1] , plotQueue[1] + plotSize), *std::max_element(plotQueue[2] , plotQueue[2] + plotSize));
-    plotMin = std::min( *std::min_element(plotQueue[0] , plotQueue[0] + plotSize) , *std::min_element(plotQueue[1] , plotQueue[1] + plotSize) ,  *std::min_element(plotQueue[2] , plotQueue[2] + plotSize));
+    plotMax = std::max( {*std::max_element(plotQueue[0] , plotQueue[0] + plotSize), *std::max_element(plotQueue[1] , plotQueue[1] + plotSize), *std::max_element(plotQueue[2] , plotQueue[2] + plotSize)});
+    plotMin = std::min( { *std::min_element(plotQueue[0] , plotQueue[0] + plotSize) , *std::min_element(plotQueue[1] , plotQueue[1] + plotSize) ,  *std::min_element(plotQueue[2] , plotQueue[2] + plotSize)});
 
     } else {
         plotQueue[2][plotIndex] = 0.0f;
