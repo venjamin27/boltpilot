@@ -645,7 +645,7 @@ void ui_draw_plot(const UIState* s) {
 //    plotMax = std::max({plotMax, _data0, _data1});
 
     plotMax = std::max( *std::max_element(plotQueue[0] , plotQueue[0] + plotSize) , *std::max_element(plotQueue[1] , plotQueue[1] + plotSize) );
-    plotMax = std::min( *std::min_element(plotQueue[0] , plotQueue[0] + plotSize) , *std::min_element(plotQueue[1] , plotQueue[1] + plotSize) );
+    plotMin = std::min( *std::min_element(plotQueue[0] , plotQueue[0] + plotSize) , *std::min_element(plotQueue[1] , plotQueue[1] + plotSize) );
 
     plotIndex = (plotIndex + 1) % PLOT_MAX;
     plotQueue[0][plotIndex] = _data0;
@@ -657,16 +657,16 @@ void ui_draw_plot(const UIState* s) {
 
     
 
-//    if(s->show_plot_mode == 1)  {
-//        plotQueue[2][plotIndex] = _data2;
-//        datasize = 3;
-//
-//    plotMax = std::max( *std::max_element(plotQueue[2] , plotQueue[2] + plotSize) ,  plotMax);
-//    plotMin = std::min( *std::min_element(plotQueue[2] , plotQueue[2] + plotSize) ,  plotMin);
-//
-//    } else {
-//        plotQueue[2][plotIndex] = 0.0f;
-//    }
+    if(s->show_plot_mode == 1)  {
+        plotQueue[2][plotIndex] = _data2;
+        datasize = 3;
+
+    plotMax = std::max( *std::max_element(plotQueue[2] , plotQueue[2] + plotSize) ,  plotMax);
+    plotMin = std::min( *std::min_element(plotQueue[2] , plotQueue[2] + plotSize) ,  plotMin);
+
+    } else {
+        plotQueue[2][plotIndex] = 0.0f;
+    }
 
     NVGcolor color[3] = { COLOR_YELLOW, COLOR_GREEN, COLOR_RED };
     for (int i = 0; i < datasize; i++) {
