@@ -87,10 +87,13 @@ NVGcolor a_color = COLOR_WHITE;
 static void ui_draw_text_a2(const UIState* s) {
     if (a_time <= 0) return;
     a_time-=10;
-    int x = (s->fb_w / 2 * a_time + a_x * (a_max - a_time)) / a_max;
-    int y = (s->fb_h / 2 * a_time + a_y * (a_max - a_time)) / a_max;
-    int size = (350 * a_time + a_size * (a_max - a_time)) / a_max;
-    ui_draw_text(s, x, y, a_string, size, a_color, a_font);
+    int a_time1 = a_time;
+    if (a_time1 > 100) a_time1 = 100;
+    int x = (s->fb_w / 2 * a_time1 + a_x * (a_max - a_time1)) / a_max;
+    int y = (s->fb_h / 2 + 300 * a_time1 + a_y * (a_max - a_time1)) / a_max;
+    int size = (350 * a_time1 + a_size * (a_max - a_time1)) / a_max;
+    if(a_time>=100) ui_draw_text(s, x, y, a_string, size, a_color, a_font, 9.0, 8.0, COLOR_BLACK, COLOR_BLACK);
+    else ui_draw_text(s, x, y, a_string, size, a_color, a_font);
 }
 static void ui_draw_text_a(const UIState* s, float x, float y, const char* string, float size, NVGcolor color, const char* font_name) {
     a_x = x;
@@ -99,7 +102,7 @@ static void ui_draw_text_a(const UIState* s, float x, float y, const char* strin
     a_size = size;
     a_color = color;
     strcpy(a_font, font_name);
-    a_time = 100;
+    a_time = 130;
 }
 
 static void ui_draw_line(const UIState* s, const QPolygonF& vd, NVGcolor* color, NVGpaint* paint, float stroke=0.0, NVGcolor strokeColor=COLOR_WHITE) {
