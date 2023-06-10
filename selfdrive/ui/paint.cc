@@ -608,7 +608,7 @@ static void make_plot_data(const UIState* s, float& data1, float& data2, float& 
         data2 = velocity.getX()[32];
         break;
     default:
-        data1 = data2 = = data3 0;
+        data1 = data2  = data3 = 0;
         break;
     }
     if (s->show_plot_mode != show_plot_mode_prev) {
