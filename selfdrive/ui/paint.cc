@@ -640,17 +640,12 @@ void ui_draw_plot(const UIState* s) {
 
     _data_s = _data;
 #endif
-//    if (plotMin > _data0) plotMin = _data0;
-//    if (plotMax < _data0) plotMax = _data0;
-//    if (plotMin > _data1) plotMin = _data1;
-//    if (plotMax < _data1) plotMax = _data1;
     if (plotSize < PLOT_MAX - 1) plotSize++;
 
-//    plotMin = std::min({plotMin, _data0, _data1});
-//    plotMax = std::max({plotMax, _data0, _data1});
-
-    plotMax = std::max( *std::max_element(plotQueue[0] , plotQueue[0] + plotSize) , *std::max_element(plotQueue[1] , plotQueue[1] + plotSize) );
-    plotMin = std::min( *std::min_element(plotQueue[0] , plotQueue[0] + plotSize) , *std::min_element(plotQueue[1] , plotQueue[1] + plotSize) );
+    if (plotMin > _data0) plotMin = _data0;
+    if (plotMax < _data0) plotMax = _data0;
+    if (plotMin > _data1) plotMin = _data1;
+    if (plotMax < _data1) plotMax = _data1;
 
     plotIndex = (plotIndex + 1) % PLOT_MAX;
     plotQueue[0][plotIndex] = _data0;
@@ -666,8 +661,8 @@ void ui_draw_plot(const UIState* s) {
         plotQueue[2][plotIndex] = _data2;
         datasize = 3;
 
-    plotMax = std::max( *std::max_element(plotQueue[2] , plotQueue[2] + plotSize) ,  plotMax);
-    plotMin = std::min( *std::min_element(plotQueue[2] , plotQueue[2] + plotSize) ,  plotMin);
+    plotMax = std::max( *std::max_element(plotQueue[0] , plotQueue[0] + plotSize), *std::max_element(plotQueue[1] , plotQueue[1] + plotSize), *std::max_element(plotQueue[2] , plotQueue[2] + plotSize));
+    plotMin = std::min( *std::min_element(plotQueue[0] , plotQueue[0] + plotSize) , *std::min_element(plotQueue[1] , plotQueue[1] + plotSize) ,  *std::min_element(plotQueue[2] , plotQueue[2] + plotSize));
 
     } else {
         plotQueue[2][plotIndex] = 0.0f;
