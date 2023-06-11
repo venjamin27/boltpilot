@@ -94,6 +94,7 @@ class CruiseHelper:
     self.apilotEventFrame = 0
     self.apilotEventWait = 0
     self.apilotEventPrev = 0
+    self.drivingModeIndex = 0.0
 
     self.leadCarSpeed = 0.
 
@@ -327,6 +328,13 @@ class CruiseHelper:
 
     return clip(apply_limit_speed, 0, MAX_SET_SPEED_KPH), clip(self.roadLimitSpeed, 30, MAX_SET_SPEED_KPH)
 
+  def apilot_driving_mode(self, CS, controls):
+    accel_index = interp(CS.aEgo, [-3.0, -2.0, 0.0, 2.0, 3.0], [100.0, 0, 0, 0, 100.0])
+    velocity_index = interp(self.v_ego_kph, [0, 5.0, 50.0], [100.0, 80.0, 0.0])
+    total_index = accel_index * 3. + velocity_index
+
+    self.drivingModeIndex = self.drivingModeIndex * 0.999 + total_index * 0.001
+
   def apilot_curve(self, CS, controls):
     # 회전속도를 선속도 나누면 : 곡률이 됨. [20]은 약 4초앞의 곡률을 보고 커브를 계산함.
     #curvature = abs(controls.sm['modelV2'].orientationRate.z[20] / clip(CS.vEgo, 0.1, 100.0))
@@ -346,7 +354,7 @@ class CruiseHelper:
     self.turnSpeed_prev = turnSpeed
     speed_diff = max(0, CS.vEgo*3.6 - turnSpeed)
     turnSpeed = turnSpeed - speed_diff * self.autoCurveSpeedFactorIn
-    controls.debugText1 = 'CURVE={:5.1f},curvature={:5.4f}'.format(self.turnSpeed_prev, curvature)
+    controls.debugText1 = 'CURVE={:5.1f},curvature={:5.4f},mode={:3.2f}'.format(self.turnSpeed_prev, curvature, self.drivingModeIndex)
     return turnSpeed
 
   def apilot_curve_old(self, CS, controls):
@@ -638,6 +646,7 @@ class CruiseHelper:
     self.naviSpeed, self.roadSpeed = self.update_speed_nda(CS, controls)
     
     self.curveSpeed = 255
+    apilot_driving_mode(CS, controls)
     if self.autoCurveSpeedCtrlUse > 0:
       self.curveSpeed = self.apilot_curve(CS, controls)
 
