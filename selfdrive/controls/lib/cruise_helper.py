@@ -339,7 +339,9 @@ class CruiseHelper:
     self.drivingModeIndex = self.drivingModeIndex * 0.999 + total_index * 0.001
 
     if self.initMyDrivingMode == 5:
-      if self.drivingModeIndex < 30:
+      if self.myDrivingMode in [2,4]:
+        pass
+      elif self.drivingModeIndex < 30:
         self.myDrivingMode = 3 #일반
       elif self.drivingModeIndex > 70:
         self.myDrivingMode = 1 #연비
