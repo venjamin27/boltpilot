@@ -330,21 +330,18 @@ class CruiseHelper:
     return clip(apply_limit_speed, 0, MAX_SET_SPEED_KPH), clip(self.roadLimitSpeed, 30, MAX_SET_SPEED_KPH)
 
   def apilot_driving_mode(self, CS, controls):
-    ## 앞에 차가 있을때... 해야함..
     accel_index = interp(CS.aEgo, [-3.0, -2.0, 0.0, 2.0, 3.0], [100.0, 0, 0, 0, 100.0])
     velocity_index = interp(self.v_ego_kph, [0, 5.0, 50.0], [100.0, 80.0, 0.0])
     if 0 < self.dRel < 50:
       total_index = accel_index * 3. + velocity_index
     else:
-      total_index = accel_index + velocity_index
+      total_index = 0
     self.drivingModeIndex = self.drivingModeIndex * 0.999 + total_index * 0.001
 
     if self.initMyDrivingMode == 5:
-      if self.drivingModeIndex > 80:
-        self.myDrivingMode = 2 #안전
       if self.drivingModeIndex < 30:
         self.myDrivingMode = 3 #일반
-      elif self.drivingModeIndex < 70:
+      elif self.drivingModeIndex > 70:
         self.myDrivingMode = 1 #연비
 
   def apilot_curve(self, CS, controls):
