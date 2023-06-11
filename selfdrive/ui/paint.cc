@@ -1221,12 +1221,17 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
             }
             else qstr = tr("MANUAL");
         }
-        static QString _qstr = "";
-        if(qstr != _qstr) ui_draw_text_a(s, x, y + 175, qstr.toStdString().c_str(), 40, COLOR_WHITE, BOLD);
-        _qstr = qstr;
         //ui_fill_rect(s->vg, { x - 250 / 2, y + 140, 250, 45 }, brake_valid? COLOR_RED : COLOR_GREEN, 15);
         if(brake_valid) ui_draw_text(s, x, y + 175, qstr.toStdString().c_str(), 40, COLOR_WHITE, BOLD, 1.0, 3.0, COLOR_RED, COLOR_RED);
         else            ui_draw_text(s, x, y + 175, qstr.toStdString().c_str(), 40, COLOR_WHITE, BOLD, 1.0, 3.0, COLOR_BLACK, COLOR_BLACK);
+        static QString _qstr = "";        
+        if (longActiveUser > 0) {
+            if (xState == cereal::LongitudinalPlan::XState::SOFT_HOLD) qstr = "SOFTHOLD";
+            else qstr = "CRUISE";
+        }
+        else qstr = "MANUAL";
+        if (qstr != _qstr) ui_draw_text_a(s, x, y + 175, qstr.toStdString().c_str(), 40, COLOR_WHITE, BOLD);
+        _qstr = qstr;
 
     }
     // Accel표시
