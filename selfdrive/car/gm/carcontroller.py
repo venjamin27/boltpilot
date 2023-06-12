@@ -189,7 +189,7 @@ class CarController:
 
         if CS.out.vEgo > 5.0 :
           self.aEgoBuffer.append(CS.out.aEgo)
-          self.aEgoAvg_valueStore = (sum(self.pedalGasBuffer) / (len(self.pedalGasBuffer) * 1.0))
+          self.aEgoAvg_valueStore = (sum(self.aEgoBuffer) / (len(self.aEgoBuffer) * 1.0))
           if CS.out.aEgo > actuators.accel > 0:
 
             pedal_gas *= interp(  self.aEgoAvg_valueStore / actuators.accel, [1.01, 1.35], [1.0, 0.9])
