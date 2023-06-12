@@ -174,7 +174,7 @@ class CarController:
           zeroGain = interp(actuators.accel, [-1.2500, -0.7000, -0.2250], [0.0000, 0.6500, 1.0000])
 
           # pedal_gas = clip((actuators.accel * accGainByVEgo * accGainByAccel + zero * zeroGain), 0., 1.)
-          pedal_gas = clip((actuators.accel * accGainByVEgo * accGainByAccel + zero * zeroGain), 0., 0.3225)
+          pedal_gas = clip((actuators.accel * accGainByVEgo * accGainByAccel + zero * zeroGain), 0., 0.3250)
 
         else:
           pedal_gas = clip(actuators.accel, 0., 1.)
@@ -183,6 +183,9 @@ class CarController:
         self.pedalGasRaw_valueStore = pedal_gas
 
         if CS.out.vEgo > 5.0 :
+          if CS.out.aEgo > actuators.accel > 0:
+            pedal_gas *= interp(CS.out.aEgo / actuators.accel, [1.0, 1.35], [1.0,  0.9])
+
           self.pedalGasBuffer.append(pedal_gas)
           if sum(self.pedalGasBuffer) / (len(self.pedalGasBuffer) * 1.0) > pedal_gas:
             self.pedalGasBuffer.append(pedal_gas)
