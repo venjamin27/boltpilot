@@ -67,6 +67,11 @@ class CarController:
     self.pedalGasBufferSize = 50
     self.pedalGasBuffer = deque(maxlen=self.pedalGasBufferSize)
 
+    self.aEgoAvg_valueStore = 0.0
+    self.aEgoBufferSize = 50
+    self.aEgoBuffer = deque(maxlen=self.aEgoBufferSize)
+
+
 
   def update(self, CC, CS, now_nanos):
     actuators = CC.actuators
@@ -183,29 +188,36 @@ class CarController:
         self.pedalGasRaw_valueStore = pedal_gas
 
         if CS.out.vEgo > 5.0 :
+          self.aEgoBuffer.append(CS.out.aEgo)
+          self.aEgoAvg_valueStore = (sum(self.pedalGasBuffer) / (len(self.pedalGasBuffer) * 1.0))
           if CS.out.aEgo > actuators.accel > 0:
-            pedal_gas *= interp(CS.out.aEgo / actuators.accel, [1.0, 1.35], [1.0,  0.9])
+
+            pedal_gas *= interp(  self.aEgoAvg_valueStore / actuators.accel, [1.01, 1.35], [1.0, 0.9])
 
           self.pedalGasBuffer.append(pedal_gas)
           if sum(self.pedalGasBuffer) / (len(self.pedalGasBuffer) * 1.0) > pedal_gas:
             self.pedalGasBuffer.append(pedal_gas)
             self.pedalGasBuffer.append(pedal_gas)
 
-          if pedal_gas < 0.140:
+          if pedal_gas < 0.130:
             self.pedalGasBuffer.append(pedal_gas)
 
-          if pedal_gas < 0.100:
+          if pedal_gas < 0.080:
             self.pedalGasBuffer.append(pedal_gas)
             self.pedalGasBuffer.append(pedal_gas)
 
 
           pedal_gas = sum(self.pedalGasBuffer) / (len(self.pedalGasBuffer) * 1.0)
-          actuator_hystereses_divider = 2.0
-        else :
           actuator_hystereses_divider = 1.5
+        else :
+          actuator_hystereses_divider = 2.0
+          self.aEgoAvg_valueStore = CS.out.aEgo
           if len(self.pedalGasBuffer) > 0:
             self.pedalGasBuffer = deque(maxlen=self.pedalGasBufferSize)
-          # pedal_gas = 0.0
+
+          if len(self.aEgoBuffer) > 0:
+
+            self.aEgoBuffer = deque(maxlen=self.aEgoBufferSize)
 
         self.pedalGasAvg_valueStore = pedal_gas
 
@@ -296,6 +308,7 @@ class CarController:
     actuators.pedalGas = self.pedalGas_valueStore
     actuators.pedalGasRaw = self.pedalGasRaw_valueStore
     actuators.pedalGasAvg = self.pedalGasAvg_valueStore
+    actuators.aEgoAvg = self.aEgoAvg_valueStore
 
 
     new_actuators = actuators.copy()
