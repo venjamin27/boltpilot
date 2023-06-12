@@ -194,7 +194,7 @@ class CarController:
             self.pedalGasBuffer.append(pedal_gas)
 
           pedal_gas = sum(self.pedalGasBuffer) / (len(self.pedalGasBuffer) * 1.0)
-          actuator_hystereses_divider = 2.0
+          actuator_hystereses_divider = 1.5
         else :
           actuator_hystereses_divider = 1.5
           if len(self.pedalGasBuffer) > 0:
