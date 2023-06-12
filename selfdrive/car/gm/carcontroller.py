@@ -115,7 +115,7 @@ class CarController:
     if self.CP.openpilotLongitudinalControl:
       # Gas/regen, brakes, and UI commands - all at 25Hz
 
-      if CC.longActive and actuators.accel < -0.50:
+      if CC.longActive and actuators.accel < -0.40:
         can_sends.append(gmcan.create_regen_paddle_command(self.packer_pt, CanBus.POWERTRAIN))
         actuators.regenPaddle = True  # for icon
       else:
@@ -174,7 +174,7 @@ class CarController:
           zeroGain = interp(actuators.accel, [-1.2500, -0.7000, -0.2250], [0.0000, 0.6500, 1.0000])
 
           # pedal_gas = clip((actuators.accel * accGainByVEgo * accGainByAccel + zero * zeroGain), 0., 1.)
-          pedal_gas = clip((actuators.accel * accGainByVEgo * accGainByAccel + zero * zeroGain), 0., 0.3375)
+          pedal_gas = clip((actuators.accel * accGainByVEgo * accGainByAccel + zero * zeroGain), 0., 0.3225)
 
         else:
           pedal_gas = clip(actuators.accel, 0., 1.)
@@ -186,12 +186,15 @@ class CarController:
           self.pedalGasBuffer.append(pedal_gas)
           if sum(self.pedalGasBuffer) / (len(self.pedalGasBuffer) * 1.0) > pedal_gas:
             self.pedalGasBuffer.append(pedal_gas)
+            self.pedalGasBuffer.append(pedal_gas)
+
+          if pedal_gas < 0.140:
+            self.pedalGasBuffer.append(pedal_gas)
 
           if pedal_gas < 0.100:
             self.pedalGasBuffer.append(pedal_gas)
-
-          if pedal_gas < 0.075:
             self.pedalGasBuffer.append(pedal_gas)
+
 
           pedal_gas = sum(self.pedalGasBuffer) / (len(self.pedalGasBuffer) * 1.0)
           actuator_hystereses_divider = 2.0
