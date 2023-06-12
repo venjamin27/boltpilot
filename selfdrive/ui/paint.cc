@@ -572,7 +572,8 @@ static void make_plot_data(const UIState* s, float& data1, float& data2, float& 
     const auto lat_plan = sm["lateralPlan"].getLateralPlan();
     float   curvatures_0 = lat_plan.getCurvatures()[0];
 
-    float pedalGas = car_control.getActuators().getPedalGas();
+//    float pedalGas = car_control.getActuators().getPedalGas();
+    float aEgoAvg = car_control.getActuators().getAEgoAvg();
     
   
   
@@ -591,7 +592,7 @@ static void make_plot_data(const UIState* s, float& data1, float& data2, float& 
     case 2:
         data1 = a_ego;
         data2 = accel;
-        data3 = pedalGas;
+        data3 = aEgoAvg;
         break;
     case 3:
         // curvature * v * v : 원심가속도
@@ -608,7 +609,7 @@ static void make_plot_data(const UIState* s, float& data1, float& data2, float& 
         data2 = velocity.getX()[32];
         break;
     default:
-        data1 = data2 = = data3 0;
+        data1 = data2  = data3 = 0;
         break;
     }
     if (s->show_plot_mode != show_plot_mode_prev) {
@@ -661,8 +662,8 @@ void ui_draw_plot(const UIState* s) {
         plotQueue[2][plotIndex] = _data2;
         datasize = 3;
 
-    plotMax = std::max( *std::max_element(plotQueue[0] , plotQueue[0] + plotSize), *std::max_element(plotQueue[1] , plotQueue[1] + plotSize), *std::max_element(plotQueue[2] , plotQueue[2] + plotSize));
-    plotMin = std::min( *std::min_element(plotQueue[0] , plotQueue[0] + plotSize) , *std::min_element(plotQueue[1] , plotQueue[1] + plotSize) ,  *std::min_element(plotQueue[2] , plotQueue[2] + plotSize));
+    plotMax = std::max( {*std::max_element(plotQueue[0] , plotQueue[0] + plotSize), *std::max_element(plotQueue[1] , plotQueue[1] + plotSize), *std::max_element(plotQueue[2] , plotQueue[2] + plotSize)});
+    plotMin = std::min( { *std::min_element(plotQueue[0] , plotQueue[0] + plotSize) , *std::min_element(plotQueue[1] , plotQueue[1] + plotSize) ,  *std::min_element(plotQueue[2] , plotQueue[2] + plotSize)});
 
     } else {
         plotQueue[2][plotIndex] = 0.0f;
@@ -1588,8 +1589,13 @@ void DrawApilot::drawDebugText(UIState* s) {
     float pedalGas = car_control.getActuators().getPedalGas();
     float pedalGasRaw = car_control.getActuators().getPedalGasRaw();
     float pedalGasAvg = car_control.getActuators().getPedalGasAvg();
+    float AEgoAvg = car_control.getActuators().getAEgoAvg();
     y += dy;
-    sprintf(str, "ACC : [%.4f]  pRaw/Avg/Gas : [%.4f]/[%.4f]/[%.4f]", accel, pedalGasRaw, pedalGasAvg, pedalGas);
+    sprintf(str, "ACC : %.3f pRaw/Avg/Gas : %.3f/%.3f/%.3f", accel, pedalGasRaw, pedalGasAvg, pedalGas);
+    ui_draw_text(s, text_x, y, str, 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
+
+    y += dy;
+    sprintf(str, "AEgoAvg : %.3f ", AEgoAvg);
     ui_draw_text(s, text_x, y, str, 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
 
 
