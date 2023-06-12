@@ -1591,7 +1591,7 @@ void DrawApilot::drawDebugText(UIState* s) {
     float pedalGasAvg = car_control.getActuators().getPedalGasAvg();
     float AEgoAvg = car_control.getActuators().getAEgoAvg();
     y += dy;
-    sprintf(str, "ACC : %.3f pRaw/Avg/Gas : %.3f/%.3/%.3f", accel, pedalGasRaw, pedalGasAvg, pedalGas);
+    sprintf(str, "ACC : %.3f pRaw/Avg/Gas : %.3f/%.3f/%.3f", accel, pedalGasRaw, pedalGasAvg, pedalGas);
     ui_draw_text(s, text_x, y, str, 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
 
     y += dy;
