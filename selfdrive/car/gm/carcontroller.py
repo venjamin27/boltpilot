@@ -64,11 +64,11 @@ class CarController:
     self.pedalGas_valueStore = 0.0
     self.pedalGasRaw_valueStore = 0.0
     self.pedalGasAvg_valueStore = 0.0
-    self.pedalGasBufferSize = 40
+    self.pedalGasBufferSize = 20
     self.pedalGasBuffer = deque(maxlen=self.pedalGasBufferSize)
 
     self.aEgoAvg_valueStore = 0.0
-    self.aEgoBufferSize = 20
+    self.aEgoBufferSize = 10
     self.aEgoBuffer = deque(maxlen=self.aEgoBufferSize)
 
 
