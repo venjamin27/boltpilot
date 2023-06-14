@@ -64,11 +64,11 @@ class CarController:
     self.pedalGas_valueStore = 0.0
     self.pedalGasRaw_valueStore = 0.0
     self.pedalGasAvg_valueStore = 0.0
-    self.pedalGasBufferSize = 60
+    self.pedalGasBufferSize = 40
     self.pedalGasBuffer = deque(maxlen=self.pedalGasBufferSize)
 
     self.aEgoAvg_valueStore = 0.0
-    self.aEgoBufferSize = 15
+    self.aEgoBufferSize = 20
     self.aEgoBuffer = deque(maxlen=self.aEgoBufferSize)
 
 
@@ -120,7 +120,7 @@ class CarController:
     if self.CP.openpilotLongitudinalControl:
       # Gas/regen, brakes, and UI commands - all at 25Hz
 
-      if CC.longActive and actuators.accel < -0.60:
+      if CC.longActive and actuators.accel < -0.45:
         can_sends.append(gmcan.create_regen_paddle_command(self.packer_pt, CanBus.POWERTRAIN))
         actuators.regenPaddle = True  # for icon
       else:
@@ -172,7 +172,7 @@ class CarController:
           # Shrink brake request to 0.85, first 0.15 gives regen, rest gives AEB
 
           accGainByVEgo = interp(CS.out.vEgo, [0., 5], [0.1500, 0.1750])
-          accGainByAccel = interp(actuators.accel, [-0.6, -0.4 , 0], [1.3000, 1.1150, 1.0000])
+          accGainByAccel = interp(actuators.accel, [-0.55, -0.35 , 0], [1.3000, 1.1450, 1.0000])
           # accGain = interp(CS.out.vEgo, [0., 5], [0.2500, 0.2750])
 
           zero = interp(CS.out.vEgo,[0., 5], [0.1560, 0.2125])
@@ -203,6 +203,7 @@ class CarController:
             self.pedalGasBuffer.append(pedal_gas)
 
           if pedal_gas < 0.080:
+            self.pedalGasBuffer.append(pedal_gas)
             self.pedalGasBuffer.append(pedal_gas)
 
 
