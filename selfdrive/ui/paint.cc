@@ -1654,6 +1654,26 @@ void DrawApilot::drawDebugText(UIState* s) {
     ui_draw_text(s, text_x, y, str, 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
 
 
+    auto lead_one = sm["modelV2"].getModelV2().getLeadsV3()[0];
+    auto radar_lead_one = sm["radarState"].getRadarState().getLeadOne();
+
+    float vision_dist = lead_one.getProb() > .5 ? (lead_one.getX()[0] - 1.5) : 0;
+
+    y += dy;
+    str.sprintf("Leadv3 d: %.1f v: %.1f \n", vision_dist, lead_one.getV()[0]);
+    ui_draw_text(s, text_x, y, str, 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
+
+    if (radar_lead_one.getStatus())  {
+
+      str.sprintf("radar: d: %.1f v: %.1f \n", radar_lead_one.getDRel(), radar_lead_one.getVRel());
+
+    } else {
+      str.sprintf("radar: d: %.1f v: %.1f \n", 0.0, 0.0);
+    }
+    y += dy;
+    ui_draw_text(s, text_x, y, str, 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
+
+
 }
 DrawApilot::DrawApilot() {
 
