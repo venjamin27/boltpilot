@@ -178,11 +178,11 @@ class CarController:
           # accGain = interp(CS.out.vEgo,[0., 5], [0.25, 0.1667])
           pedal_gas = clip((actuators.accel * accGain + zero), 0., self.pedal_gas_max)
 
-        self.pedal_hyst_gap = interp(CS.out.vEgo, [40.0 * CV.KPH_TO_MS, 100.0 * CV.KPH_TO_MS], [0.01, 0.0065])
-        pedal_final, self.pedal_steady = actuator_hystereses(pedal_gas, self.pedal_steady, self.pedal_hyst_gap)
+          self.pedal_hyst_gap = interp(CS.out.vEgo, [40.0 * CV.KPH_TO_MS, 100.0 * CV.KPH_TO_MS], [0.01, 0.0065])
+          pedal_final, self.pedal_steady = actuator_hystereses(pedal_gas, self.pedal_steady, self.pedal_hyst_gap)
 
 
-        pedal_gas = clip(pedal_final, 0., self.pedal_gas_max)
+          pedal_gas = clip(pedal_final, 0., self.pedal_gas_max)
 
         if not CC.longActive:
           pedal_gas = 0.0  # May not be needed with the enable param
