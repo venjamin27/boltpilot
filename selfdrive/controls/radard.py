@@ -174,6 +174,7 @@ class RadarD():
     self.ready = False
     self.showRadarInfo = False
     self.mixRadarInfo = 0
+    self.cluster_count = [0, 0]
 
   def update(self, sm, rr):
     self.showRadarInfo = int(Params().get("ShowRadarInfo"))
@@ -250,8 +251,8 @@ class RadarD():
       model_v_ego = self.v_ego
     leads_v3 = sm['modelV2'].leadsV3
     if len(leads_v3) > 1:
-      radarState.leadOne = get_lead(self.v_ego, self.ready, clusters, leads_v3[0], model_v_ego, low_speed_override=True, mixRadarInfo=self.mixRadarInfo)
-      radarState.leadTwo = get_lead(self.v_ego, self.ready, clusters, leads_v3[1], model_v_ego, low_speed_override=False, mixRadarInfo=self.mixRadarInfo)
+      radarState.leadOne = self.get_lead_apilot(0, self.v_ego, self.ready, clusters, leads_v3[0], model_v_ego, low_speed_override=True, mixRadarInfo=self.mixRadarInfo)
+      radarState.leadTwo = self.get_lead_apilot(1, self.v_ego, self.ready, clusters, leads_v3[1], model_v_ego, low_speed_override=False, mixRadarInfo=self.mixRadarInfo)
 
       if self.ready and self.showRadarInfo: #self.extended_radar_enabled and self.ready:
         ll,lc,lr = get_path_adjacent_leads(self.v_ego, sm['modelV2'], sm['lateralPlan'].laneWidth, clusters)
@@ -269,6 +270,34 @@ class RadarD():
         radarState.leadsRight = list(lr)
 
     return dat
+
+  def get_lead_apilot(self, index, v_ego, ready, clusters, lead_msg, model_v_ego, low_speed_override=True, mixRadarInfo=0):
+    # Determine leads, this is where the essential logic happens
+    if len(clusters) > 0 and ready and lead_msg.prob > .5:
+      cluster = match_vision_to_cluster(v_ego, lead_msg, clusters)
+    else:
+      cluster = None
+
+    lead_dict = {'status': False}
+    if cluster is not None:
+      self.cluster_count[index] += 1
+    if cluster is not None and self.cluster_count[index] > 5:  # 초기 5개는 버림... 레이더 안정화될때까지..
+      lead_dict = cluster.get_RadarState2(lead_msg.prob, lead_msg, mixRadarInfo)
+    elif (cluster is None) and ready and (lead_msg.prob > .5):
+      self.cluster_count[index] = 0
+      lead_dict = Cluster().get_RadarState_from_vision(lead_msg, v_ego, model_v_ego)
+
+    if low_speed_override:
+      low_speed_clusters = [c for c in clusters if c.potential_low_speed_lead(v_ego)]
+      if len(low_speed_clusters) > 0:
+        closest_cluster = min(low_speed_clusters, key=lambda c: c.dRel)
+
+        # Only choose new cluster if it is actually closer than the previous one
+        if (not lead_dict['status']) or (closest_cluster.dRel < lead_dict['dRel']):
+          lead_dict = closest_cluster.get_RadarState()
+
+    return lead_dict
+
 
 
 # fuses camera and radar data for best lead detection

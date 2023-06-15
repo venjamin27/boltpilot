@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import os
 import numpy as np
-
+from cereal import log
 from common.realtime import sec_since_boot
 from common.numpy_fast import clip, interp
 from system.swaglog import cloudlog
@@ -51,7 +51,6 @@ LIMIT_COST = 1e6
 ACADOS_SOLVER_TYPE = 'SQP_RTI'
 
 
-DIFF_RADAR_VISION = 2.0
 # Fewer timestamps don't hurt performance and lead to
 # much better convergence of the MPC with low iterations
 N = 12
@@ -273,6 +272,7 @@ class LongitudinalMpc:
     self.source = SOURCES[2]
     self.x_obstacle_min = 0.0
     self.openpilotLongitudinalControl = False
+    self.experimentalMode = False
 
   def reset(self):
     # self.solver = AcadosOcpSolverCython(MODEL_NAME, ACADOS_SOLVER_TYPE, N)
@@ -385,7 +385,6 @@ class LongitudinalMpc:
   def process_lead(self, lead):
     v_ego = self.x0[1]
     if lead is not None and lead.status:
-      #x_lead = lead.dRel if lead.radar else max(lead.dRel-DIFF_RADAR_VISION, 0.)
       x_lead = lead.dRel
       v_lead = lead.vLead
       a_lead = lead.aLeadK
@@ -446,6 +445,8 @@ class LongitudinalMpc:
 
     v_cruise, stop_x, self.mode = self.update_apilot(controls, carstate, radarstate, model, v_cruise, self.mode)
     self.set_weights(prev_accel_constraint=prev_accel_constraint, v_lead0=lead_xv_0[0,1], v_lead1=lead_xv_1[0,1])
+
+    self.mode = 'blended' if self.experimentalMode else self.mode
 
     # Update in ACC mode or ACC/e2e blend
     if self.mode == 'acc':
@@ -653,7 +654,7 @@ class LongitudinalMpc:
     if v_ego_kph < 1.0: 
       stopSign = model_x < 20.0 and model_v < 10.0
     elif v_ego_kph < 80.0:
-      stopSign = model_x < 110.0 and ((model_v < 3.0) or (model_v < v[0]*0.7)) and abs(y[-1]) < 5.0
+      stopSign = model_x < 120.0 and ((model_v < 3.0) or (model_v < v[0]*0.7)) and abs(y[-1]) < 5.0
     else:
       stopSign = False
 
@@ -835,7 +836,10 @@ class LongitudinalMpc:
 
     if self.trafficStopMode > 0:
       #mode = 'blended' if self.xState in [XState.e2eStop, XState.e2eCruisePrepare] else 'acc'
-      mode = 'blended' if self.xState in [XState.e2eCruisePrepare] else 'acc'
+      if self.xState == XState.e2eCruisePrepare or (self.xState == XState.e2eStop and self.stopDist > 40):
+        mode = 'blended'
+      else:
+        mode = 'acc'
 
     self.comfort_brake *= self.mySafeModeFactor
     self.longActiveUser = controls.longActiveUser

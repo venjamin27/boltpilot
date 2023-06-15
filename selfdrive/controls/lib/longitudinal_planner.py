@@ -2,6 +2,8 @@
 import math
 import numpy as np
 from common.numpy_fast import clip, interp
+from common.params import Params
+from cereal import log
 
 import cereal.messaging as messaging
 from common.conversions import Conversions as CV
@@ -13,7 +15,6 @@ from selfdrive.controls.lib.longitudinal_mpc_lib.long_mpc import LongitudinalMpc
 from selfdrive.controls.lib.longitudinal_mpc_lib.long_mpc import T_IDXS as T_IDXS_MPC
 from selfdrive.controls.lib.drive_helpers import V_CRUISE_MAX, CONTROL_N, get_speed_error
 from system.swaglog import cloudlog
-from common.params import Params
 
 LON_MPC_STEP = 0.2  # first step is 0.2s
 A_CRUISE_MIN = -1.2
@@ -61,11 +62,14 @@ class LongitudinalPlanner:
     self.a_desired_trajectory = np.zeros(CONTROL_N)
     self.j_desired_trajectory = np.zeros(CONTROL_N)
     self.solverExecutionTime = 0.0
+    self.params = Params()
+    self.param_read_counter = 0
+    self.read_param()
+    self.personality = log.LongitudinalPersonality.standard
 
     self.vCluRatio = 1.0
 
     self.myEcoModeFactor = 1.0
-    self.params_count = 0
     self.cruiseMaxVals1 = float(int(Params().get("CruiseMaxVals1", encoding="utf8"))) / 100.
     self.cruiseMaxVals2 = float(int(Params().get("CruiseMaxVals2", encoding="utf8"))) / 100.
     self.cruiseMaxVals3 = float(int(Params().get("CruiseMaxVals3", encoding="utf8"))) / 100.
@@ -76,21 +80,20 @@ class LongitudinalPlanner:
 
     self.mpc.openpilotLongitudinalControl = CP.openpilotLongitudinalControl
 
+  def read_param(self):
+    try:
+      self.personality = int(self.params.get('LongitudinalPersonality'))
+    except (ValueError, TypeError):
+      self.personality = log.LongitudinalPersonality.standard
 
-  def update_params(self):
-    self.params_count = (self.params_count + 1) % 200
-    if self.params_count == 50:
-      self.myEcoModeFactor = float(int(Params().get("MyEcoModeFactor", encoding="utf8"))) / 100.
-    elif self.params_count == 100:
-      self.cruiseMaxVals1 = float(int(Params().get("CruiseMaxVals1", encoding="utf8"))) / 100.
-      self.cruiseMaxVals2 = float(int(Params().get("CruiseMaxVals2", encoding="utf8"))) / 100.
-    elif self.params_count == 130:
-      self.cruiseMaxVals3 = float(int(Params().get("CruiseMaxVals3", encoding="utf8"))) / 100.
-      self.cruiseMaxVals4 = float(int(Params().get("CruiseMaxVals4", encoding="utf8"))) / 100.
-    elif self.params_count == 150:
-      self.cruiseMaxVals5 = float(int(Params().get("CruiseMaxVals5", encoding="utf8"))) / 100.
-      self.cruiseMaxVals6 = float(int(Params().get("CruiseMaxVals6", encoding="utf8"))) / 100.
-      self.autoTurnControl = int(Params().get("AutoTurnControl", encoding="utf8"))
+    self.myEcoModeFactor = float(int(Params().get("MyEcoModeFactor", encoding="utf8"))) / 100.
+    self.cruiseMaxVals1 = float(int(Params().get("CruiseMaxVals1", encoding="utf8"))) / 100.
+    self.cruiseMaxVals2 = float(int(Params().get("CruiseMaxVals2", encoding="utf8"))) / 100.
+    self.cruiseMaxVals3 = float(int(Params().get("CruiseMaxVals3", encoding="utf8"))) / 100.
+    self.cruiseMaxVals4 = float(int(Params().get("CruiseMaxVals4", encoding="utf8"))) / 100.
+    self.cruiseMaxVals5 = float(int(Params().get("CruiseMaxVals5", encoding="utf8"))) / 100.
+    self.cruiseMaxVals6 = float(int(Params().get("CruiseMaxVals6", encoding="utf8"))) / 100.
+    self.autoTurnControl = int(Params().get("AutoTurnControl", encoding="utf8"))
 
     
   def get_max_accel(self, v_ego):
@@ -122,8 +125,11 @@ class LongitudinalPlanner:
     return x, v, a, j, y
 
   def update(self, sm):
-    self.update_params()
+    if self.param_read_counter % 50 == 0:
+      self.read_param()
+    self.param_read_counter += 1
     #self.mpc.mode = 'blended' if sm['controlsState'].experimentalMode else 'acc'
+    self.mpc.experimentalMode = sm['controlsState'].experimentalMode
 
     v_ego = sm['carState'].vEgo
     v_cruise_kph = sm['controlsState'].vCruise
@@ -227,6 +233,7 @@ class LongitudinalPlanner:
     longitudinalPlan.fcw = self.fcw
 
     longitudinalPlan.solverExecutionTime = self.mpc.solve_time
+    longitudinalPlan.personality = self.personality
 
     longitudinalPlan.debugLongText1 = self.mpc.debugLongText1
     #self.mpc.debugLongText2 = "Vout={:3.2f},{:3.2f},{:3.2f},{:3.2f},{:3.2f}".format(longitudinalPlan.speeds[0]*3.6,longitudinalPlan.speeds[1]*3.6,longitudinalPlan.speeds[2]*3.6,longitudinalPlan.speeds[3]*3.6,longitudinalPlan.speeds[-1]*3.6)

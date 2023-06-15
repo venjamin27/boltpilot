@@ -27,7 +27,7 @@ STEERING_RATE_COST = 700.0
 
 
 class LateralPlanner:
-  def __init__(self, CP):
+  def __init__(self, CP, debug=False):
     self.DH = DesireHelper()
     self.LP = LanePlanner()
     self.readParams = 0
@@ -36,7 +36,6 @@ class LateralPlanner:
 
     self.pathOffset = float(int(Params().get("PathOffset", encoding="utf8")))*0.01
     self.pathCostApply = float(int(Params().get("PathCostApply", encoding="utf8")))*0.01
-    self.pathCostApplyLow = float(int(Params().get("PathCostApplyLow", encoding="utf8")))*0.01
     self.lateralMotionCost = float(int(Params().get("LateralMotionCost", encoding="utf8")))*0.01
     self.lateralAccelCost = float(int(Params().get("LateralAccelCost", encoding="utf8")))*0.01
     self.lateralJerkCost = float(int(Params().get("LateralJerkCost", encoding="utf8")))*0.01
@@ -60,6 +59,8 @@ class LateralPlanner:
     self.v_ego = 0.0
     self.l_lane_change_prob = 0.0
     self.r_lane_change_prob = 0.0
+
+    self.debug_mode = debug
     self.d_path_w_lines_xyz = np.zeros((TRAJECTORY_SIZE, 3))
 
     self.lat_mpc = LateralMpc()
@@ -78,7 +79,6 @@ class LateralPlanner:
       self.useLaneLineSpeed = float(int(Params().get("UseLaneLineSpeed", encoding="utf8")))
       self.pathOffset = float(int(Params().get("PathOffset", encoding="utf8")))*0.01
       self.pathCostApply = float(int(Params().get("PathCostApply", encoding="utf8")))*0.01
-      self.pathCostApplyLow = float(int(Params().get("PathCostApplyLow", encoding="utf8")))*0.01
       self.steeringRateCost = float(int(Params().get("SteeringRateCost", encoding="utf8")))
     elif self.readParams == 50:
       self.lateralMotionCost = float(int(Params().get("LateralMotionCost", encoding="utf8")))*0.01
@@ -135,12 +135,11 @@ class LateralPlanner:
 
     self.path_xyz[:, 1] += self.pathOffset
 
-    pathCost = interp(self.v_ego, [30./3.6, 100/3.6], [self.pathCostApplyLow, self.pathCostApply])
     #steeringRateCost = interp(self.v_ego, [2., 10.], [self.steeringRateCost, self.steeringRateCost/3.])
     #self.lat_mpc.set_weights(pathCost, LATERAL_MOTION_COST,
     #                         LATERAL_ACCEL_COST, LATERAL_JERK_COST,
     #                         steeringRateCost)
-    self.lat_mpc.set_weights(pathCost, self.lateralMotionCost,
+    self.lat_mpc.set_weights(self.pathCostApply, self.lateralMotionCost,
                              self.lateralAccelCost, self.lateralJerkCost,
                              self.steeringRateCost)
 
@@ -195,6 +194,11 @@ class LateralPlanner:
 
     lateralPlan.mpcSolutionValid = bool(plan_solution_valid)
     lateralPlan.solverExecutionTime = self.lat_mpc.solve_time
+    if self.debug_mode:
+      lateralPlan.solverCost = self.lat_mpc.cost
+      lateralPlan.solverState = log.LateralPlan.SolverState.new_message()
+      lateralPlan.solverState.x = self.lat_mpc.x_sol.tolist()
+      lateralPlan.solverState.u = self.lat_mpc.u_sol.flatten().tolist()
 
     lateralPlan.desire = self.DH.desire
     lateralPlan.useLaneLines = self.lanelines_active

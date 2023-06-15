@@ -33,7 +33,7 @@
 #include <QListWidget>
 
 TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
-  // param, title, desc, icon, confirm
+  // param, title, desc, icon
   std::vector<std::tuple<QString, QString, QString, QString>> toggle_defs{
     {
       "OpenpilotEnabledToggle",
@@ -42,18 +42,24 @@ TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
       "../assets/offroad/icon_openpilot.png",
     },
     {
-      "ExperimentalMode",
-      tr("Experimental Mode"),
-      "",
-      "../assets/img_experimental_white.svg",
-    },
-    {
       "ExperimentalLongitudinalEnabled",
       tr("openpilot Longitudinal Control (Alpha)"),
       QString("<b>%1</b><br><br>%2")
       .arg(tr("WARNING: openpilot longitudinal control is in alpha for this car and will disable Automatic Emergency Braking (AEB)."))
       .arg(tr("On this car, openpilot defaults to the car's built-in ACC instead of openpilot's longitudinal control. Enable this to switch to openpilot longitudinal control. Enabling Experimental mode is recommended when enabling openpilot longitudinal control alpha.")),
       "../assets/offroad/icon_speed_limit.png",
+    },
+    {
+      "ExperimentalMode",
+      tr("Experimental Mode"),
+      "",
+      "../assets/img_experimental_white.svg",
+    },
+    {
+      "DisengageOnAccelerator",
+      tr("Disengage on Accelerator Pedal"),
+      tr("When enabled, pressing the accelerator pedal will disengage openpilot."),
+      "../assets/offroad/icon_disengage_on_accelerator.svg",
     },
     {
       "SccConnectedBus2",
@@ -74,22 +80,16 @@ TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
       "../assets/offroad/icon_warning.png",
     },
     {
-      "IsMetric",
-      tr("Use Metric System"),
-      tr("Display speed in km/h instead of mph."),
-      "../assets/offroad/icon_metric.png",
-    },
-    {
       "RecordFront",
       tr("Record and Upload Driver Camera"),
       tr("Upload data from the driver facing camera and help improve the driver monitoring algorithm."),
       "../assets/offroad/icon_monitoring.png",
     },
     {
-      "DisengageOnAccelerator",
-      tr("Disengage on Accelerator Pedal"),
-      tr("When enabled, pressing the accelerator pedal will disengage openpilot."),
-      "../assets/offroad/icon_disengage_on_accelerator.svg",
+      "IsMetric",
+      tr("Use Metric System"),
+      tr("Display speed in km/h instead of mph."),
+      "../assets/offroad/icon_metric.png",
     },
 #ifdef ENABLE_MAPS
     {
@@ -107,6 +107,12 @@ TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
 #endif
   };
 
+
+  std::vector<QString> longi_button_texts{tr("Aggressive"), tr("Standard"), tr("Relaxed")};
+  long_personality_setting = new ButtonParamControl("LongitudinalPersonality", tr("Driving Personality"),
+                                          tr("Standard is recommended. In aggressive mode, openpilot will follow lead cars closer and be more aggressive with the gas and brake. In relaxed mode openpilot will stay further away from lead cars."),
+                                          "../assets/offroad/icon_speed_limit.png",
+                                          longi_button_texts);
   for (auto &[param, title, desc, icon] : toggle_defs) {
     auto toggle = new ParamControl(param, title, desc, icon, this);
 
@@ -115,6 +121,11 @@ TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
 
     addItem(toggle);
     toggles[param.toStdString()] = toggle;
+
+    // insert longitudinal personality after NDOG toggle
+    if (param == "DisengageOnAccelerator") {
+      addItem(long_personality_setting);
+    }
   }
 
   // Toggles with confirmation dialogs
@@ -150,16 +161,19 @@ void TogglesPanel::updateToggles() {
                                   .arg(tr("New Driving Visualization"))
                                   .arg(tr("The driving visualization will transition to the road-facing wide-angle camera at low speeds to better show some turns. The Experimental mode logo will also be shown in the top right corner."));
 
+  long_personality_setting->setEnabled(false);
+  const bool is_release = params.getBool("IsReleaseBranch");
   auto cp_bytes = params.get("CarParamsPersistent");
   if (!cp_bytes.empty()) {
     AlignedBuffer aligned_buf;
     capnp::FlatArrayMessageReader cmsg(aligned_buf.align(cp_bytes.data(), cp_bytes.size()));
     cereal::CarParams::Reader CP = cmsg.getRoot<cereal::CarParams>();
 
-    if (!CP.getExperimentalLongitudinalAvailable()) {
-      params.remove("ExperimentalLongitudinalEnabled");
-    }
-    op_long_toggle->setVisible(CP.getExperimentalLongitudinalAvailable());
+    //if (!CP.getExperimentalLongitudinalAvailable() || is_release) {
+    //  params.remove("ExperimentalLongitudinalEnabled");
+    //}
+    //op_long_toggle->setVisible(CP.getExperimentalLongitudinalAvailable() && !is_release);
+    op_long_toggle->setVisible(true);
 
     const bool op_long = CP.getOpenpilotLongitudinalControl() && !CP.getExperimentalLongitudinalAvailable();
     const bool exp_long_enabled = CP.getExperimentalLongitudinalAvailable() && params.getBool("ExperimentalLongitudinalEnabled");
@@ -167,14 +181,24 @@ void TogglesPanel::updateToggles() {
       // normal description and toggle
       e2e_toggle->setEnabled(true);
       e2e_toggle->setDescription(e2e_description);
+      long_personality_setting->setEnabled(false);
     } else {
       // no long for now
       e2e_toggle->setEnabled(false);
       params.remove("ExperimentalMode");
 
-      const QString no_long = tr("Experimental mode is currently unavailable on this car, since the car's stock ACC is used for longitudinal control.");
-      const QString exp_long = tr("Enable experimental longitudinal control to allow experimental mode.");
-      e2e_toggle->setDescription("<b>" + (CP.getExperimentalLongitudinalAvailable() ? exp_long : no_long) + "</b><br><br>" + e2e_description);
+      const QString unavailable = tr("Experimental mode is currently unavailable on this car since the car's stock ACC is used for longitudinal control.");
+
+      QString long_desc = unavailable + " " + \
+                          tr("openpilot longitudinal control may come in a future update.");
+      if (CP.getExperimentalLongitudinalAvailable()) {
+        if (is_release) {
+          long_desc = unavailable + " " + tr("An alpha version of openpilot longitudinal control can be tested, along with Experimental mode, on non-release branches.");
+        } else {
+          long_desc = tr("Enable experimental longitudinal control to allow Experimental mode.");
+        }
+      }
+      e2e_toggle->setDescription("<b>" + long_desc + "</b><br><br>" + e2e_description);
     }
 
     e2e_toggle->refresh();
@@ -188,37 +212,6 @@ DevicePanel::DevicePanel(SettingsWindow *parent) : ListWidget(parent) {
   setSpacing(50);
   addItem(new LabelControl(tr("Dongle ID"), getDongleId().value_or(tr("N/A"))));
   addItem(new LabelControl(tr("Serial"), params.get("HardwareSerial").c_str()));
-
-  QHBoxLayout *reset_layout = new QHBoxLayout();
-  reset_layout->setSpacing(30);
-
-  // reset calibration button
-  QPushButton *restart_openpilot_btn = new QPushButton(tr("Soft restart"));
-  restart_openpilot_btn->setStyleSheet("height: 120px;border-radius: 15px;background-color: #393939;");
-  reset_layout->addWidget(restart_openpilot_btn);
-  QObject::connect(restart_openpilot_btn, &QPushButton::released, [=]() {
-    emit closeSettings();
-    QTimer::singleShot(1000, []() {
-      Params().putBool("SoftRestartTriggered", true);
-    });
-  });
-
-  // reset calibration button
-  QPushButton *reset_calib_btn = new QPushButton(tr("Reset Calibration"));
-  reset_calib_btn->setStyleSheet("height: 120px;border-radius: 15px;background-color: #393939;");
-  reset_layout->addWidget(reset_calib_btn);
-  QObject::connect(reset_calib_btn, &QPushButton::released, [=]() {
-    if (ConfirmationDialog::confirm(tr("Are you sure you want to reset calibration and live params?"), tr("Reset"), this)) {
-      Params().remove("CalibrationParams");
-      Params().remove("LiveParameters");
-      emit closeSettings();
-      QTimer::singleShot(1000, []() {
-        Params().putBool("SoftRestartTriggered", true);
-      });
-    }
-  });
-
-  addItem(reset_layout);
 
   // offroad-only buttons
 
@@ -417,33 +410,30 @@ SettingsWindow::SettingsWindow(QWidget *parent) : QFrame(parent) {
   )");
 
   // close button
-  QPushButton *close_btn = new QPushButton(tr("← Back"));
+  QPushButton *close_btn = new QPushButton(tr("×"));
   close_btn->setStyleSheet(R"(
     QPushButton {
-      font-size: 50px;
-      font-weight: bold;
-      margin: 0px;
-      padding: 15px;
-      border-width: 0;
-      border-radius: 30px;
-      color: #dddddd;
-      background-color: #444444;
+      font-size: 140px;
+      padding-bottom: 20px;
+      border 1px grey solid;
+      border-radius: 100px;
+      background-color: #292929;
+      font-weight: 400;
     }
     QPushButton:pressed {
       background-color: #3B3B3B;
     }
   )");
-  close_btn->setFixedSize(300, 110);
-  sidebar_layout->addSpacing(10);
-  sidebar_layout->addWidget(close_btn, 0, Qt::AlignRight);
-  sidebar_layout->addSpacing(10);
+  close_btn->setFixedSize(200, 200);
+  sidebar_layout->addSpacing(45);
+  sidebar_layout->addWidget(close_btn, 0, Qt::AlignCenter);
   QObject::connect(close_btn, &QPushButton::clicked, this, &SettingsWindow::closeSettings);
 
   // setup panels
   DevicePanel *device = new DevicePanel(this);
   QObject::connect(device, &DevicePanel::reviewTrainingGuide, this, &SettingsWindow::reviewTrainingGuide);
   QObject::connect(device, &DevicePanel::showDriverView, this, &SettingsWindow::showDriverView);
-  QObject::connect(device, &DevicePanel::closeSettings, this, &SettingsWindow::closeSettings);
+
   TogglesPanel *toggles = new TogglesPanel(this);
   QObject::connect(this, &SettingsWindow::expandToggleDescription, toggles, &TogglesPanel::expandToggleDescription);
 
@@ -673,7 +663,6 @@ TuningPanel::TuningPanel(QWidget* parent) : QWidget(parent) {
     toggleLayout->addWidget(new CValueControl("LiveSteerRatioApply", "LAT: LiveSteerRatioApply(100)", "오버스티어가 발생하면 줄입니다.", "../assets/offroad/icon_road.png", 50, 110, 1));
     toggleLayout->addWidget(new CValueControl("SteeringRateCost", "LAT: SteeringRateCost(700)", "", "../assets/offroad/icon_road.png", 0, 2000, 10));
     toggleLayout->addWidget(new CValueControl("PathCostApply", "LAT: PathCostApply(100)", "", "../assets/offroad/icon_road.png", 0, 200, 5));
-    toggleLayout->addWidget(new CValueControl("PathCostApplyLow", "LAT: PathCostApplyLow(100)", "", "../assets/offroad/icon_road.png", 0, 200, 5));
     toggleLayout->addWidget(new CValueControl("LateralAccelCost", "LAT: LateralAccelCost(0)", "", "../assets/offroad/icon_road.png", 0, 300, 1));
     toggleLayout->addWidget(new CValueControl("LateralMotionCost", "LAT: LateralMotionCost(11)", "", "../assets/offroad/icon_road.png", 0, 50, 1));
     toggleLayout->addWidget(new CValueControl("LateralJerkCost", "LAT: LateralJerkCost(4)", "", "../assets/offroad/icon_road.png", 0, 50, 1));
@@ -682,7 +671,7 @@ TuningPanel::TuningPanel(QWidget* parent) : QWidget(parent) {
     toggleLayout->addWidget(new CValueControl("LateralTorqueKi", "LAT: TorqueKi(10)", "", "../assets/offroad/icon_road.png", 0, 100, 1));
     toggleLayout->addWidget(new CValueControl("LateralTorqueKd", "LAT: TorqueKd(0)", "", "../assets/offroad/icon_road.png", 0, 100, 1));
     toggleLayout->addWidget(new CValueControl("LateralTorqueKf", "LAT: TorqueKf(100)", "", "../assets/offroad/icon_road.png", 0, 200, 1));
-    toggleLayout->addWidget(new CValueControl("LateralTorqueCustom", "LAT: TorqueCustom(0)", "", "../assets/offroad/icon_road.png", 0, 1, 1));
+    toggleLayout->addWidget(new CValueControl("LateralTorqueCustom", "LAT: TorqueCustom(0)", "", "../assets/offroad/icon_road.png", 0, 2, 1));
     toggleLayout->addWidget(new CValueControl("LateralTorqueAccelFactor", "LAT: TorqueAccelFactor(2500)", "", "../assets/offroad/icon_road.png", 1000, 4000, 10));
     toggleLayout->addWidget(new CValueControl("LateralTorqueFriction", "LAT: TorqueFriction(100)", "", "../assets/offroad/icon_road.png", 0, 1000, 10));
     toggleLayout->addWidget(horizontal_line());

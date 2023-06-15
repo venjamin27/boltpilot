@@ -43,7 +43,6 @@ public:
 signals:
   void reviewTrainingGuide();
   void showDriverView();
-  void closeSettings();
 
 private slots:
   void poweroff();
@@ -66,6 +65,7 @@ public slots:
 private:
   Params params;
   std::map<std::string, ParamControl*> toggles;
+  ButtonParamControl *long_personality_setting;
 
   void updateToggles();
 };
