@@ -22,10 +22,11 @@ CAMERA_CANCEL_DELAY_FRAMES = 10
 MIN_STEER_MSG_INTERVAL_MS = 15
 
 
-def actuator_hystereses(final_pedal, pedal_steady, pedal_hyst_gap_divider=1.00):
+def actuator_hystereses(final_pedal, pedal_steady, pedal_hyst_gap_param = 0.01):
   # hyst params... TODO: move these to VehicleParams
       # don't change pedal command for small oscillations within this value
-  pedal_hyst_gap= 0.01 / pedal_hyst_gap_divider
+  # pedal_hyst_gap= 0.01
+  pedal_hyst_gap= pedal_hyst_gap_param
   # for small pedal oscillations within pedal_hyst_gap, don't change the pedal command
   if math.isclose(final_pedal, 0.0):
     pedal_steady = 0.
@@ -70,6 +71,9 @@ class CarController:
     self.aEgoAvg_valueStore = 0.0
     self.aEgoBufferSize = 10
     self.aEgoBuffer = deque(maxlen=self.aEgoBufferSize)
+
+    self.pedal_hyst_gap = 1.0
+    self.pedal_gas_max = 0.3275
 
 
 
@@ -165,72 +169,26 @@ class CarController:
         # TODO: JJS Detect saturated battery?
         if CS.single_pedal_mode:
 
-          # From Felger's Bolt Fort
-          # It seems in L mode, accel / decel point is around 1/5
-          # -1-------AEB------0----regen---0.15-------accel----------+1
-          # Shrink gas request to 0.85, have it start at 0.2
-          # Shrink brake request to 0.85, first 0.15 gives regen, rest gives AEB
+          if actuators.accel > 0.:
+            accGain = interp(CS.out.vEgo, [0., 5], [0.25, 0.275])
+          else:
+            accGain = interp(CS.out.vEgo, [0., 5], [0.25, 0.125])
 
-          accGainByVEgo = interp(CS.out.vEgo, [0., 5], [0.1500, 0.1750])
-          accGainByAccel = interp(actuators.accel, [-0.55, -0.35 , 0], [1.3000, 1.1450, 1.0000])
-          # accGain = interp(CS.out.vEgo, [0., 5], [0.2500, 0.2750])
+          zero = interp(CS.out.vEgo,[0., 5], [0.156, 0.2125])
+          # accGain = interp(CS.out.vEgo,[0., 5], [0.25, 0.1667])
+          pedal_gas = clip((actuators.accel * accGain + zero), 0., self.pedal_gas_max)
 
-          zero = interp(CS.out.vEgo,[0., 5], [0.1560, 0.2125])
-          zeroGain = interp(actuators.accel, [-1.2500, -0.7000, -0.2250], [0.0000, 0.6500, 1.0000])
-
-          # pedal_gas = clip((actuators.accel * accGainByVEgo * accGainByAccel + zero * zeroGain), 0., 1.)
-          pedal_gas = clip((actuators.accel * accGainByVEgo * accGainByAccel + zero * zeroGain), 0., 0.3250)
-
-        else:
-          pedal_gas = clip(actuators.accel, 0., 1.)
-
-        # apply pedal hysteresis and clip the final output to valid values.
-        self.pedalGasRaw_valueStore = pedal_gas
-
-        if CS.out.vEgo > 5.0 :
-          self.aEgoBuffer.append(CS.out.aEgo)
-          self.aEgoAvg_valueStore = (sum(self.aEgoBuffer) / (len(self.aEgoBuffer) * 1.0))
-          if CS.out.aEgo > actuators.accel > 0:
-
-            pedal_gas *= interp(  self.aEgoAvg_valueStore / actuators.accel, [1.01, 1.35], [1.0, 0.9])
-
-          self.pedalGasBuffer.append(pedal_gas)
-          if sum(self.pedalGasBuffer) / (len(self.pedalGasBuffer) * 1.0) > pedal_gas:
-            self.pedalGasBuffer.append(pedal_gas)
+        self.pedal_hyst_gap = interp(CS.out.vEgo, [40.0 * CV.KPH_TO_MS, 100.0 * CV.KPH_TO_MS], [0.01, 0.0065])
+        pedal_final, self.pedal_steady = actuator_hystereses(pedal_gas, self.pedal_steady, pedal_hyst_gap)
 
 
-          if pedal_gas < 0.130:
-            self.pedalGasBuffer.append(pedal_gas)
-
-          if pedal_gas < 0.080:
-            self.pedalGasBuffer.append(pedal_gas)
-            self.pedalGasBuffer.append(pedal_gas)
-
-
-
-          pedal_gas = sum(self.pedalGasBuffer) / (len(self.pedalGasBuffer) * 1.0)
-          actuator_hystereses_divider = 1.5
-        else :
-          actuator_hystereses_divider = 2.0
-          self.aEgoAvg_valueStore = CS.out.aEgo
-          if len(self.pedalGasBuffer) > 0:
-            self.pedalGasBuffer = deque(maxlen=self.pedalGasBufferSize)
-
-          if len(self.aEgoBuffer) > 0:
-
-            self.aEgoBuffer = deque(maxlen=self.aEgoBufferSize)
-
-        self.pedalGasAvg_valueStore = pedal_gas
-
-        pedal_final, self.pedal_steady = actuator_hystereses(pedal_gas, self.pedal_steady, actuator_hystereses_divider)
-        pedal_gas = clip(pedal_final, 0., 1.)
+        pedal_gas = clip(pedal_final, 0., self.pedal_gas_max)
 
         if not CC.longActive:
           pedal_gas = 0.0  # May not be needed with the enable param
 
         if self.frame % 4 == 0:
           idx = (self.frame // 4) % 4
-          self.pedalGas_valueStore = pedal_gas # for debug ui
           can_sends.append(create_gas_interceptor_command(self.packer_pt, pedal_gas, idx))
         # END INTERCEPTOR ############################
       else:
