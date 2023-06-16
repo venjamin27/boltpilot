@@ -99,7 +99,7 @@ def is_tested_branch() -> bool:
 
 @cache
 def is_release_branch() -> bool:
-  return get_short_branch() in RELEASE_BRANCHES
+  return True #get_short_branch() in RELEASE_BRANCHES
 
 @cache
 def is_dirty() -> bool:

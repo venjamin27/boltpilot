@@ -22,10 +22,11 @@ CAMERA_CANCEL_DELAY_FRAMES = 10
 MIN_STEER_MSG_INTERVAL_MS = 15
 
 
-def actuator_hystereses(final_pedal, pedal_steady, pedal_hyst_gap_divider=1.00):
+def actuator_hystereses(final_pedal, pedal_steady, pedal_hyst_gap_param = 0.01):
   # hyst params... TODO: move these to VehicleParams
       # don't change pedal command for small oscillations within this value
-  pedal_hyst_gap= 0.01 / pedal_hyst_gap_divider
+  # pedal_hyst_gap= 0.01
+  pedal_hyst_gap= pedal_hyst_gap_param
   # for small pedal oscillations within pedal_hyst_gap, don't change the pedal command
   if math.isclose(final_pedal, 0.0):
     pedal_steady = 0.
@@ -45,6 +46,7 @@ class CarController:
     self.apply_steer_last = 0
     self.apply_gas = 0
     self.apply_brake = 0
+    self.apply_speed = 0
     self.frame = 0
     self.last_steer_frame = 0
     self.last_button_frame = 0
@@ -63,8 +65,16 @@ class CarController:
     self.pedalGas_valueStore = 0.0
     self.pedalGasRaw_valueStore = 0.0
     self.pedalGasAvg_valueStore = 0.0
-    self.pedalGasWindowSize = 40
-    self.pedalGasWindow = deque(maxlen=self.pedalGasWindowSize)
+    self.pedalGasBufferSize = 20
+    self.pedalGasBuffer = deque(maxlen=self.pedalGasBufferSize)
+
+    self.aEgoAvg_valueStore = 0.0
+    self.aEgoBufferSize = 10
+    self.aEgoBuffer = deque(maxlen=self.aEgoBufferSize)
+
+    self.pedal_hyst_gap = 1.0
+    self.pedal_gas_max = 0.3275
+
 
 
   def update(self, CC, CS, now_nanos):
@@ -114,88 +124,82 @@ class CarController:
     if self.CP.openpilotLongitudinalControl:
       # Gas/regen, brakes, and UI commands - all at 25Hz
 
-      if CC.longActive and actuators.accel < -0.50:
+      if CC.longActive and actuators.accel < -0.45:
         can_sends.append(gmcan.create_regen_paddle_command(self.packer_pt, CanBus.POWERTRAIN))
         actuators.regenPaddle = True  # for icon
       else:
         actuators.regenPaddle = False # for icon
 
-      if self.frame % 4 == 0:
-        if not CC.longActive:
-          # ASCM sends max regen when not enabled
-          self.apply_gas = self.params.INACTIVE_REGEN
-          self.apply_brake = 0
-        else:
-          self.apply_gas = int(round(interp(actuators.accel, self.params.GAS_LOOKUP_BP, self.params.GAS_LOOKUP_V)))
-          self.apply_brake = int(round(interp(actuators.accel, self.params.BRAKE_LOOKUP_BP, self.params.BRAKE_LOOKUP_V)))
 
-        # BEGIN INTERCEPTOR ############################
-        if CS.CP.enableGasInterceptor:
-          # TODO: JJS Detect saturated battery?
-          if CS.single_pedal_mode:
-            # In L Mode, Pedal applies regen at a fixed coast-point (TODO: max regen in L mode may be different per car)
-            # This will apply to EVs in L mode.
-            # accel values below zero down to a cutoff point
-            #  that approximates the percentage of braking regen can handle should be scaled between 0 and the coast-point
-            # accell values below this point will need to be add-on future hijacked AEB
-            # TODO: Determine (or guess) at regen percentage
+      if not CC.longActive:
+        # ASCM sends max regen when not enabled
+        self.apply_gas = self.params.INACTIVE_REGEN
+        self.apply_brake = 0
+      elif CC.longActive and self.CP.carFingerprint in CC_ONLY_CAR and not CS.CP.enableGasInterceptor:
+        # BEGIN CC-ACC ######
+        # TODO: Cleanup the timing - normal is every 30ms...
 
-            # From Felger's Bolt Fort
-            # It seems in L mode, accel / decel point is around 1/5
-            # -1-------AEB------0----regen---0.15-------accel----------+1
-            # Shrink gas request to 0.85, have it start at 0.2
-            # Shrink brake request to 0.85, first 0.15 gives regen, rest gives AEB
+        cruiseBtn = CruiseButtons.INIT
+        # We will spam the up/down buttons till we reach the desired speed
+        # TODO: Apparently there are rounding issues.
+        speedSetPoint = int(round(CS.out.cruiseState.speed * CV.MS_TO_MPH))
+        speedActuator = math.floor(actuators.speed * CV.MS_TO_MPH)
+        speedDiff = (speedActuator - speedSetPoint)
 
-            accGain = interp(CS.out.vEgo, [0., 5], [0.1900, 0.2200])
-            # accGain = interp(CS.out.vEgo, [0., 5], [0.2500, 0.2750])
+        # We will spam the up/down buttons till we reach the desired speed
+        rate = 0.64
+        if speedDiff < 0:
+          cruiseBtn = CruiseButtons.DECEL_SET
+          rate = 0.2
+        elif speedDiff > 0:
+          cruiseBtn = CruiseButtons.RES_ACCEL
 
-            zero = interp(CS.out.vEgo,[0., 5], [0.1560, 0.2210])
-            zeroGain = interp(actuators.accel , [-1.2500 , -0.5250, -0.2500] , [0.0000, 0.2500, 1.0000])
+        # Check rlogs closely - our message shouldn't show up on the pt bus for us
+        # Or bus 2, since we're forwarding... but I think it does
+        # TODO: Cleanup the timing - normal is every 30ms...
+        if (cruiseBtn != CruiseButtons.INIT) and ((self.frame - self.last_button_frame) * DT_CTRL > rate):
+          self.last_button_frame = self.frame
+          can_sends.append(gmcan.create_buttons(self.packer_pt, CanBus.POWERTRAIN, CS.buttons_counter, cruiseBtn))
+          # END CC-ACC #######
+        self.apply_gas = int(round(interp(actuators.accel, self.params.GAS_LOOKUP_BP, self.params.GAS_LOOKUP_V)))
+        self.apply_brake = int(round(interp(actuators.accel, self.params.BRAKE_LOOKUP_BP, self.params.BRAKE_LOOKUP_V)))
 
+      # BEGIN INTERCEPTOR ############################
+      if CS.CP.enableGasInterceptor:
+        # TODO: JJS Detect saturated battery?
+        if CS.single_pedal_mode:
 
-            # accGain = interp(CS.out.vEgo,[0., 5], [0.25, 0.1667])
-            pedal_gas = clip((actuators.accel * accGain + zero * zeroGain ), 0., 1.)
-
-
-
-            # if actuators.accel > 0.:
-            #   # Scales the accel from 0-1 to 0.156-1
-            #   pedal_gas = clip(((1 - zero) * actuators.accel * pedalAccGain + zero), 0., 1.)
-            # else:
-            #   # if accel is negative, -0.1 -> 0.015625
-            #   pedal_gas = clip(zero + actuators.accel*pedalDecelgain, 0., zero)  # Make brake the same size as gas, but clip to regen
-            #   # aeb = actuators.brake*(1-zero)-regen # For use later, braking more than regen
+          if actuators.accel > 0.:
+            accGain = interp(CS.out.vEgo, [0., 5], [0.25, 0.275])
           else:
-            pedal_gas = clip(actuators.accel, 0., 1.)
+            accGain = interp(CS.out.vEgo, [0., 5], [0.25, 0.135])
 
-          # apply pedal hysteresis and clip the final output to valid values.
+          zero = interp(CS.out.vEgo,[0., 5], [0.156, 0.2165])
+          # accGain = interp(CS.out.vEgo,[0., 5], [0.25, 0.1667])
+          pedal_gas = clip((actuators.accel * accGain + zero), 0., self.pedal_gas_max)
+
+
           self.pedalGasRaw_valueStore = pedal_gas
 
-
-          if CS.out.vEgo > 5.0 :
-            self.pedalGasWindow.append(pedal_gas)
-            pedal_gas = sum(self.pedalGasWindow) / (len(self.pedalGasWindow)*1.0)
-            actuator_hystereses_divider = 2.0
-          else :
-            actuator_hystereses_divider = 1.0
-            if len(self.pedalGasWindow) > 0 :
-              self.pedalGasWindow = deque(maxlen=self.pedalGasWindowSize)
-            # pedal_gas = 0.0
-
-          self.pedalGasAvg_valueStore = pedal_gas
-
-          pedal_final, self.pedal_steady = actuator_hystereses(pedal_gas, self.pedal_steady, actuator_hystereses_divider) # gap을 기존보다 2배 더 자세히
-          pedal_gas = clip(pedal_final, 0., 1.)
-
-          if not CC.longActive:
-            pedal_gas = 0.0  # May not be needed with the enable param
-
-
-          idx = (self.frame // 4) % 4
-          self.pedalGas_valueStore = pedal_gas # for debug ui
-          can_sends.append(create_gas_interceptor_command(self.packer_pt, pedal_gas, idx))
-          # END INTERCEPTOR ############################
         else:
+          pedal_gas = clip(actuators.accel, 0., 1.)
+
+        if not CC.longActive:
+          pedal_gas = 0.0  # May not be needed with the enable param
+
+        self.pedal_hyst_gap = interp(CS.out.vEgo, [40.0 * CV.KPH_TO_MS, 100.0 * CV.KPH_TO_MS], [0.01, 0.0065])
+        pedal_final, self.pedal_steady = actuator_hystereses(pedal_gas, self.pedal_steady, self.pedal_hyst_gap)
+        pedal_gas = clip(pedal_final, 0., self.pedal_gas_max)
+        if self.frame % 4 == 0:
+          idx = (self.frame // 4) % 4
+          can_sends.append(create_gas_interceptor_command(self.packer_pt, pedal_gas, idx))
+          self.pedalGas_valueStore = pedal_gas
+          # END INTERCEPTOR ############################
+
+
+
+      else:
+        if self.frame % 4 == 0:
           idx = (self.frame // 4) % 4
 
           at_full_stop = CC.longActive and CS.out.standstill
@@ -244,8 +248,10 @@ class CarController:
       if (self.frame - self.last_button_frame) * DT_CTRL > 0.04:
         if self.cancel_counter > CAMERA_CANCEL_DELAY_FRAMES:
           self.last_button_frame = self.frame
-          can_sends.append(gmcan.create_buttons(self.packer_pt, CanBus.CAMERA, CS.buttons_counter, CruiseButtons.CANCEL))
-
+          if self.CP.carFingerprint in CC_ONLY_CAR:
+            can_sends.append(gmcan.create_buttons(self.packer_pt, CanBus.POWERTRAIN, CS.buttons_counter, CruiseButtons.CANCEL))
+          else:
+            can_sends.append(gmcan.create_buttons(self.packer_pt, CanBus.CAMERA, CS.buttons_counter, CruiseButtons.CANCEL))
     if self.CP.networkLocation == NetworkLocation.fwdCamera and self.CP.carFingerprint not in CC_ONLY_CAR:
       # Silence "Take Steering" alert sent by camera, forward PSCMStatus with HandsOffSWlDetectionStatus=1
       if self.frame % 10 == 0:
@@ -268,6 +274,7 @@ class CarController:
     actuators.pedalGas = self.pedalGas_valueStore
     actuators.pedalGasRaw = self.pedalGasRaw_valueStore
     actuators.pedalGasAvg = self.pedalGasAvg_valueStore
+    actuators.aEgoAvg = self.aEgoAvg_valueStore
 
 
     new_actuators = actuators.copy()
@@ -275,6 +282,7 @@ class CarController:
     new_actuators.steerOutputCan = self.apply_steer_last
     new_actuators.gas = self.apply_gas
     new_actuators.brake = self.apply_brake
+    new_actuators.speed = self.apply_speed
 
     self.frame += 1
     return new_actuators, can_sends

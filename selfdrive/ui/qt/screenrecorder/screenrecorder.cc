@@ -144,10 +144,10 @@ void ScreenRecoder::start(bool sound) {
 }
 
 void ScreenRecoder::encoding_thread_func() {
-  uint64_t start_time = nanos_since_boot() -1;
+  uint64_t start_time = nanos_since_boot();
   while(recording && encoder) {
     QImage popImage;
-    if(image_queue.pop_wait_for(popImage, std::chrono::milliseconds(10))) {
+    if(image_queue.pop_wait_for(popImage, std::chrono::milliseconds(50))) {
 
       QImage image = popImage.convertToFormat(QImage::Format_RGBA8888);
 
@@ -158,6 +158,7 @@ void ScreenRecoder::encoding_thread_func() {
             libyuv::kFilterLinear);
 
       encoder->encode_frame_rgba(rgb_scale_buffer.get(), dst_width, dst_height, ((uint64_t)nanos_since_boot() - start_time ));
+
     }
   }
 }
@@ -168,10 +169,12 @@ void ScreenRecoder::stop(bool sound) {
     recording = false;
     update();
 
-  closeEncoder();
-  image_queue.clear();
+
+
   if(encoding_thread.joinable())
     encoding_thread.join();
+  closeEncoder();
+  image_queue.clear();
 
   if(sound)
       soundStop.play();

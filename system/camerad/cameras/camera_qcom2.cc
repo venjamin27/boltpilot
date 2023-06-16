@@ -71,7 +71,7 @@ const int DC_GAIN_MIN_WEIGHT_OX03C10 = 1; // always on is fine
 const int DC_GAIN_MAX_WEIGHT_OX03C10 = 1;
 
 const float TARGET_GREY_FACTOR_AR0231 = 1.0;
-const float TARGET_GREY_FACTOR_OX03C10 = 0.02;
+const float TARGET_GREY_FACTOR_OX03C10 = 0.01;
 
 const float sensor_analog_gains_AR0231[] = {
   1.0/8.0, 2.0/8.0, 2.0/7.0, 3.0/7.0, // 0, 1, 2, 3
@@ -101,7 +101,7 @@ const float ANALOG_GAIN_COST_LOW_AR0231 = 0.1;
 const float ANALOG_GAIN_COST_HIGH_AR0231 = 5.0;
 
 const int ANALOG_GAIN_MIN_IDX_OX03C10 = 0x0;
-const int ANALOG_GAIN_REC_IDX_OX03C10 = 0x11; // 2.5x
+const int ANALOG_GAIN_REC_IDX_OX03C10 = 0x0; // 1x
 const int ANALOG_GAIN_MAX_IDX_OX03C10 = 0x36;
 const int ANALOG_GAIN_COST_DELTA_OX03C10 = -1;
 const float ANALOG_GAIN_COST_LOW_OX03C10 = 0.4;
@@ -565,7 +565,6 @@ void CameraState::camera_set_parameters() {
     }
     min_ev = (exposure_time_min + VS_TIME_MIN_OX03C10) * sensor_analog_gains[analog_gain_min_idx];
     target_grey_factor = TARGET_GREY_FACTOR_OX03C10;
-    printf("############################################  OX03C10\n");
   } else {
     assert(false);
   }
@@ -622,22 +621,22 @@ void CameraState::camera_open(MultiCameraState *multi_cam_state_, int camera_num
   int ret;
   sensor_fd = open_v4l_by_name_and_index("cam-sensor-driver", camera_num);
   assert(sensor_fd >= 0);
-  LOGE("opened sensor for %d", camera_num);
+  LOGD("opened sensor for %d", camera_num);
 
   // init memorymanager for this camera
   mm.init(multi_cam_state->video0_fd);
 
   // probe the sensor
-  LOGE("-- Probing sensor %d", camera_num);
+  LOGD("-- Probing sensor %d", camera_num);
   camera_id = CAMERA_ID_AR0231;
   ret = sensors_init();
   if (ret != 0) {
     // TODO: use build flag instead?
-    LOGE("AR0231 init failed, trying OX03C10");
+    LOGD("AR0231 init failed, trying OX03C10");
     camera_id = CAMERA_ID_OX03C10;
     ret = sensors_init();
   }
-  LOGE("-- Probing sensor %d done with %d", camera_num, ret);
+  LOGD("-- Probing sensor %d done with %d", camera_num, ret);
   if (ret != 0) {
     LOGE("** sensor %d FAILED bringup, disabling", camera_num);
     enabled = false;
@@ -660,12 +659,10 @@ void CameraState::camera_open(MultiCameraState *multi_cam_state_, int camera_num
   LOG("-- Configuring sensor");
   uint32_t dt;
   if (camera_id == CAMERA_ID_AR0231) {
-      printf("############## config sensor AR0231(%d)\n", camera_num);
     sensors_i2c(init_array_ar0231, std::size(init_array_ar0231), CAM_SENSOR_PACKET_OPCODE_SENSOR_CONFIG, true);
     dt = 0x12;  // Changing stats to 0x2C doesn't work, so change pixels to 0x12 instead
   } else if (camera_id == CAMERA_ID_OX03C10) {
-      printf("############## config sensor OX03C10(%d)\n", camera_num);
-      sensors_i2c(init_array_ox03c10, std::size(init_array_ox03c10), CAM_SENSOR_PACKET_OPCODE_SENSOR_CONFIG, false);
+    sensors_i2c(init_array_ox03c10, std::size(init_array_ox03c10), CAM_SENSOR_PACKET_OPCODE_SENSOR_CONFIG, false);
     // one is 0x2a, two are 0x2b
     dt = 0x2c;
   } else {
@@ -1182,19 +1179,14 @@ void CameraState::set_camera_exposure(float grey_frac) {
     uint32_t vs_time = std::min(std::max((uint32_t)exposure_time / 40, VS_TIME_MIN_OX03C10), VS_TIME_MAX_OX03C10);
 
     uint32_t real_gain = ox03c10_analog_gains_reg[new_exp_g];
-    uint32_t min_gain = ox03c10_analog_gains_reg[0];
-    uint32_t spd_gain = 0xF00;
 
     struct i2c_random_wr_payload exp_reg_array[] = {
       {0x3501, hcg_time>>8}, {0x3502, hcg_time&0xFF},
       {0x3581, lcg_time>>8}, {0x3582, lcg_time&0xFF},
       {0x3541, spd_time>>8}, {0x3542, spd_time&0xFF},
-      {0x35c1, vs_time>>8}, {0x35c2, vs_time&0xFF},
+      {0x35c2, vs_time&0xFF},
 
       {0x3508, real_gain>>8}, {0x3509, real_gain&0xFF},
-      {0x3588, min_gain>>8}, {0x3589, min_gain&0xFF},
-      {0x3548, spd_gain>>8}, {0x3549, spd_gain&0xFF},
-      {0x35c8, min_gain>>8}, {0x35c9, min_gain&0xFF},
     };
     sensors_i2c(exp_reg_array, sizeof(exp_reg_array)/sizeof(struct i2c_random_wr_payload), CAM_SENSOR_PACKET_OPCODE_SENSOR_CONFIG, false);
   }

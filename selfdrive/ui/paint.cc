@@ -1,4 +1,4 @@
-#include "selfdrive/ui/paint.h"
+﻿#include "selfdrive/ui/paint.h"
 
 #include <cassert>
 #include <cmath>
@@ -75,6 +75,36 @@ static void ui_draw_text(const UIState* s, float x, float y, const char* string,
     }
     nvgFillColor(s->vg, color);
     nvgText(s->vg, x, y, string, NULL);
+}
+
+float a_x = 0.;
+float a_y = 0.;
+float a_size = 0.;
+const int a_max = 100;
+char a_font[128]="";
+int a_time = -1;
+char a_string[256] = "";
+NVGcolor a_color = COLOR_WHITE;
+static void ui_draw_text_a2(const UIState* s) {
+    if (a_time <= 0) return;
+    nvgTextAlign(s->vg, NVG_ALIGN_CENTER | NVG_ALIGN_BOTTOM);
+    a_time-=10;
+    int a_time1 = a_time;
+    if (a_time1 > 100) a_time1 = 100;
+    int x = (s->fb_w / 2 * a_time1 + a_x * (a_max - a_time1)) / a_max;
+    int y = ((s->fb_h - 400) * a_time1 + a_y * (a_max - a_time1)) / a_max;
+    int size = (350 * a_time1 + a_size * (a_max - a_time1)) / a_max;
+    if(a_time>=100) ui_draw_text(s, x, y, a_string, size, a_color, a_font, 9.0, 8.0, COLOR_BLACK, COLOR_BLACK);
+    else ui_draw_text(s, x, y, a_string, size, a_color, a_font);
+}
+static void ui_draw_text_a(const UIState* s, float x, float y, const char* string, float size, NVGcolor color, const char* font_name) {
+    a_x = x;
+    a_y = y;
+    strcpy(a_string, string);
+    a_size = size;
+    a_color = color;
+    strcpy(a_font, font_name);
+    a_time = 130;
 }
 
 static void ui_draw_line(const UIState* s, const QPolygonF& vd, NVGcolor* color, NVGpaint* paint, float stroke=0.0, NVGcolor strokeColor=COLOR_WHITE) {
@@ -524,8 +554,8 @@ float   plotMax = 0.;
 float   plotShift = 0.0;
 float   plotX = 300.0;
 float   plotWidth = 1000;
-float   plotY = 30.0;
-float   plotHeight = 300.0;
+float   plotY = 25.0;
+float   plotHeight = 450.0;
 float   plotRatio = 1.0;
 int     show_plot_mode_prev = -1;
 static void ui_draw_plotting(const UIState* s, int start, float x, float y[], int size, NVGcolor* color, float stroke = 0.0) {
@@ -566,11 +596,14 @@ static void make_plot_data(const UIState* s, float& data1, float& data2, float& 
     float   roll = live_parameters.getRoll();
     auto    controls_state = sm["controlsState"].getControlsState();
     float   curvature = controls_state.getCurvature();
-    float   desired_curvature = controls_state.getDesiredCurvature();
+    //float   desired_curvature = controls_state.getDesiredCurvature();
     const auto lp = sm["longitudinalPlan"].getLongitudinalPlan();
     float   speeds_0 = lp.getSpeeds()[0];
+    const auto lat_plan = sm["lateralPlan"].getLateralPlan();
+    float   curvatures_0 = lat_plan.getCurvatures()[0];
 
-    float pedalGas = car_control.getActuators().getPedalGas();
+//    float pedalGas = car_control.getActuators().getPedalGas();
+//    float aEgoAvg = car_control.getActuators().getAEgoAvg();
     
   
   
@@ -584,22 +617,29 @@ static void make_plot_data(const UIState* s, float& data1, float& data2, float& 
     case 1:
         data1 = a_ego;
         data2 = accel;
-        data3 = pedalGas;
+//        data3 = pedalGas;
         break;
     case 2:
-        data1 = (curvature * v_ego * v_ego) - (roll * 9.81);
-        data2 = (desired_curvature * v_ego * v_ego) - (roll * 9.81);
+        data1 = a_ego;
+        data2 = accel;
+//        data3 = aEgoAvg;
         break;
     case 3:
+        // curvature * v * v : 원심가속도
+        data1 = (curvature * v_ego * v_ego) - (roll * 9.81);
+        //data2 = (desired_curvature * v_ego * v_ego) - (roll * 9.81);
+        data2 = (curvatures_0 * v_ego * v_ego) - (roll * 9.81);
+        break;
+    case 4:
         data1 = v_ego;
         data2 = speeds_0;
         break;
-    case 4:
+    case 5:
         data1 = position.getX()[32];
         data2 = velocity.getX()[32];
         break;
     default:
-        data1 = data2 = 0;
+        data1 = data2  = data3 = 0;
         break;
     }
     if (s->show_plot_mode != show_plot_mode_prev) {
@@ -631,31 +671,34 @@ void ui_draw_plot(const UIState* s) {
 
     _data_s = _data;
 #endif
-//    if (plotMin > _data0) plotMin = _data0;
-//    if (plotMax < _data0) plotMax = _data0;
-//    if (plotMin > _data1) plotMin = _data1;
-//    if (plotMax < _data1) plotMax = _data1;
+    if (plotSize < PLOT_MAX - 1) plotSize++;
 
-    plotMin = std::min({plotMin, _data0, _data1});
-    plotMax = std::max({plotMax, _data0, _data1});
+    if (plotMin > _data0) plotMin = _data0;
+    if (plotMax < _data0) plotMax = _data0;
+    if (plotMin > _data1) plotMin = _data1;
+    if (plotMax < _data1) plotMax = _data1;
 
     plotIndex = (plotIndex + 1) % PLOT_MAX;
     plotQueue[0][plotIndex] = _data0;
     plotQueue[1][plotIndex] = _data1;
 
-    if (plotSize < PLOT_MAX - 1) plotSize++;
+
 
     if (s->fb_w < 1200) return;
 
     
 
-    if(s->show_plot_mode == 1)  {
-        plotQueue[2][plotIndex] = _data2;
-        datasize = 3;
-        plotMin = std::min({plotMin, _data0, _data1,_data2});
-        plotMax = std::max({plotMax, ,_data0, _data1,_data2});
-//    if (plotMin > _data2) plotMin = _data2;
-//    if (plotMax < _data2) plotMax = _data2;
+    if(s->show_plot_mode == 2)  {
+//        plotMax = std::max( {*std::max_element(plotQueue[0] , plotQueue[0] + plotSize), *std::max_element(plotQueue[1] , plotQueue[1] + plotSize), *std::max_element(plotQueue[2] , plotQueue[2] + plotSize)});
+//        plotMin = std::min( { *std::min_element(plotQueue[0] , plotQueue[0] + plotSize) , *std::min_element(plotQueue[1] , plotQueue[1] + plotSize) ,  *std::min_element(plotQueue[2] , plotQueue[2] + plotSize)});
+//      plotQueue[2][plotIndex] = _data2;
+//        datasize = 2;
+
+        //plot only 2
+        plotMax = std::max( {*std::max_element(plotQueue[0] , plotQueue[0] + plotSize), *std::max_element(plotQueue[1] , plotQueue[1] + plotSize)});
+        plotMin = std::min( { *std::min_element(plotQueue[0] , plotQueue[0] + plotSize) , *std::min_element(plotQueue[1] , plotQueue[1] + plotSize)});
+
+
 
     } else {
         plotQueue[2][plotIndex] = 0.0f;
@@ -782,7 +825,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
     static float path_fx = s->fb_w / 2;
     static float path_fy = s->fb_h - 400;
     static float path_fwidth = 160;
-    int path_bx = (int)path_fx;
+    static float path_bx = s->fb_w / 2;
     if (len == 4) {
         float x1, y1, x2, y2;
         float sx1, sy1, sx2, sy2;
@@ -805,7 +848,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
             path_fy = path_fy * alpha + _path_y * (1. - alpha);
             if (_path_width < 200.) _path_width = 200.;
             path_fwidth = path_fwidth * alpha + _path_width * (1. - alpha);
-            path_bx = (sx1 + sx2) / 2;
+            path_bx = path_bx * alpha + (sx1 + sx2) / 2 * (1. - alpha);
             //printf("path_fx = %.1f, %.1f, %.1f (%.1f, %.1f, %.1f)\n", path_fx, path_fy, path_fwidth, _path_x, _path_y, _path_width);
             //printf("(%4.0f,%4.0f,%4.0f,%4.0f)(%4.0f,%4.0f,%4.0f,%4.0f)\n", x1, y1, x2, y2, sx1, sy1, sx2, sy2);
         }
@@ -1013,7 +1056,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
                 }
             }
             else ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2, icon_size, icon_size }, "ic_steer_momo", 0.7f);
-            bgColor = nvgRGBA(0, 0, 0, 160);
+            bgColor = nvgRGBA(0, 0, 0, 0);
         }
         else if (s->show_steer_mode == 0) {            
             if (uiDrawSteeringRotate) {      
@@ -1021,10 +1064,10 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
             }
             else ui_draw_image(s, { x - icon_size / 2, y - icon_size / 2, icon_size, icon_size }, "ic_steer_momo", 0.7f);
             switch (trafficMode) {
-            case 0: bgColor = nvgRGBA(0, 0, 0, 90); break;
-            case 1: bgColor = nvgRGBA(255, 0, 0, 160); break;
-            case 2: bgColor = nvgRGBA(0, 255, 0, 160); break;
-            case 3: bgColor = nvgRGBA(255, 255, 0, 160); break;
+            case 0: bgColor = nvgRGBA(0, 0, 0, 0); break;
+            case 1: bgColor = nvgRGBA(255, 0, 0, 100); break;
+            case 2: bgColor = nvgRGBA(0, 255, 0, 100); break;
+            case 3: bgColor = nvgRGBA(255, 255, 0, 100); break;
             }
         }
         else {
@@ -1155,6 +1198,9 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
 
     int dxGap = -128 - 10 - 40;
     if(s->show_gap_info >= 0) ui_draw_text(s, x + dxGap + 15, y + 120.0, strDrivingMode, 30, COLOR_WHITE, BOLD);
+    static int _myDrivingMode = 0;
+    if (_myDrivingMode != myDrivingMode) ui_draw_text_a(s, x + dxGap + 15, y + 120, strDrivingMode, 30, COLOR_WHITE, BOLD);
+    _myDrivingMode = myDrivingMode;
     dxGap -= 60;
     if (s->show_gap_info > 0) {
 #ifdef __TEST
@@ -1165,6 +1211,13 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
         else if (_gap < 200) gap = 2;
         else if (_gap < 300) gap = 3;
         else gap = 4;
+
+        static int _preGap = 0;
+        if (_preGap != gap) {
+            sprintf(str, "%d", (int)gap);
+            ui_draw_text_a(s, x + dxGap + 15 + 60, y + 60, str, 50, COLOR_WHITE, BOLD);
+        }
+        _preGap = gap;
 #endif
         ui_fill_rect(s->vg, { x + dxGap - 2, (int)(y + 5 + 64), 40, -(int)(std::clamp((float)gap, 0.0f, 4.0f) / 4. * 64) }, COLOR_GREEN, 0);
         ui_draw_rect(s->vg, { x + dxGap, y + 5, 40, 64 / 4 }, COLOR_WHITE, 4, 0);
@@ -1174,11 +1227,13 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
         ui_draw_text(s, x + dxGap + 20, y+90, "GAP", 25, COLOR_WHITE, BOLD);
     }
     // 갭정보표시 중앙위
-    if (s->show_gap_info >= 0) {
-        sprintf(str, "%d", gap1);
+    sprintf(str, "%d", gap1);
+    if (s->show_gap_info >= 0) {        
         ui_draw_text(s, x + dxGap + 15 + 60, y + 60, str, 50, COLOR_WHITE, BOLD);
-
     }
+    static int _gap1 = 0;
+    if(_gap1 != gap1) ui_draw_text_a(s, x + dxGap + 15 + 60, y + 60, str, 50, COLOR_WHITE, BOLD);
+    _gap1 = gap1;
     // 타겟하단: 롱컨상태표시
     if (true) {
         auto xState = lp.getXState();
@@ -1206,6 +1261,14 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
         //ui_fill_rect(s->vg, { x - 250 / 2, y + 140, 250, 45 }, brake_valid? COLOR_RED : COLOR_GREEN, 15);
         if(brake_valid) ui_draw_text(s, x, y + 175, qstr.toStdString().c_str(), 40, COLOR_WHITE, BOLD, 1.0, 3.0, COLOR_RED, COLOR_RED);
         else            ui_draw_text(s, x, y + 175, qstr.toStdString().c_str(), 40, COLOR_WHITE, BOLD, 1.0, 3.0, COLOR_BLACK, COLOR_BLACK);
+        static QString _qstr = "";        
+        if (longActiveUser > 0) {
+            if (xState == cereal::LongitudinalPlan::XState::SOFT_HOLD) qstr = "SOFTHOLD";
+            else qstr = "CRUISE";
+        }
+        else qstr = "MANUAL";
+        if (qstr != _qstr) ui_draw_text_a(s, x, y + 175, qstr.toStdString().c_str(), 40, COLOR_WHITE, BOLD);
+        _qstr = qstr;
 
     }
     // Accel표시
@@ -1357,11 +1420,16 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
         applyMaxSpeed = 109;
         curveSpeed = 111;
 #endif
-        if (enabled && (longActiveUser > 0 || (longOverride && blinkerOn))) sprintf(str, "%d", (int)(cruiseMaxSpeed + 0.5));
+        static char _speed_str[128] = "";
+        if (enabled && (longActiveUser > 0 || (longOverride && blinkerOn))) {
+            sprintf(str, "%d", (int)(cruiseMaxSpeed + 0.5));
+            if (strcmp(_speed_str, str)) ui_draw_text_a(s, bx + 170, by + 15, str, 60, COLOR_GREEN, BOLD);
+            strcpy(_speed_str, str);
+        }
         else strcpy(str,"--");
         ui_draw_text(s, bx + 170, by + 15, str, 60, COLOR_GREEN, BOLD, 1.0, 5.0, COLOR_BLACK, COLOR_BLACK);
+        sprintf(str, "%d", (int)(applyMaxSpeed + 0.5));
         if (enabled && longActiveUser > 0 && applyMaxSpeed > 0 && applyMaxSpeed != cruiseMaxSpeed) {
-            sprintf(str, "%d", (int)(applyMaxSpeed + 0.5));
             ui_draw_text(s, bx + 250, by - 50, str, 50, COLOR_GREEN, BOLD, 1.0, 5.0, COLOR_BLACK, COLOR_BLACK);
         }
         if (true) {
@@ -1518,7 +1586,7 @@ void DrawApilot::drawDeviceState(UIState* s) {
         ui_draw_text(s, s->fb_w - 20, 35, str, 35, textColor, BOLD);
         float engineRpm = car_state.getEngineRpm();
         float motorRpm = car_state.getMotorRpm();
-        sprintf(str, "FPS: %d, %s: %.0f CHARGE: %.0f%%", g_fps, (motorRpm > 0.0) ? "MOTOR" : "RPM", (motorRpm > 0.0) ? motorRpm : engineRpm, car_state.getChargeMeter());
+        sprintf(str, "FPS: %d, %s: %.0f CHARGE: %.0f%%                      ", g_fps, (motorRpm > 0.0) ? "MOTOR" : "RPM", (motorRpm > 0.0) ? motorRpm : engineRpm, car_state.getChargeMeter());
         ui_draw_text(s, s->fb_w - 20, 90, str, 35, textColor, BOLD);
     }
 
@@ -1531,7 +1599,7 @@ void DrawApilot::drawDebugText(UIState* s) {
 
     nvgTextAlign(s->vg, NVG_ALIGN_RIGHT | NVG_ALIGN_BOTTOM);
 
-    int y = 150, dy = 40;
+    int y = 350, dy = 40;
 
      y += (dy*5); // 강제로 5줄 내리고 시작. plot을 가리니까.
 
@@ -1581,8 +1649,33 @@ void DrawApilot::drawDebugText(UIState* s) {
     float pedalGas = car_control.getActuators().getPedalGas();
     float pedalGasRaw = car_control.getActuators().getPedalGasRaw();
     float pedalGasAvg = car_control.getActuators().getPedalGasAvg();
+    float AEgoAvg = car_control.getActuators().getAEgoAvg();
     y += dy;
-    sprintf(str, "ACC : [%.4f]  pRaw/Avg/Gas : [%.4f]/[%.4f]/[%.4f]", accel, pedalGasRaw, pedalGasAvg, pedalGas);
+    sprintf(str, "pRaw/Avg/Gas : %.3f/%.3f/%.3f", pedalGasRaw, pedalGasAvg, pedalGas);
+    ui_draw_text(s, text_x, y, str, 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
+
+    y += dy;
+    sprintf(str, "ACC : %.3f  AEgoAvg : %.3f ",accel, AEgoAvg);
+    ui_draw_text(s, text_x, y, str, 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
+
+
+    auto lead_one = sm["modelV2"].getModelV2().getLeadsV3()[0];
+    auto radar_lead_one = sm["radarState"].getRadarState().getLeadOne();
+
+    float vision_dist = lead_one.getProb() > .5 ? (lead_one.getX()[0] - 1.5) : 0;
+
+    y += dy;
+    sprintf(str,"Leadv3 d: %.1f v: %.1f", vision_dist, lead_one.getV()[0]);
+    ui_draw_text(s, text_x, y, str, 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
+
+    if (radar_lead_one.getStatus())  {
+
+      sprintf(str,"radar: d: %.1f v: %.1f", radar_lead_one.getDRel(), radar_lead_one.getVRel());
+
+    } else {
+      sprintf(str,"radar: d: %.1f v: %.1f", 0.0f, 0.0f);
+    }
+    y += dy;
     ui_draw_text(s, text_x, y, str, 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
 
 
@@ -1608,6 +1701,8 @@ void ui_draw(UIState *s, int w, int h) {
   drawApilot->drawLeadApilot(s);
   if (s->show_debug) drawApilot->drawDebugText(s);
   if (s->show_device_stat) drawApilot->drawDeviceState(s);
+
+  ui_draw_text_a2(s);
 
   //ui_draw_vision(s);
   //dashcam(s);

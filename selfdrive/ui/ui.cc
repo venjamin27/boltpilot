@@ -511,7 +511,7 @@ void update_model(UIState *s,
   if (longActiveUser <= 0) show_path_mode = s->show_path_mode_cruise_off;
 
   max_idx = get_path_length_idx(plan_position, max_distance);
-  if (show_path_mode == 0) {
+  if (show_path_mode == 0 || s->show_mode == 0) {
       //update_line_data(s, plan_position, s->show_path_width, s->show_z_offset, s->show_z_offset, &scene.track_vertices, max_idx, false);
       update_line_data2(s, plan_position, s->show_path_width, 0.8, s->show_z_offset, &scene.track_vertices, max_idx);
       update_path_end(s, plan_position, &scene.path_end_vertices, 0.8, s->show_z_offset, max_idx);
@@ -614,6 +614,9 @@ static void update_state(UIState *s) {
 
 void ui_update_params(UIState *s) {
   auto params = Params();
+  s->scene.is_metric = params.getBool("IsMetric");
+  s->scene.map_on_left = params.getBool("NavSettingLeftSide");
+  
   static int updateSeq = 0;
   if (updateSeq++ > 100) updateSeq = 0;
   switch(updateSeq) {
@@ -690,13 +693,6 @@ void UIState::updateStatus() {
     started_prev = scene.started;
     emit offroadTransition(!scene.started);
   }
-
-  // Handle prime type change
-  if (prime_type != prime_type_prev) {
-    prime_type_prev = prime_type;
-    emit primeTypeChanged(prime_type);
-    Params().put("PrimeType", std::to_string(prime_type));
-  }
 }
 
 UIState::UIState(QObject *parent) : QObject(parent) {
@@ -727,6 +723,14 @@ void UIState::update() {
     watchdog_kick(nanos_since_boot());
   }
   emit uiUpdate(*this);
+}
+
+void UIState::setPrimeType(int type) {
+  if (type != prime_type) {
+    prime_type = type;
+    Params().put("PrimeType", std::to_string(prime_type));
+    emit primeTypeChanged(prime_type);
+  }
 }
 
 Device::Device(QObject *parent) : brightness_filter(BACKLIGHT_OFFROAD, BACKLIGHT_TS, BACKLIGHT_DT), QObject(parent) {
