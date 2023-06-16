@@ -1,4 +1,4 @@
-#include "selfdrive/ui/paint.h"
+﻿#include "selfdrive/ui/paint.h"
 
 #include <cassert>
 #include <cmath>
@@ -622,7 +622,7 @@ static void make_plot_data(const UIState* s, float& data1, float& data2, float& 
     case 2:
         data1 = a_ego;
         data2 = accel;
-        data3 = aEgoAvg;
+//        data3 = aEgoAvg;
         break;
     case 3:
         // curvature * v * v : 원심가속도
@@ -689,11 +689,16 @@ void ui_draw_plot(const UIState* s) {
     
 
     if(s->show_plot_mode == 2)  {
-        plotQueue[2][plotIndex] = _data2;
-        datasize = 3;
+//        plotMax = std::max( {*std::max_element(plotQueue[0] , plotQueue[0] + plotSize), *std::max_element(plotQueue[1] , plotQueue[1] + plotSize), *std::max_element(plotQueue[2] , plotQueue[2] + plotSize)});
+//        plotMin = std::min( { *std::min_element(plotQueue[0] , plotQueue[0] + plotSize) , *std::min_element(plotQueue[1] , plotQueue[1] + plotSize) ,  *std::min_element(plotQueue[2] , plotQueue[2] + plotSize)});
+//      plotQueue[2][plotIndex] = _data2;
+//        datasize = 2;
 
-    plotMax = std::max( {*std::max_element(plotQueue[0] , plotQueue[0] + plotSize), *std::max_element(plotQueue[1] , plotQueue[1] + plotSize), *std::max_element(plotQueue[2] , plotQueue[2] + plotSize)});
-    plotMin = std::min( { *std::min_element(plotQueue[0] , plotQueue[0] + plotSize) , *std::min_element(plotQueue[1] , plotQueue[1] + plotSize) ,  *std::min_element(plotQueue[2] , plotQueue[2] + plotSize)});
+        //plot only 2
+        plotMax = std::max( {*std::max_element(plotQueue[0] , plotQueue[0] + plotSize), *std::max_element(plotQueue[1] , plotQueue[1] + plotSize)});
+        plotMin = std::min( { *std::min_element(plotQueue[0] , plotQueue[0] + plotSize) , *std::min_element(plotQueue[1] , plotQueue[1] + plotSize)});
+
+
 
     } else {
         plotQueue[2][plotIndex] = 0.0f;
