@@ -603,7 +603,7 @@ static void make_plot_data(const UIState* s, float& data1, float& data2, float& 
     float   curvatures_0 = lat_plan.getCurvatures()[0];
 
 //    float pedalGas = car_control.getActuators().getPedalGas();
-    float aEgoAvg = car_control.getActuators().getAEgoAvg();
+//    float aEgoAvg = car_control.getActuators().getAEgoAvg();
     
   
   
