@@ -602,7 +602,7 @@ static void make_plot_data(const UIState* s, float& data1, float& data2, float& 
     const auto lat_plan = sm["lateralPlan"].getLateralPlan();
     float   curvatures_0 = lat_plan.getCurvatures()[0];
 
-//    float pedalGas = car_control.getActuators().getPedalGas();
+    float pedalGas = car_control.getActuators().getPedalGas();
 //    float aEgoAvg = car_control.getActuators().getAEgoAvg();
     
   
@@ -623,6 +623,7 @@ static void make_plot_data(const UIState* s, float& data1, float& data2, float& 
         data1 = a_ego;
         data2 = accel;
 //        data3 = aEgoAvg;
+        data3 = pedalGas;
         break;
     case 3:
         // curvature * v * v : 원심가속도
@@ -689,14 +690,14 @@ void ui_draw_plot(const UIState* s) {
     
 
     if(s->show_plot_mode == 2)  {
-//        plotMax = std::max( {*std::max_element(plotQueue[0] , plotQueue[0] + plotSize), *std::max_element(plotQueue[1] , plotQueue[1] + plotSize), *std::max_element(plotQueue[2] , plotQueue[2] + plotSize)});
-//        plotMin = std::min( { *std::min_element(plotQueue[0] , plotQueue[0] + plotSize) , *std::min_element(plotQueue[1] , plotQueue[1] + plotSize) ,  *std::min_element(plotQueue[2] , plotQueue[2] + plotSize)});
-//      plotQueue[2][plotIndex] = _data2;
-//        datasize = 2;
+        plotMax = std::max( {*std::max_element(plotQueue[0] , plotQueue[0] + plotSize), *std::max_element(plotQueue[1] , plotQueue[1] + plotSize), *std::max_element(plotQueue[2] , plotQueue[2] + plotSize)});
+        plotMin = std::min( { *std::min_element(plotQueue[0] , plotQueue[0] + plotSize) , *std::min_element(plotQueue[1] , plotQueue[1] + plotSize) ,  *std::min_element(plotQueue[2] , plotQueue[2] + plotSize)});
+        plotQueue[2][plotIndex] = _data2;
+        datasize = 2;
 
         //plot only 2
-        plotMax = std::max( {*std::max_element(plotQueue[0] , plotQueue[0] + plotSize), *std::max_element(plotQueue[1] , plotQueue[1] + plotSize)});
-        plotMin = std::min( { *std::min_element(plotQueue[0] , plotQueue[0] + plotSize) , *std::min_element(plotQueue[1] , plotQueue[1] + plotSize)});
+//        plotMax = std::max( {*std::max_element(plotQueue[0] , plotQueue[0] + plotSize), *std::max_element(plotQueue[1] , plotQueue[1] + plotSize)});
+//        plotMin = std::min( { *std::min_element(plotQueue[0] , plotQueue[0] + plotSize) , *std::min_element(plotQueue[1] , plotQueue[1] + plotSize)});
 
 
 
