@@ -30,7 +30,7 @@ static bool calib_frame_to_full_frame(const UIState *s, float in_x, float in_y, 
   QPointF point = s->car_space_transform.map(QPointF{KEp.v[0] / KEp.v[2], KEp.v[1] / KEp.v[2]});
   if (clip_region.contains(point)) {
     *out = point;
-    if(isnan(point.x()) || isnan(point.y()) return false;
+    if(std::isnan(point.x()) || std::isnan(point.y()) return false;
     return true;
   }
   return false;
