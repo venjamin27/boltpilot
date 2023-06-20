@@ -136,6 +136,9 @@ typedef struct UIScene {
   QPolygonF lane_line_vertices[4];
   QPolygonF road_edge_vertices[2];
   QPolygonF lane_barrier_vertices[2];
+  QPointF path_end_left_vertices[2];
+  QPointF path_end_right_vertices[2];
+  float max_distance;
 
   // lead
   QPointF lead_vertices[2];
