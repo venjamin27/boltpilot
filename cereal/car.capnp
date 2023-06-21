@@ -162,7 +162,7 @@ struct CarState {
   events @13 :List(CarEvent);
 
   #BOLT EV
-  vehicleSpeed @53 :Float32;
+  vehicleSpeed @58 :Float32;
   regenPressed @55 :Bool; #this is regen button only
   adaptiveCruise @56 :Bool;
   mainOn @54 :Bool;
