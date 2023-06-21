@@ -136,7 +136,9 @@ typedef struct UIScene {
   QPolygonF lane_line_vertices[4];
   QPolygonF road_edge_vertices[2];
   QPolygonF lane_barrier_vertices[2];
-  QPolygonF path_end_vertices;
+  QPointF path_end_left_vertices[2];
+  QPointF path_end_right_vertices[2];
+  float max_distance;
 
   // lead
   QPointF lead_vertices[2];
@@ -190,7 +192,7 @@ public:
   bool show_tpms = true;
   int show_accel = 2;
   bool show_steer_rotate = true;
-  int show_path_end = true;
+  int show_path_end = 1;
   int show_steer_mode = 0;
   bool show_device_stat = true;
   bool show_conn_info = true;

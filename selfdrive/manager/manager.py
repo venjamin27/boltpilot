@@ -8,6 +8,7 @@ import traceback
 from multiprocessing import Process
 from typing import List, Tuple, Union
 
+from cereal import log
 import cereal.messaging as messaging
 import selfdrive.sentry as sentry
 from common.basedir import BASEDIR
@@ -45,6 +46,7 @@ def manager_init() -> None:
     ("HasAcceptedTerms", "0"),
     ("LanguageSetting", "main_en"),
     ("OpenpilotEnabledToggle", "1"),
+    ("LongitudinalPersonality", str(log.LongitudinalPersonality.standard)),
     ("ShowDebugUI", "0"),
     ("ShowDateTime", "1"),
     ("ShowHudMode", "4"),
@@ -141,7 +143,6 @@ def manager_init() -> None:
     ("UseLaneLineSpeed", "0"),    
     ("PathOffset", "0"),  
     ("PathCostApply", "100"),
-    ("PathCostApplyLow", "100"),
     ("HapticFeedbackWhenSpeedCamera", "0"),       
     ("SoftHoldMode", "1"),       
     ("ApplyModelDistOrder", "32"),       
