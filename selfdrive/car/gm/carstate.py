@@ -69,6 +69,9 @@ class CarState(CarStateBase):
       pt_cp.vl["EBCMWheelSpdRear"]["RRWheelSpd"],
     )
     ret.vEgoRaw = mean([ret.wheelSpeeds.fl, ret.wheelSpeeds.fr, ret.wheelSpeeds.rl, ret.wheelSpeeds.rr])
+
+
+
     ret.vEgo, ret.aEgo = self.update_speed_kf(ret.vEgoRaw)
 
 
@@ -86,6 +89,12 @@ class CarState(CarStateBase):
     ret.vCluRatio = (ret.vEgo / vEgoClu) if (vEgoClu > 3. and ret.vEgo > 3.) else 1.0
     ###for neokii integration of former BoltPilot ends
 
+    ####### for longcontrol, use ECMVehicleSpeed,
+    ret.vEgoRaw = vEgoRawClu
+    ret.vEgo = vEgoClu
+    ret.aEgo = aEgoClu
+
+    ###test purpose
 
 
     # sample rear wheel speeds, standstill=True if ECM allows engagement with brake
