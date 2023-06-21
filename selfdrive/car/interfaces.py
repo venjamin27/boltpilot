@@ -198,6 +198,14 @@ class CarInterfaceBase(ABC):
     tune.torque.latAccelOffset = 0.0
     tune.torque.steeringAngleDeadzoneDeg = steering_angle_deadzone_deg
 
+    lateralTorqueCustom = int(Params().get("LateralTorqueCustom", encoding="utf8"))
+    lateralTorqueAccelFactor = float(int(Params().get("LateralTorqueAccelFactor", encoding="utf8")))*0.001
+    lateralTorqueFriction = float(int(Params().get("LateralTorqueFriction", encoding="utf8")))*0.001
+    if lateralTorqueCustom == 2:
+      tune.torque.latAccelFactor = lateralTorqueAccelFactor
+      tune.torque.friction = lateralTorqueFriction
+
+
   @abstractmethod
   def _update(self, c: car.CarControl) -> car.CarState:
     pass

@@ -17,6 +17,12 @@ struct Map(Key, Value) {
   }
 }
 
+enum LongitudinalPersonality {
+  aggressive @0;
+  standard @1;
+  relaxed @2;
+}
+
 struct InitData {
   kernelArgs @0 :List(Text);
   kernelVersion @15 :Text;
@@ -327,13 +333,14 @@ struct DeviceState @0xa4d8b5af2aa492eb {
   nvmeTempC @35 :List(Float32);
   modemTempC @36 :List(Float32);
   pmicTempC @39 :List(Float32);
+  maxTempC @44 :Float32;  # max of other temps, used to control fan
   thermalZones @38 :List(ThermalZone);
   thermalStatus @14 :ThermalStatus;
 
   fanSpeedPercentDesired @10 :UInt16;
   screenBrightnessPercent @37 :Int8;
 
-  wifiIpAddress @44 :Text;
+  wifiIpAddress @45 :Text;
   
   struct ThermalZone {
     name @0 :Text;
@@ -613,7 +620,7 @@ struct LiveCalibrationData {
   calStatusDEPRECATED @1 :Int8;
   warpMatrix2DEPRECATED @5 :List(Float32);
   warpMatrixBigDEPRECATED @6 :List(Float32);
-  
+
   enum Status {
     uncalibrated @0;
     calibrated @1;
@@ -955,13 +962,17 @@ struct EncodeIndex {
   len @9 :UInt32;
 
   enum Type {
-    bigBoxLossless @0;   # rcamera.mkv
-    fullHEVC @1;         # fcamera.hevc
-    bigBoxHEVC @2;       # bcamera.hevc
-    chffrAndroidH264 @3; # acamera
-    fullLosslessClip @4; # prcamera.mkv
-    front @5;            # dcamera.hevc
-    qcameraH264 @6;      # qcamera.ts
+    bigBoxLossless @0;
+    fullHEVC @1;
+    qcameraH264 @6;
+    livestreamH264 @7;
+
+    # deprecated
+    bigBoxHEVCDEPRECATED @2;
+    chffrAndroidH264DEPRECATED @3;
+    fullLosslessClipDEPRECATED @4;
+    frontDEPRECATED @5;
+
   }
 }
 
@@ -988,8 +999,8 @@ struct LongitudinalPlan @0xe00b5b3eba12876c {
   jerks @34 :List(Float32);
 
   solverExecutionTime @35 :Float32;
+  personality @36 :LongitudinalPersonality;
 
-  debugLongText1 @36 : Text;
   debugLongText2 @37 : Text;
   trafficState @38 : Int32;
   xState @39 : XState;
@@ -999,6 +1010,7 @@ struct LongitudinalPlan @0xe00b5b3eba12876c {
   cruiseGap @43 : Float32;
   xObstacle @44 : Float32;
   mpcEvent @45 : Int32;
+  debugLongText1 @46 : Text;
 
   enum XState {
     lead @0;
@@ -1065,11 +1077,11 @@ struct LateralPlan @0xe1e9318e2ae8b51e {
   dProbDEPRECATED @21 :Float32;
 
   #dp
-  dPathWLinesX @32 :List(Float32);
-  dPathWLinesY @33 :List(Float32);
+  dPathWLinesX @34 :List(Float32);
+  dPathWLinesY @35 :List(Float32);
 
   #apilot
-  desireEvent @34 : Int32;
+  desireEvent @36 : Int32;
 
   mpcSolutionValid @9 :Bool;
   desire @17 :Desire;
@@ -1083,6 +1095,13 @@ struct LateralPlan @0xe1e9318e2ae8b51e {
   curvatureRates @28 :List(Float32);
 
   solverExecutionTime @30 :Float32;
+  solverCost @32 :Float32;
+  solverState @33 :SolverState;
+
+  struct SolverState {
+    x @0 :List(List(Float32));
+    u @1 :List(Float32);
+  }
 
   enum Desire {
     none @0;
@@ -2234,6 +2253,10 @@ struct Event {
     wideRoadEncodeIdx @77 :EncodeIndex;
     qRoadEncodeIdx @90 :EncodeIndex;
 
+    livestreamRoadEncodeIdx @117 :EncodeIndex;
+    livestreamWideRoadEncodeIdx @118 :EncodeIndex;
+    livestreamDriverEncodeIdx @119 :EncodeIndex;
+
     # microphone data
     microphone @103 :Microphone;
 
@@ -2257,7 +2280,7 @@ struct Event {
     userFlag @93 :UserFlag;
     uiDebug @102 :UIDebug;
     # neokii
-    roadLimitSpeed @117 :RoadLimitSpeed;
+    roadLimitSpeed @123 :RoadLimitSpeed;
 
     # *********** debug ***********
     testJoystick @52 :Joystick;
@@ -2265,6 +2288,10 @@ struct Event {
     driverEncodeData @87 :EncodeData;
     wideRoadEncodeData @88 :EncodeData;
     qRoadEncodeData @89 :EncodeData;
+
+    livestreamRoadEncodeData @120 :EncodeData;
+    livestreamWideRoadEncodeData @121 :EncodeData;
+    livestreamDriverEncodeData @122 :EncodeData;
 
     # *********** Custom: reserved for forks ***********
     customReserved0 @107 :Custom.CustomReserved0;

@@ -23,7 +23,6 @@ struct CarEvent @0x9b1657f34caf3ad3 {
   enum EventName @0xbaa8c5d505f727de {
     canError @0;
     steerUnavailable @1;
-    brakeUnavailable @2;
     wrongGear @4;
     doorOpen @5;
     seatbeltNotLatched @6;
@@ -152,6 +151,7 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     startupOneplusDEPRECATED @82;
     startupFuzzyFingerprintDEPRECATED @97;
     noTargetDEPRECATED @25;
+    brakeUnavailableDEPRECATED @2;
   }
 }
 
@@ -209,6 +209,7 @@ struct CarState {
   stockFcw @31 :Bool;
   espDisabled @32 :Bool;
   accFaulted @42 :Bool;
+  carFaultedNonCritical @47 :Bool;  # some ECU is faulted, but car remains controllable
 
   # cruise state
   cruiseState @10 :CruiseState;
@@ -237,7 +238,7 @@ struct CarState {
   charging @43 :Bool;
 
 
-  cruiseGap @47 : Int32;
+  cruiseGap @53 : Int32;
   tpms @48 : Tpms;
   # neokii
   vCluRatio @49 :Float32;
