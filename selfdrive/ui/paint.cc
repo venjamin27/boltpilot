@@ -1647,6 +1647,21 @@ void DrawApilot::drawDebugText(UIState* s) {
     qstr = QString::fromStdString(controls_state.getDebugText2().cStr());
     y += dy;
     ui_draw_text(s, text_x, y, qstr.toStdString().c_str(), 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
+
+    const cereal::ModelDataV2::Reader& model = sm["modelV2"].getModelV2();
+    bool navEnabled = model.getNavEnabled();
+    auto meta = sm["modelV2"].getModelV2().getMeta();
+    char* desireStr[7] = { "None", "TurnLeft", "TurnRight", "ChangeLeft", "ChangeRight", "KeepLeft", "KeepRight" };
+    float desireState[7];
+    int     desireActive = 0;
+    for (int i = 0; i < 7; i++) {
+        desireState[i] = meta.getDesireState()[i];
+        if (desireState[i] > 0.5) desireActive = i;
+    }
+    sprintf(str, "NOO:%d, %10s(%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f)", navEnabled, desireStr[desireActive], desireState[0], desireState[1], desireState[2], desireState[3], desireState[4], desireState[5], desireState[6]);
+    y += dy;
+    ui_draw_text(s, text_x, y, str, 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
+
     //p.drawText(text_x, y + 160, QString::fromStdString(controls_state.getDebugText2().cStr()));
     //p.drawText(text_x, y + 240, QString::fromStdString(controls_state.getDebugText1().cStr()));
 }
