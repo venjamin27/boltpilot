@@ -1651,7 +1651,7 @@ void DrawApilot::drawDebugText(UIState* s) {
     const cereal::ModelDataV2::Reader& model = sm["modelV2"].getModelV2();
     bool navEnabled = model.getNavEnabled();
     auto meta = sm["modelV2"].getModelV2().getMeta();
-    char* desireStr[7] = { "None", "TurnLeft", "TurnRight", "ChangeLeft", "ChangeRight", "KeepLeft", "KeepRight" };
+    char desireStr[7][10] = { "None", "TurnLeft", "TurnRight", "ChangeLeft", "ChangeRight", "KeepLeft", "KeepRight" };
     float desireState[7];
     int     desireActive = 0;
     for (int i = 0; i < 7; i++) {
