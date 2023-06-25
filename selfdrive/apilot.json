@@ -485,8 +485,8 @@
     {
       "group": "조향일반",
       "name": "AutoTurnControl",
-      "title": "자동모델턴제어(0)",
-      "descr": "시험용",
+      "title": "자동턴기능(0)",
+      "descr": "0:사용안함,1:오파NOO, 2:맵피 NOO",
       "min": 0,
       "max": 2,
       "default": 0,

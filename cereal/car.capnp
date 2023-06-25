@@ -128,6 +128,8 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     audioPrompt @125; #ajouatom
     audioRefuse @126; #ajouatom
     stopStop @127; #ajouatom
+    audioLaneChange @130; #ajouatom
+    audioTurn @131; #ajouatom
     radarCanErrorDEPRECATED @15;
     communityFeatureDisallowedDEPRECATED @62;
     radarCommIssueDEPRECATED @67;
@@ -237,6 +239,7 @@ struct CarState {
   driverOverride @50 : Int32; #0: Normal, 1:Gas, 2:Brake
   chargeMeter @51 : Float32;
   motorRpm @52 : Float32;
+  totalDistance @54 : Float32;
 
   struct Tpms {
     fl @0 :Float32;
@@ -460,6 +463,7 @@ struct CarControl {
       bsdWarning @19;
       speedDown @20;
       stopStop @21;
+      audioTurn @22;
       
     }
   }

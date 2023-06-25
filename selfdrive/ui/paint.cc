@@ -1386,6 +1386,23 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
             limit_speed = sectionLimitSpeed;
             left_dist = sectionLeftDist;
         }
+        //const auto road_limit_speed = sm["roadLimitSpeed"].getRoadLimitSpeed();
+        int xTurnInfo = road_limit_speed.getXTurnInfo();
+        int xDistToTurn = road_limit_speed.getXDistToTurn();
+        int xSpdDist = road_limit_speed.getXSpdDist();
+        int xSpdLimit = road_limit_speed.getXSpdLimit();
+        int xSignType = road_limit_speed.getXSignType();
+#ifdef __TEST
+        xTurnInfo = 2;
+        xDistToTurn = 120;
+#endif
+        if (xSpdLimit >= 0 && xSpdDist >= 0) {
+            limit_speed = xSpdLimit;
+            left_dist = xSpdDist;
+        }
+        if (xTurnInfo >= 0) {
+            left_dist = xDistToTurn;
+        }
 
         int radar_tracks = Params().getBool("EnableRadarTracks");
         //QString nda_mode_str = QString::fromStdString(Params().get("AutoNaviSpeedCtrl"));
@@ -1476,6 +1493,12 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
             bx = 100;
             by = 650;
         }
+        if (left_dist > 0) {
+            if (left_dist < 1000) sprintf(str, "%d m", left_dist);
+            else  sprintf(str, "%.1f km", left_dist / 1000.f);
+            ui_draw_text(s, bx, by + 120, str, 40, COLOR_WHITE, BOLD);
+        }
+
         if (limit_speed > 0) {
             nvgBeginPath(s->vg);
             nvgCircle(s->vg, bx, by, 140 / 2);
@@ -1489,12 +1512,26 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
             nvgCircle(s->vg, bx, by, 110 / 2);
             nvgFillColor(s->vg, COLOR_WHITE);
             nvgFill(s->vg);
-            sprintf(str, "%d", limit_speed);
-            ui_draw_text(s, bx, by + 25, str, 60, COLOR_BLACK, BOLD, 0.0f, 0.0f);
-            if (left_dist > 0) {
+            if (xSignType == 124) {
+                sprintf(str, "방지턱");
+                ui_draw_text(s, bx, by + 25, str, 40, COLOR_BLACK, BOLD, 0.0f, 0.0f);
+            }
+            else {
+                sprintf(str, "%d", limit_speed);
+                ui_draw_text(s, bx, by + 25, str, 60, COLOR_BLACK, BOLD, 0.0f, 0.0f);
+            }
+            if (false && left_dist > 0) {
                 if (left_dist < 1000) sprintf(str, "%d m", left_dist);
                 else  sprintf(str, "%.1f km", left_dist / 1000.f);
                 ui_draw_text(s, bx, by + 120, str, 40, COLOR_WHITE, BOLD);
+            }
+        }
+        else if (xTurnInfo >= 0) {
+            switch (xTurnInfo) {
+            case 1: ui_draw_image(s, { bx - icon_size / 2, by - icon_size / 2, icon_size, icon_size }, "ic_turn_l", 1.0f); break;
+            case 2: ui_draw_image(s, { bx - icon_size / 2, by - icon_size / 2, icon_size, icon_size }, "ic_turn_r", 1.0f); break;
+            case 3: ui_draw_image(s, { bx - icon_size / 2, by - icon_size / 2, icon_size, icon_size }, "ic_lane_change_l", 1.0f); break;
+            case 4: ui_draw_image(s, { bx - icon_size / 2, by - icon_size / 2, icon_size, icon_size }, "ic_lane_change_r", 1.0f); break;
             }
         }
         else if (roadLimitSpeed > 0 && roadLimitSpeed < 200) {
@@ -1669,6 +1706,27 @@ void DrawApilot::drawDebugText(UIState* s) {
     QString type = QString::fromStdString(instruction.getManeuverType());
     QString modifier = QString::fromStdString(instruction.getManeuverModifier());
     sprintf(str,"%.1f/%.1f %s(%s)", distance, distance_remaining, type.length() ? type.toStdString().c_str() : "", modifier.length() ? modifier.toStdString().c_str() : "");
+    y += dy;
+    ui_draw_text(s, text_x, y, str, 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
+
+    const auto road_limit_speed = sm["roadLimitSpeed"].getRoadLimitSpeed();
+    int xTurnInfo = -1;
+    int xDistToTurn = -1;
+    int xSpdDist = -1;
+    int xSpdLimit = -1;
+    int xSignType = -1;
+    int xRoadSignType = -1;
+    int xRoadLimitSpeed = -1;
+
+    xTurnInfo = road_limit_speed.getXTurnInfo();
+    xDistToTurn = road_limit_speed.getXDistToTurn();
+    xSpdDist = road_limit_speed.getXSpdDist();
+    xSpdLimit = road_limit_speed.getXSpdLimit();
+    xSignType = road_limit_speed.getXSignType();
+    xRoadSignType = road_limit_speed.getXRoadSignType();
+    xRoadLimitSpeed = road_limit_speed.getXRoadLimitSpeed();
+
+    sprintf(str, "Mappy: Turn(%d,%d), Spd(%d,%d),Sign(%d), Road(%d,%d)", xTurnInfo, xDistToTurn, xSpdDist, xSpdLimit, xSignType, xRoadSignType, xRoadLimitSpeed);
     y += dy;
     ui_draw_text(s, text_x, y, str, 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
 

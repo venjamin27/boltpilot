@@ -26,8 +26,10 @@ class Port:
 class RoadLimitSpeedServer:
   def __init__(self):
     self.json_road_limit = None
+    self.json_apilot = None
     self.active = 0
     self.last_updated = 0
+    self.last_updated_apilot = 0
     self.last_updated_active = 0
     self.last_exception = None
     self.lock = threading.Lock()
@@ -154,6 +156,7 @@ class RoadLimitSpeedServer:
       if ret:
         data, self.remote_addr = sock.recvfrom(2048)
         json_obj = json.loads(data.decode())
+        print(json_obj)
 
         if 'cmd' in json_obj:
           try:
@@ -193,6 +196,10 @@ class RoadLimitSpeedServer:
             self.json_road_limit = json_obj['road_limit']
             self.last_updated = sec_since_boot()
 
+          if 'apilot' in json_obj:
+            self.json_apilot = json_obj['apilot']
+            self.last_updated_apilot = sec_since_boot()
+
         finally:
           self.lock.release()
 
@@ -215,11 +222,23 @@ class RoadLimitSpeedServer:
       finally:
         self.lock.release()
 
+    if now - self.last_updated_apilot > 6.:
+      try:
+        self.lock.acquire()
+        self.json_apilot = None
+      finally:
+        self.lock.release()
+
     if now - self.last_updated_active > 6.:
       self.active = 0
 
+
   def get_limit_val(self, key, default=None):
     return self.get_json_val(self.json_road_limit, key, default)
+
+  def get_apilot_val(self, key, default=None):
+    return self.get_json_val(self.json_apilot, key, default)
+
 
   def get_json_val(self, json, key, default=None):
 
@@ -240,9 +259,23 @@ def main():
   server = RoadLimitSpeedServer()
   roadLimitSpeed = messaging.pub_sock('roadLimitSpeed')
 
+  sock_carState = messaging.sub_sock("carState")
+  carState = None
+
+  xTurnInfo = -1
+  xDistToTurn = -1
+  xSpdDist = -1
+  xSpdLimit = -1
+  xSignType = -1
+  xRoadSignType = -1
+  xRoadLimitSpeed = -1
+
+  xBumpDistance = 0
+
+  totalDistance = 0.0
+
   with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
     try:
-
       try:
         sock.bind(('0.0.0.0', 843))
       except:
@@ -253,6 +286,13 @@ def main():
       while True:
 
         server.udp_recv(sock)
+
+        try:
+          dat = messaging.recv_sock(sock_carState, wait=False)
+          if dat is not None:
+            carState = dat.carState
+        except:
+          pass
 
         dat = messaging.new_message()
         dat.init('roadLimitSpeed')
@@ -269,11 +309,74 @@ def main():
         dat.roadLimitSpeed.sectionAdjustSpeed = server.get_limit_val("section_adjust_speed", False)
         dat.roadLimitSpeed.camSpeedFactor = server.get_limit_val("cam_speed_factor", CAMERA_SPEED_FACTOR)
 
+        type = server.get_apilot_val("type")
+        value = server.get_apilot_val("value")
+        type = "none" if type is None else type
+        value = "-1" if value is None else value
+        value_int = int(value)
+        now = sec_since_boot()
+        print(type, value)
+        delta_dist = 0.0
+        if carState is not None:
+          CS = carState
+          delta_dist = CS.totalDistance - totalDistance
+          totalDistance = CS.totalDistance
+
+        if type == 'opkrturninfo':
+          xTurnInfo = value_int
+        elif type == 'opkrdistancetoturn':
+          xDistToTurn = value_int
+        elif type == 'opkrspddist':
+          xSpdDist = value_int
+        elif type == 'opkrspdlimit':
+          xSpdLimit = value_int
+        elif type == 'opkrsigntype':
+          xSignType = value_int
+        elif type == 'opkrroadsigntype':
+          xRoadSignType = value_int
+        elif type == 'opkrroadlimitspeed':
+          xRoadLimitSpeed = value_int
+        elif type == 'none':
+          pass
+        else:
+          print("unknown{}={}".format(type, value))
+        #dat.roadLimitSpeed.xRoadName = apilot_val['opkrroadname']['value']
+
+        if xTurnInfo >= 0:
+          xDistToTurn -= delta_dist
+          if xDistToTurn < 0:
+            xTurnInfo = -1
+
+        if xSpdLimit >= 0:
+          xSpdDist -= delta_dist
+          if xSpdDist < 0:
+            xSpdLimit = -1
+
+        if xBumpDistance > 0:
+          xBumpDistance -= delta_dist
+          if xBumpDistance <= 0 and xSignType == 124:
+            xSignType = -1
+
+        if xSignType == 124: ##사고방지턱
+          if xBumpDistance <= 0:
+            xBumpDistance = 80
+
+        dat.roadLimitSpeed.xTurnInfo = int(xTurnInfo)
+        dat.roadLimitSpeed.xDistToTurn = int(xDistToTurn)
+        dat.roadLimitSpeed.xSpdDist = int(xSpdDist) if xBumpDistance <= 0 else int(xBumpDistance)
+        dat.roadLimitSpeed.xSpdLimit = int(xSpdLimit) if xBumpDistance <= 0 else 35 # 속도는 추후조절해야함. 일단 35
+        dat.roadLimitSpeed.xSignType = int(xSignType)
+        dat.roadLimitSpeed.xRoadSignType = int(xRoadSignType)
+        dat.roadLimitSpeed.xRoadLimitSpeed = int(xRoadLimitSpeed)
+        #dat.roadLimitSpeed.xRoadName = apilot_val['opkrroadname']['value']
+
         roadLimitSpeed.send(dat.to_bytes())
         server.send_sdp(sock)
         server.check()
+        time.sleep(0.03)
 
     except Exception as e:
+      print(e)
       server.last_exception = e
 
 
@@ -308,7 +411,6 @@ class RoadSpeedLimiter:
       return 0, 0, 0, False, ""
 
     try:
-
       road_limit_speed = self.roadLimitSpeed.roadLimitSpeed
       is_highway = self.roadLimitSpeed.isHighway
 
@@ -316,6 +418,11 @@ class RoadSpeedLimiter:
 
       cam_limit_speed_left_dist = self.roadLimitSpeed.camLimitSpeedLeftDist
       cam_limit_speed = self.roadLimitSpeed.camLimitSpeed
+
+      if self.roadLimitSpeed.xSpdLimit > 0 and self.roadLimitSpeed.xSpdDist > 0:
+        cam_limit_speed_left_dist = self.roadLimitSpeed.xSpdDist
+        cam_limit_speed = self.roadLimitSpeed.xSpdLimit
+        log = "limit={:.1f},{:.1f}".format(self.roadLimitSpeed.xSpdLimit, self.roadLimitSpeed.xSpdDist)
 
       section_limit_speed = self.roadLimitSpeed.sectionLimitSpeed
       section_left_dist = self.roadLimitSpeed.sectionLeftDist

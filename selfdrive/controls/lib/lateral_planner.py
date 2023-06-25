@@ -106,7 +106,7 @@ class LateralPlanner:
     lane_change_prob = self.LP.l_lane_change_prob + self.LP.r_lane_change_prob
     turn_prob = self.LP.l_turn_prob + self.LP.r_turn_prob
     # Lane change logic
-    self.DH.update(sm['carState'], sm['carControl'].latActive, lane_change_prob, md, turn_prob)
+    self.DH.update(sm['carState'], sm['carControl'].latActive, lane_change_prob, md, turn_prob, sm['navInstruction'], sm['roadLimitSpeed'])
 
     if self.v_ego*3.6 >= self.useLaneLineSpeed + 2:
       self.useLaneLineMode = True

@@ -9,6 +9,7 @@ from opendbc.can.can_define import CANDefine
 from selfdrive.car.hyundai.hyundaicanfd import CanBus
 from selfdrive.car.hyundai.values import HyundaiFlags, CAR, DBC, CAN_GEARS, CAMERA_SCC_CAR, CANFD_CAR, EV_CAR, HYBRID_CAR, Buttons, CarControllerParams
 from selfdrive.car.interfaces import CarStateBase
+from common.realtime import DT_CTRL
 
 PREV_BUTTON_SAMPLES = 8
 CLUSTER_SAMPLE_RATE = 20  # frames
@@ -51,6 +52,8 @@ class CarState(CarStateBase):
     self.prePcmCruiseMode = True
     self.params = CarControllerParams(CP)
     self.gear_shifter = GearShifter.drive # Gear_init for Nexo ?? unknown 21.02.23.LSW
+
+    self.totalDistance = 0.0
 
   def update(self, cp, cp_cam):
     if self.CP.carFingerprint in CANFD_CAR:
@@ -254,6 +257,9 @@ class CarState(CarStateBase):
     ret.vEgoCluster = cluSpeed * speed_conv
     vEgoClu, aEgoClu = self.update_clu_speed_kf(ret.vEgoCluster)
     ret.vCluRatio = (ret.vEgo / vEgoClu) if (vEgoClu > 3. and ret.vEgo > 3.) else 1.0
+
+    self.totalDistance += ret.vEgo * DT_CTRL # 후진할때는?
+    ret.totalDistance = self.totalDistance
 
     #scc12_2 = cp_cam.vl["SCC12"]
     #scc12 = cp.vl["SCC12"]
