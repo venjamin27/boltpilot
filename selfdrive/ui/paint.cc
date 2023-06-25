@@ -1668,9 +1668,9 @@ void DrawApilot::drawDebugText(UIState* s) {
     float distance_remaining = instruction.getDistanceRemaining();
     QString type = QString::fromStdString(instruction.getManeuverType());
     QString modifier = QString::fromStdString(instruction.getManeuverModifier());
-    qstr.format("%.1f/%.1f %s(%s)", distance, distance_remaining, type.length() ? type : "", modifier.length() ? modifier : "");
+    sprintf(str,"%.1f/%.1f %s(%s)", distance, distance_remaining, type.length() ? type.toStdString().c_str() : "", modifier.length() ? modifier.toStdString().c_str() : "");
     y += dy;
-    ui_draw_text(s, text_x, y, qstr.toStdString().c_str(), 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
+    ui_draw_text(s, text_x, y, str, 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
 
     //p.drawText(text_x, y + 160, QString::fromStdString(controls_state.getDebugText2().cStr()));
     //p.drawText(text_x, y + 240, QString::fromStdString(controls_state.getDebugText1().cStr()));
