@@ -2,7 +2,6 @@ import math
 
 from cereal import log
 from common.numpy_fast import interp, sign
-from common.params import Params
 from selfdrive.controls.lib.drive_helpers import apply_deadzone
 from selfdrive.controls.lib.latcontrol import LatControl
 from selfdrive.controls.lib.pid import PIDController
@@ -61,6 +60,8 @@ class LatControlTorque(LatControl):
     self.error_scale_lat_accel_counter = 0
     self.error_scale_lat_accel_decay_delay = 50 # wait 50 frames (1s) before beginning to scale error back up for better centering
 
+    self._frame = 0
+
   def update_live_torque_params(self, latAccelFactor, latAccelOffset, friction):
     self.torque_params.latAccelFactor = latAccelFactor
     self.torque_params.latAccelOffset = latAccelOffset
@@ -87,16 +88,16 @@ class LatControlTorque(LatControl):
         self.torque_params.friction = self.lateralTorqueFriction
 
   def update_live_tune(self):
-    if not self.custom_torque:
-      return
+    # if not self.custom_torque:
+    #   return
     self._frame += 1
     if self._frame % 300 == 0:
-      self.torque_params.latAccelFactor = float(self.param_s.get("TorqueMaxLatAccel", encoding="utf8")) * 0.01
-      self.torque_params.friction = float(self.param_s.get("TorqueFriction", encoding="utf8")) * 0.01
+      self.torque_params.latAccelFactor = self.lateralTorqueAccelFactor
+      self.torque_params.friction = self.lateralTorqueFriction # oringally  * 0.01 but 0.001 value used from apilot
       self._frame = 0
 
         
-  def update(self, active, CS, VM, params, last_actuators, steer_limited, desired_curvature, desired_curvature_rate, llk):
+  def update(self, active, CS, VM, params, last_actuators, steer_limited, desired_curvature, desired_curvature_rate, llk ,lat_plan = None):
     self.update_params()
     pid_log = log.ControlsState.LateralTorqueState.new_message()
 
