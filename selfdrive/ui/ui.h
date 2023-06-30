@@ -51,6 +51,7 @@ struct Alert {
   QString text2;
   QString type;
   cereal::ControlsState::AlertSize size;
+  cereal::ControlsState::AlertStatus status;
   AudibleAlert sound;
 
   bool equal(const Alert &a2) {
@@ -62,6 +63,7 @@ struct Alert {
     if (sm.updated("controlsState")) {
       return {cs.getAlertText1().cStr(), cs.getAlertText2().cStr(),
               cs.getAlertType().cStr(), cs.getAlertSize(),
+              cs.getAlertStatus(),
               cs.getAlertSound()};
     } else if ((sm.frame - started_frame) > 5 * UI_FREQ) {
       const int CONTROLS_TIMEOUT = 5;
@@ -72,16 +74,19 @@ struct Alert {
         // car is started, but controlsState hasn't been seen at all
         return {"openpilot Unavailable", "Waiting for controls to start",
                 "controlsWaiting", cereal::ControlsState::AlertSize::MID,
+                cereal::ControlsState::AlertStatus::NORMAL,
                 AudibleAlert::NONE};
       } else if (controls_missing > CONTROLS_TIMEOUT && !Hardware::PC()) {
         // car is started, but controls is lagging or died
         if (cs.getEnabled() && (controls_missing - CONTROLS_TIMEOUT) < 10) {
           return {"TAKE CONTROL IMMEDIATELY", "Controls Unresponsive",
                   "controlsUnresponsive", cereal::ControlsState::AlertSize::FULL,
+                  cereal::ControlsState::AlertStatus::CRITICAL,
                   AudibleAlert::WARNING_IMMEDIATE};
         } else {
           return {"Controls Unresponsive", "Reboot Device",
                   "controlsUnresponsivePermanent", cereal::ControlsState::AlertSize::MID,
+                  cereal::ControlsState::AlertStatus::NORMAL,
                   AudibleAlert::NONE};
         }
       }
@@ -106,6 +111,12 @@ const QColor bg_colors [] = {
   [STATUS_WARNING] = QColor(0xDA, 0x6F, 0x25, 0xf1),
   [STATUS_ALERT] = QColor(0xC9, 0x22, 0x31, 0xf1),
   [STATUS_CRUISE_STOP] = QColor(0x00, 0x64, 0xC8, 0x96),
+};
+
+static std::map<cereal::ControlsState::AlertStatus, QColor> alert_colors = {
+  {cereal::ControlsState::AlertStatus::NORMAL, QColor(0x15, 0x15, 0x15, 0xf1)},
+  {cereal::ControlsState::AlertStatus::USER_PROMPT, QColor(0xDA, 0x6F, 0x25, 0xf1)},
+  {cereal::ControlsState::AlertStatus::CRITICAL, QColor(0xC9, 0x22, 0x31, 0xf1)},
 };
 
 typedef struct {
@@ -245,7 +256,6 @@ private:
 
   void updateBrightness(const UIState &s);
   void updateWakefulness(const UIState &s);
-  bool motionTriggered(const UIState &s);
   void setAwake(bool on);
 
 signals:

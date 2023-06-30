@@ -269,8 +269,10 @@ def main():
   xSignType = -1
   xRoadSignType = -1
   xRoadLimitSpeed = -1
+  xRoadName = ""
 
   xBumpDistance = 0
+  xTurnInfo_prev = xTurnInfo
 
   totalDistance = 0.0
 
@@ -309,37 +311,71 @@ def main():
         dat.roadLimitSpeed.sectionAdjustSpeed = server.get_limit_val("section_adjust_speed", False)
         dat.roadLimitSpeed.camSpeedFactor = server.get_limit_val("cam_speed_factor", CAMERA_SPEED_FACTOR)
 
-        type = server.get_apilot_val("type")
+        atype = server.get_apilot_val("type")
         value = server.get_apilot_val("value")
-        type = "none" if type is None else type
+        atype = "none" if atype is None else atype
         value = "-1" if value is None else value
-        value_int = int(value)
+        try:
+          value_int = int(value)
+        except:
+          value_int = -100
+
         now = sec_since_boot()
-        print(type, value)
+        print(atype, value)
         delta_dist = 0.0
         if carState is not None:
           CS = carState
           delta_dist = CS.totalDistance - totalDistance
           totalDistance = CS.totalDistance
+          if CS.gasPressed:
+            xBumpDistance = -1
+            if xSignType == 124:
+              xSignType = -1
 
-        if type == 'opkrturninfo':
+        if atype == 'none':
+          pass
+        elif atype == 'opkrturninfo':
           xTurnInfo = value_int
-        elif type == 'opkrdistancetoturn':
+        elif atype == 'opkrdistancetoturn':
           xDistToTurn = value_int
-        elif type == 'opkrspddist':
+        elif atype == 'opkrspddist':
           xSpdDist = value_int
-        elif type == 'opkrspdlimit':
+        elif atype == 'opkrspdlimit':
           xSpdLimit = value_int
-        elif type == 'opkrsigntype':
+        elif atype == 'opkrsigntype':
           xSignType = value_int
-        elif type == 'opkrroadsigntype':
+        elif atype == 'opkrroadsigntype':
           xRoadSignType = value_int
-        elif type == 'opkrroadlimitspeed':
+        elif atype == 'opkrroadlimitspeed':
           xRoadLimitSpeed = value_int
-        elif type == 'none':
+        elif atype == 'opkrwazecurrentspd':
+          pass
+        elif atype == 'opkrwazeroadname':
+          xRoadName = value
+        elif atype == 'opkrwazenavsign':
+          if value == '2131230983': # 목적지
+            xTurnInfo = -1
+          elif value == '2131230988': # turnLeft
+            xTurnInfo = 1
+          elif value == '2131230989': # turnRight
+            xTurnInfo = 2
+          elif value == '2131230985': 
+            xTurnInfo = 4
+          else:
+            xTurnInfo = value_int
+          xTurnInfo_prev = xTurnInfo
+        elif atype == 'opkrwazenavdist':
+          xDistToTurn = value_int
+          if xTurnInfo<0:
+            xTurnInfo = xTurnInfo_prev
+        elif atype == 'opkrwazeroadspdlimit':
+          xRoadLimitSpeed = value_int
+        elif atype == 'opkrwazealertdist':
+          pass
+        elif atype == 'opkrwazereportid':
           pass
         else:
-          print("unknown{}={}".format(type, value))
+          print("unknown{}={}".format(atype, value))
         #dat.roadLimitSpeed.xRoadName = apilot_val['opkrroadname']['value']
 
         if xTurnInfo >= 0:
@@ -359,8 +395,12 @@ def main():
 
         if xSignType == 124: ##사고방지턱
           if xBumpDistance <= 0:
-            xBumpDistance = 80
+            xBumpDistance = 100
+        else:
+          xBumpDistance = -1
 
+
+        #print("turn={},{}".format(xTurnInfo, xDistToTurn))
         dat.roadLimitSpeed.xTurnInfo = int(xTurnInfo)
         dat.roadLimitSpeed.xDistToTurn = int(xDistToTurn)
         dat.roadLimitSpeed.xSpdDist = int(xSpdDist) if xBumpDistance <= 0 else int(xBumpDistance)
@@ -368,7 +408,7 @@ def main():
         dat.roadLimitSpeed.xSignType = int(xSignType)
         dat.roadLimitSpeed.xRoadSignType = int(xRoadSignType)
         dat.roadLimitSpeed.xRoadLimitSpeed = int(xRoadLimitSpeed)
-        #dat.roadLimitSpeed.xRoadName = apilot_val['opkrroadname']['value']
+        dat.roadLimitSpeed.xRoadName = xRoadName
 
         roadLimitSpeed.send(dat.to_bytes())
         server.send_sdp(sock)
@@ -384,6 +424,7 @@ class RoadSpeedLimiter:
   def __init__(self):
     self.slowing_down = False
     self.started_dist = 0
+    self.session_limit = False
 
     self.sock = messaging.sub_sock("roadLimitSpeed")
     self.roadLimitSpeed = None
@@ -422,7 +463,10 @@ class RoadSpeedLimiter:
       if self.roadLimitSpeed.xSpdLimit > 0 and self.roadLimitSpeed.xSpdDist > 0:
         cam_limit_speed_left_dist = self.roadLimitSpeed.xSpdDist
         cam_limit_speed = self.roadLimitSpeed.xSpdLimit
+        self.session_limit = True if (self.roadLimitSpeed.xSignType == 165) or (cam_limit_speed_left_dist > 3000) else False
         log = "limit={:.1f},{:.1f}".format(self.roadLimitSpeed.xSpdLimit, self.roadLimitSpeed.xSpdDist)
+
+        self.session_limit = False if cam_limit_speed_left_dist < 50 else self.session_limit
 
       section_limit_speed = self.roadLimitSpeed.sectionLimitSpeed
       section_left_dist = self.roadLimitSpeed.sectionLeftDist
@@ -432,7 +476,7 @@ class RoadSpeedLimiter:
 
       camSpeedFactor = clip(self.roadLimitSpeed.camSpeedFactor, 1.0, 1.1)
 
-      if is_highway is not None:
+      if False and is_highway is not None:
         if is_highway:
           MIN_LIMIT = 40
           MAX_LIMIT = 120
@@ -472,7 +516,7 @@ class RoadSpeedLimiter:
           td = self.started_dist - safe_dist
           d = cam_limit_speed_left_dist - safe_dist
 
-          if d > 0. and td > 0. and diff_speed > 0. and (section_left_dist is None or section_left_dist < 10 or cam_type == 2):
+          if d > 0. and td > 0. and diff_speed > 0. and (section_left_dist is None or section_left_dist < 10 or cam_type == 2) and not self.session_limit:
             pp = (d / td) ** 0.6
           else:
             pp = 0

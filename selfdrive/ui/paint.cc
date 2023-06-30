@@ -1400,7 +1400,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
             limit_speed = xSpdLimit;
             left_dist = xSpdDist;
         }
-        if (xTurnInfo >= 0) {
+        else if (xTurnInfo >= 0) {
             left_dist = xDistToTurn;
         }
 
@@ -1514,7 +1514,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
             nvgFill(s->vg);
             if (xSignType == 124) {
                 sprintf(str, "방지턱");
-                ui_draw_text(s, bx, by + 25, str, 40, COLOR_BLACK, BOLD, 0.0f, 0.0f);
+                ui_draw_text(s, bx, by + 20, str, 35, COLOR_BLACK, BOLD, 0.0f, 0.0f);
             }
             else {
                 sprintf(str, "%d", limit_speed);
@@ -1532,6 +1532,14 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
             case 2: ui_draw_image(s, { bx - icon_size / 2, by - icon_size / 2, icon_size, icon_size }, "ic_turn_r", 1.0f); break;
             case 3: ui_draw_image(s, { bx - icon_size / 2, by - icon_size / 2, icon_size, icon_size }, "ic_lane_change_l", 1.0f); break;
             case 4: ui_draw_image(s, { bx - icon_size / 2, by - icon_size / 2, icon_size, icon_size }, "ic_lane_change_r", 1.0f); break;
+            case 5: ui_draw_text(s, bx, by + 20, "U턴", 35, COLOR_WHITE, BOLD, 0.0f, 0.0f); break;
+            case 35: ui_draw_text(s, bx, by + 20, "좌측고가 진입", 35, COLOR_WHITE, BOLD, 0.0f, 0.0f); break;
+            case 43: ui_draw_text(s, bx, by + 20, "지하차도 우측", 35, COLOR_WHITE, BOLD, 0.0f, 0.0f); break;
+            case 48: ui_draw_text(s, bx, by + 20, "휴게소", 35, COLOR_WHITE, BOLD, 0.0f, 0.0f); break;
+            default:
+                sprintf(str, "%d", xTurnInfo);
+                ui_draw_text(s, bx, by + 20, str, 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
+                break;
             }
         }
         else if (roadLimitSpeed > 0 && roadLimitSpeed < 200) {
@@ -1710,21 +1718,13 @@ void DrawApilot::drawDebugText(UIState* s) {
     ui_draw_text(s, text_x, y, str, 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
 
     const auto road_limit_speed = sm["roadLimitSpeed"].getRoadLimitSpeed();
-    int xTurnInfo = -1;
-    int xDistToTurn = -1;
-    int xSpdDist = -1;
-    int xSpdLimit = -1;
-    int xSignType = -1;
-    int xRoadSignType = -1;
-    int xRoadLimitSpeed = -1;
-
-    xTurnInfo = road_limit_speed.getXTurnInfo();
-    xDistToTurn = road_limit_speed.getXDistToTurn();
-    xSpdDist = road_limit_speed.getXSpdDist();
-    xSpdLimit = road_limit_speed.getXSpdLimit();
-    xSignType = road_limit_speed.getXSignType();
-    xRoadSignType = road_limit_speed.getXRoadSignType();
-    xRoadLimitSpeed = road_limit_speed.getXRoadLimitSpeed();
+    int xTurnInfo = road_limit_speed.getXTurnInfo();
+    int xDistToTurn = road_limit_speed.getXDistToTurn();
+    int xSpdDist = road_limit_speed.getXSpdDist();
+    int xSpdLimit = road_limit_speed.getXSpdLimit();
+    int xSignType = road_limit_speed.getXSignType();
+    int xRoadSignType = road_limit_speed.getXRoadSignType();
+    int xRoadLimitSpeed = road_limit_speed.getXRoadLimitSpeed();
 
     sprintf(str, "Mappy: Turn(%d,%d), Spd(%d,%d),Sign(%d), Road(%d,%d)", xTurnInfo, xDistToTurn, xSpdDist, xSpdLimit, xSignType, xRoadSignType, xRoadLimitSpeed);
     y += dy;
@@ -1778,8 +1778,8 @@ void ui_draw_alert(UIState* s) {
         ui_draw_text(s, s->fb_w / 2, s->fb_h - 200, alert.text2.toStdString().c_str(), 70, alert_color, BOLD, 3.0f, 8.0f);
     }
 }
-void ui_update_alert(const Alert& a, const QColor& color) {
-    alert_color = nvgRGBA(color.red(), color.green(), color.blue(), color.alpha());
+void ui_update_alert(const Alert& a) {
+    //alert_color = nvgRGBA(color.red(), color.green(), color.blue(), color.alpha());
     //printf("r=%d, g=%d, b=%d\n", color.red(), color.green(), color.blue());
     alert = a;
 }

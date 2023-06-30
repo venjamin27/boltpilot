@@ -1,4 +1,6 @@
 #pragma once
+
+#include <QFrame>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
