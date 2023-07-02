@@ -202,25 +202,10 @@ static int hyundai_rx_hook(CANPacket_t *to_push) {
   int addr = GET_ADDR(to_push);
 
   // SCC12 is on bus 2 for camera-based SCC cars, bus 0 on all others
-  if (valid && (addr == 1057) && (((bus == 0 || bus == 2) && !hyundai_camera_scc) || ((bus == 2) && hyundai_camera_scc))) {
+  if (valid && (addr == 1057) && (((bus == 0) && !hyundai_camera_scc) || ((bus == 2) && hyundai_camera_scc))) {
     // 2 bits: 13-14
     int cruise_engaged = (GET_BYTES(to_push, 0, 4) >> 13) & 0x3U;
-    if (cruiseEngaged != cruise_engaged) {
-        print("CruiseState...: "); puth2(cruise_engaged); print("\n");
-        cruiseEngaged = cruise_engaged;
-    }
-    hyundai_common_cruise_state_check2(cruise_engaged);
-  }
-  // SCC11 is on bus 2
-  if (valid && (addr == 1056) && (((bus == 0 || bus == 2) && !hyundai_camera_scc) || ((bus == 2) && hyundai_camera_scc))) {
-      // 1 bits: 0
-      int cruise_engaged = (GET_BYTES(to_push, 0, 4) >> 0) & 0x1U;
-      static int cruise_engaged_pre = 0;
-      if (cruise_engaged_pre != cruise_engaged) {
-          print("CruiseSet...: "); puth2(cruise_engaged); print("\n");
-          cruise_engaged_pre = cruise_engaged;
-      }
-      hyundai_common_cruise_state_check(cruise_engaged);
+    hyundai_common_cruise_state_check(cruise_engaged);
   }
 
   if (valid && (bus == 0)) {
@@ -257,8 +242,6 @@ static int hyundai_rx_hook(CANPacket_t *to_push) {
     if (addr == 916) {
       brake_pressed = GET_BIT(to_push, 55U) != 0U;
     }
-
-    gas_pressed = brake_pressed = false;
 
     bool stock_ecu_detected = (addr == 832);
 
