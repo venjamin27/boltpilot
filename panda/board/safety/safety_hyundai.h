@@ -285,7 +285,7 @@ static int hyundai_tx_hook(CANPacket_t *to_send) {
     tx = msg_allowed(to_send, HYUNDAI_TX_MSGS, sizeof(HYUNDAI_TX_MSGS)/sizeof(HYUNDAI_TX_MSGS[0]));
   }
 
-  if (addr == 1056 && hyundai_auto_engage) {
+  if (false && addr == 1056 && hyundai_auto_engage) {
       int mainModeACC = GET_BYTE(to_send, 0) & 0x1U;
 
       if (mainModeACC == 1) {
