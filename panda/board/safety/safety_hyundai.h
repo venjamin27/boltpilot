@@ -377,12 +377,62 @@ static int hyundai_fwd_hook(int bus_num, int addr) {
 
   int bus_fwd = -1;
 
+  int is_lkas11_msg = (addr == 832);
+  int is_lfahda_mfc_msg = (addr == 1157);
+  int is_scc_msg = (addr == 1056) || (addr == 1057) || (addr == 1290) || (addr == 905);
+  //int is_fca_msg = (addr == 909) || (addr == 1155);
+  uint32_t now = microsecond_timer_get();
+
+  //int is_clu11_msg = (addr == 1265);
+  //int is_mdps12_msg = (addr = 593);
+  //int is_ems11_msg = (addr == 790);
   // forward cam to ccan and viceversa, except lkas cmd
+  if (apilot_connected != apilot_connected_prev) {
+      print("[hyundai_fwd_hook] apilot_connected="); puth2(apilot_connected); print("\n");
+      apilot_connected_prev = apilot_connected;
+  }
   if (bus_num == 0) {
     bus_fwd = 2;
+
+    // from neokii
+    if (addr == 593) {
+        if (now - last_ts_mdps12_from_op < 200000) {
+            bus_fwd = -1;
+        }
+    }
   }
-  if ((bus_num == 2) && (addr != 832) && (addr != 1157)) {
-    bus_fwd = 0;
+  if (bus_num == 2) {
+
+      //int block_msg = is_lkas11_msg || is_lfahda_mfc_msg || is_scc_msg;
+      int block_msg = is_lfahda_mfc_msg || is_scc_msg;
+      block_msg |= (LKAS11_forwarding) ? 0 : is_lkas11_msg;  // LKAS메시지에 불량이 있으면 TX를 안함.. 여기서 그냥 포워딩해버리자 => 시험..
+
+      if (apilot_connected) {
+          if (!block_msg) {
+              bus_fwd = 0;
+          }
+      }
+      else {
+          bus_fwd = 0;
+          if (is_lkas11_msg) {
+              LKAS11_lastTxTime = microsecond_timer_get();
+              LKAS11_maxTxDiffTime = 0;
+          }
+      }
+  }
+  if (apilot_connected) {
+      //uint32_t now = microsecond_timer_get();
+      uint32_t diff = now - LKAS11_lastTxTime;
+      if (diff > LKAS11_maxTxDiffTime)
+      {
+          LKAS11_maxTxDiffTime = diff;
+          //print("diff="); puth(diff); print("\n");
+      }
+      if (diff > 0x15000) {
+          apilot_connected = false;  // Neokii코드 참조: 오픈파일럿이 죽거나 재부팅하면,,,, 강제로 끊어줌.
+          print("apilot may be reboot...\n");
+          controls_allowed = false;
+      }
   }
 
   return bus_fwd;
