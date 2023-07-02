@@ -43,7 +43,7 @@ void hyundai_common_init(uint16_t param) {
 #else
   hyundai_longitudinal = false;
 #endif
-  hyundai_auto_engage = false;//GET_FLAG(param, HYUNDAI_PARAM_AUTO_ENGAGE);
+  hyundai_auto_engage = GET_FLAG(param, HYUNDAI_PARAM_AUTO_ENGAGE);
 }
 
 void hyundai_common_cruise_state_check(const int main_engaged) {
