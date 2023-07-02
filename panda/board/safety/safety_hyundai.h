@@ -426,7 +426,7 @@ static int hyundai_fwd_hook(int bus_num, int addr) {
       if (diff > LKAS11_maxTxDiffTime)
       {
           LKAS11_maxTxDiffTime = diff;
-          //print("diff="); puth(diff); print("\n");
+          print("diff="); puth(diff); print("\n");
       }
       if (diff > 0x15000) {
           apilot_connected = false;  // Neokii코드 참조: 오픈파일럿이 죽거나 재부팅하면,,,, 강제로 끊어줌.

@@ -11,6 +11,7 @@
 #include "early_init.h"
 #include "provision.h"
 
+#include "power_saving.h"
 #include "safety.h"
 
 #include "health.h"
@@ -22,8 +23,6 @@
 #else
   #include "drivers/bxcan.h"
 #endif
-
-#include "power_saving.h"
 
 #include "obj/gitversion.h"
 

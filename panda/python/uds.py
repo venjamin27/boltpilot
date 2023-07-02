@@ -229,10 +229,7 @@ class NegativeResponseError(Exception):
 class InvalidServiceIdError(Exception):
   pass
 
-class InvalidSubFunctionError(Exception):
-  pass
-
-class InvalidSubAddressError(Exception):
+class InvalidSubFunctioneError(Exception):
   pass
 
 _negative_response_codes = {
@@ -348,8 +345,6 @@ class CanClient():
 
             # Cut off sub addr in first byte
             if self.sub_addr is not None:
-              if rx_data[0] != self.sub_addr:
-                raise InvalidSubAddressError(f"isotp - rx: invalid sub-address: {rx_data[0]}, expected: {self.sub_addr}")
               rx_data = rx_data[1:]
 
             self.rx_buff.append(rx_data)
@@ -635,7 +630,7 @@ class UdsClient():
         resp_sfn = resp[1] if len(resp) > 1 else None
         if subfunction != resp_sfn:
           resp_sfn_hex = hex(resp_sfn) if resp_sfn is not None else None
-          raise InvalidSubFunctionError(f'invalid response subfunction: {resp_sfn_hex}')
+          raise InvalidSubFunctioneError(f'invalid response subfunction: {resp_sfn_hex:x}')
 
       # return data (exclude service id and sub-function id)
       return resp[(1 if subfunction is None else 2):]
