@@ -95,8 +95,12 @@ class DesireHelper:
     below_lane_change_speed = v_ego < LANE_CHANGE_SPEED_MIN
 
     alpha = 0.1
-    self.left_road_edge = self.left_road_edge * (1-alpha) + (-md.roadEdges[0].y[0] * alpha)
-    self.right_road_edge = self.right_road_edge * (1-alpha) + (md.roadEdges[1].y[0] * alpha)
+    #self.left_road_edge = self.left_road_edge * (1-alpha) + (-md.roadEdges[0].y[0] * alpha)
+    #self.right_road_edge = self.right_road_edge * (1-alpha) + (md.roadEdges[1].y[0] * alpha)
+
+    # 왼쪽엣지 - 왼쪽차선
+    self.left_road_edge = self.left_road_edge * (1-alpha) + (-md.roadEdges[0].y[0] + md.laneLines[1]) * alpha
+    self.right_road_edge = self.right_road_edge * (1-alpha) + (md.roadEdges[0].y[1] - md.laneLines[2]) * alpha
 
     #navInstruction
     direction = nav_direction = LaneChangeDirection.none
