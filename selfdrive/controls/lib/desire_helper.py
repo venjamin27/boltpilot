@@ -80,7 +80,7 @@ class DesireHelper:
     self.right_road_edge = 0.0
     self.desireReady = 0
 
-  def update(self, carstate, lateral_active, lane_change_prob, md, turn_prob, navInstruction, roadLimitSpeed):
+  def update(self, carstate, lateral_active, lane_change_prob, md, turn_prob, navInstruction, roadLimitSpeed, lane_width):
     self.paramsCount += 1
     if self.paramsCount > 100:
       self.autoTurnControl = int(Params().get("AutoTurnControl", encoding="utf8"))
@@ -131,9 +131,9 @@ class DesireHelper:
           elif nav_distance < 80 and self.navActive != 2: # 턴시작
             nav_direction = direction
         elif nav_distance < 180 and self.navActive == 0: # 차로변경시작
-          if (direction == LaneChangeDirection.right) and (self.right_road_edge > 3.5) and not carstate.rightBlindspot:
+          if (direction == LaneChangeDirection.right) and (self.right_road_edge > lane_width) and not carstate.rightBlindspot:
             nav_direction = direction
-          elif (direction == LaneChangeDirection.left) and (self.left_road_edge > 3.5) and not carstate.leftBlindspot:
+          elif (direction == LaneChangeDirection.left) and (self.left_road_edge > lane_width) and not carstate.leftBlindspot:
             nav_direction = direction
       else:
         self.desireReady = 0
@@ -161,7 +161,7 @@ class DesireHelper:
     one_blinker = leftBlinker != rightBlinker
 
     #로드엣지 읽기..
-    road_edge_detected = (((self.left_road_edge < 3.5) and leftBlinker) or ((self.right_road_edge < 3.5) and rightBlinker))
+    road_edge_detected = (((self.left_road_edge < lane_width) and leftBlinker) or ((self.right_road_edge < lane_width) and rightBlinker))
 
     #레인체인지 또는 자동턴 타임아웃
     laneChangeTimeMax = LANE_CHANGE_TIME_MAX if not self.turnControlState else self.autoTurnTimeMax
