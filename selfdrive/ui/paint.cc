@@ -1345,6 +1345,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
         x = 400;
     }
 
+    QString navText = "";
     // 속도표시
     if (true) {
         const auto road_limit_speed = sm["roadLimitSpeed"].getRoadLimitSpeed();
@@ -1392,10 +1393,30 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
         int xSpdDist = road_limit_speed.getXSpdDist();
         int xSpdLimit = road_limit_speed.getXSpdLimit();
         int xSignType = road_limit_speed.getXSignType();
+        navText = QString::fromStdString(road_limit_speed.getXRoadName());
 #ifdef __TEST
         xTurnInfo = 2;
         xDistToTurn = 120;
 #endif
+
+        auto navInstruction = sm["navInstruction"].getNavInstruction();
+        float navDistance = navInstruction.getManeuverDistance();
+        //float distance_remaining = navInstruction.getDistanceRemaining();
+        QString navType = QString::fromStdString(navInstruction.getManeuverType());
+        QString navModifier = QString::fromStdString(navInstruction.getManeuverModifier());
+        //navText = QString::fromStdString(navInstruction.getManeuverSecondaryText());
+
+        if (navType == "turn") {
+            if (navModifier == "sharp left" || navModifier == "slight left" || navModifier == "left") xTurnInfo = 1; // left turn
+            else if (navModifier == "sharp right" || navModifier == "slight right" || navModifier == "right") xTurnInfo = 2;
+            else if (navModifier == "uturn") xTurnInfo = 5;
+            xDistToTurn = navDistance;
+        }
+        else if (navType == "fork" || navType == "off ramp") {
+            if (navModifier == "slight left" || navModifier == "left") xTurnInfo = 3; // left turn
+            else if (navModifier == "slight right" || navModifier == "right") xTurnInfo = 4;
+            xDistToTurn = navDistance;
+        }
         if (xSpdLimit >= 0 && xSpdDist >= 0) {
             limit_speed = xSpdLimit;
             left_dist = xSpdDist;
@@ -1403,6 +1424,9 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
         else if (xTurnInfo >= 0) {
             left_dist = xDistToTurn;
         }
+
+        //sprintf(str, "%.1f/%.1f %s(%s)", distance, distance_remaining, type.length() ? type.toStdString().c_str() : "", modifier.length() ? modifier.toStdString().c_str() : "");
+
 
         int radar_tracks = Params().getBool("EnableRadarTracks");
         //QString nda_mode_str = QString::fromStdString(Params().get("AutoNaviSpeedCtrl"));
@@ -1439,7 +1463,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
         if (s->show_conn_info) {
             //ui_draw_text(s, strlen(str) / 2 * 35 / 2 + 50,40, str, 35, COLOR_WHITE, BOLD);
             if (sccBus) ui_draw_image(s, { 30, 20, 120, 54 }, "ic_scc2", 1.0f);
-            if (activeNDA) ui_draw_image(s, { 30 + 135, 20, 120, 54 }, "ic_nda", 1.0f);
+            if (activeNDA%100==1) ui_draw_image(s, { 30 + 135, 20, 120, 54 }, "ic_nda", 1.0f);
             if (radar_tracks) ui_draw_image(s, { 30 + 135 * 2, 20, 240, 54 }, "ic_radartracks", 1.0f);
         }
 
@@ -1604,14 +1628,19 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
         time_t now = time(nullptr);
         struct tm* local = localtime(&now);
 
+        int nav_y = 170 + 40;
+
         if (s->show_datetime == 1 || s->show_datetime == 2) {
             strftime(str, sizeof(str), "%H:%M", local);
             ui_draw_text(s, 170, 170, str, 100, COLOR_WHITE, BOLD, 3.0f, 8.0f);
+
         }
         if (s->show_datetime == 1 || s->show_datetime == 3) {
             strftime(str, sizeof(str), "%m-%d-%a", local);
             ui_draw_text(s, 170, 170+70, str, 60, COLOR_WHITE, BOLD, 3.0f, 8.0f);
+            nav_y += 70;
         }
+        ui_draw_text(s, 170, nav_y, navText.toStdString().c_str(), 35, COLOR_WHITE, BOLD, 3.0f, 8.0f);
     }
     v_ego_kph = v_ego_kph;
     brake_valid = brake_valid;
@@ -1713,7 +1742,8 @@ void DrawApilot::drawDebugText(UIState* s) {
     float distance_remaining = instruction.getDistanceRemaining();
     QString type = QString::fromStdString(instruction.getManeuverType());
     QString modifier = QString::fromStdString(instruction.getManeuverModifier());
-    sprintf(str,"%.1f/%.1f %s(%s)", distance, distance_remaining, type.length() ? type.toStdString().c_str() : "", modifier.length() ? modifier.toStdString().c_str() : "");
+    QString text2 = QString::fromStdString(instruction.getManeuverSecondaryText());
+    sprintf(str,"[%s], %.1f/%.1f %s(%s)", text2.toStdString().c_str(), distance, distance_remaining, type.length() ? type.toStdString().c_str() : "", modifier.length() ? modifier.toStdString().c_str() : "");
     y += dy;
     ui_draw_text(s, text_x, y, str, 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
 
@@ -1726,7 +1756,11 @@ void DrawApilot::drawDebugText(UIState* s) {
     int xRoadSignType = road_limit_speed.getXRoadSignType();
     int xRoadLimitSpeed = road_limit_speed.getXRoadLimitSpeed();
 
-    sprintf(str, "Mappy: Turn(%d,%d), Spd(%d,%d),Sign(%d), Road(%d,%d)", xTurnInfo, xDistToTurn, xSpdDist, xSpdLimit, xSignType, xRoadSignType, xRoadLimitSpeed);
+    auto lateralPlan = sm["lateralPlan"].getLateralPlan();
+    float laneWidth = lateralPlan.getLaneWidth();
+
+
+    sprintf(str, "Mappy: Turn(%d,%d), Spd(%d,%d),Sign(%d), Road(%d,%d), LW:%.1f", xTurnInfo, xDistToTurn, xSpdDist, xSpdLimit, xSignType, xRoadSignType, xRoadLimitSpeed, laneWidth);
     y += dy;
     ui_draw_text(s, text_x, y, str, 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
 

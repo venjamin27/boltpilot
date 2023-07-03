@@ -28,6 +28,7 @@ class RoadLimitSpeedServer:
     self.json_road_limit = None
     self.json_apilot = None
     self.active = 0
+    self.active_apilot = 0
     self.last_updated = 0
     self.last_updated_apilot = 0
     self.last_updated_active = 0
@@ -145,13 +146,15 @@ class RoadLimitSpeedServer:
   def send_sdp(self, sock):
     try:
       sock.sendto('EON:ROAD_LIMIT_SERVICE:v1'.encode(), (self.remote_addr[0], Port.BROADCAST_PORT))
+      print(self.remote_addr[0])
+      sock.sendto('EON:ROAD_LIMIT_SERVICE:v1'.encode(), (self.remote_addr[0], 2898))
     except:
       pass
 
   def udp_recv(self, sock):
     ret = False
     try:
-      ready = select.select([sock], [], [], 1.)
+      ready = select.select([sock], [], [], 0.5)
       ret = bool(ready[0])
       if ret:
         data, self.remote_addr = sock.recvfrom(2048)
@@ -226,6 +229,7 @@ class RoadLimitSpeedServer:
       try:
         self.lock.acquire()
         self.json_apilot = None
+        self.active_apilot = 0
       finally:
         self.lock.release()
 
@@ -310,6 +314,7 @@ def main():
         dat.roadLimitSpeed.sectionLeftTime = server.get_limit_val("section_left_time", 0)
         dat.roadLimitSpeed.sectionAdjustSpeed = server.get_limit_val("section_adjust_speed", False)
         dat.roadLimitSpeed.camSpeedFactor = server.get_limit_val("cam_speed_factor", CAMERA_SPEED_FACTOR)
+        xRoadName = server.get_limit_val("current_road_name", "")
 
         atype = server.get_apilot_val("type")
         value = server.get_apilot_val("value")
@@ -321,7 +326,7 @@ def main():
           value_int = -100
 
         now = sec_since_boot()
-        print(atype, value)
+        #print(atype, value)
         delta_dist = 0.0
         if carState is not None:
           CS = carState
@@ -374,6 +379,8 @@ def main():
           pass
         elif atype == 'opkrwazereportid':
           pass
+        elif atype == 'apilotman':
+          server.active_apilot = 1
         else:
           print("unknown{}={}".format(atype, value))
         #dat.roadLimitSpeed.xRoadName = apilot_val['opkrroadname']['value']
@@ -399,7 +406,8 @@ def main():
         else:
           xBumpDistance = -1
 
-
+        if server.active_apilot:
+          dat.roadLimitSpeed.active += 100
         #print("turn={},{}".format(xTurnInfo, xDistToTurn))
         dat.roadLimitSpeed.xTurnInfo = int(xTurnInfo)
         dat.roadLimitSpeed.xDistToTurn = int(xDistToTurn)
@@ -440,10 +448,10 @@ class RoadSpeedLimiter:
   def get_active(self):
     self.recv()
     if self.roadLimitSpeed is not None:
-      return self.roadLimitSpeed.active
+      return self.roadLimitSpeed.active % 100
     return 0
 
-  def get_max_speed(self, cluster_speed, is_metric, autoNaviSpeedCtrlStart=22, autoNaviSpeedCtrlEnd=6):
+  def get_max_speed(self, CS, cluster_speed, is_metric, autoNaviSpeedCtrlStart=22, autoNaviSpeedCtrlEnd=6):
 
     log = ""
     self.recv()
@@ -467,6 +475,15 @@ class RoadSpeedLimiter:
         log = "limit={:.1f},{:.1f}".format(self.roadLimitSpeed.xSpdLimit, self.roadLimitSpeed.xSpdDist)
 
         self.session_limit = False if cam_limit_speed_left_dist < 50 else self.session_limit
+
+      if cam_limit_speed <= 0:
+        if CS.speedLimit>0 and CS.speedLimitDistance>0:
+          cam_limit_speed_left_dist = CS.speedLimitDistance
+          cam_limit_speed = CS.speedLimit
+          self.session_limit = True if cam_limit_speed_left_dist > 3000 else False
+          log = "hda_limit={:.1f},{:.1f}".format(float(CS.speedLimit), CS.speedLimitDistance)
+
+          self.session_limit = False if cam_limit_speed_left_dist < 50 else self.session_limit
 
       section_limit_speed = self.roadLimitSpeed.sectionLimitSpeed
       section_left_dist = self.roadLimitSpeed.sectionLeftDist

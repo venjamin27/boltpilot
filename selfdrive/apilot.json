@@ -486,7 +486,7 @@
       "group": "조향일반",
       "name": "AutoTurnControl",
       "title": "자동턴기능(0)",
-      "descr": "0:사용안함,1:오파NOO, 2:맵피 NOO",
+      "descr": "0:자체NOO,1:오파NOO, 2:맵피 NOO",
       "min": 0,
       "max": 2,
       "default": 0,
@@ -1142,6 +1142,5 @@
       "default": 6,
       "unit": 1
     }
-
   ]
 }

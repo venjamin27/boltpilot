@@ -54,6 +54,7 @@ class CarState(CarStateBase):
     self.gear_shifter = GearShifter.drive # Gear_init for Nexo ?? unknown 21.02.23.LSW
 
     self.totalDistance = 0.0
+    self.speedLimitDistance = 0
 
   def update(self, cp, cp_cam):
     if self.CP.carFingerprint in CANFD_CAR:
@@ -260,6 +261,20 @@ class CarState(CarStateBase):
 
     self.totalDistance += ret.vEgo * DT_CTRL # 후진할때는?
     ret.totalDistance = self.totalDistance
+
+    if self.CP.naviCluster == 1:
+      speedLimit = cp.vl["Navi_HU"]["SpeedLim_Nav_Clu"]
+      speedLimitCam = cp.vl["Navi_HU"]["SpeedLim_Nav_Cam"]
+      ret.speedLimit = speedLimit if speedLimit < 255 and speedLimitCam == 1 else 0
+      if ret.speedLimit>0:
+        if self.speedLimitDistance <= self.totalDistance:
+          self.speedLimitDistance = self.totalDistance + ret.speedLimit * 10  #일반적으로 속도*10M 시점에 안내하는것으로 보임.
+      else:
+        self.speedLimitDistance = self.totalDistance
+      ret.speedLimitDistance = self.speedLimitDistance - self.totalDistance
+    else:
+      ret.speedLimit = 0
+      ret.speedLimitDistance = 0
 
     #scc12_2 = cp_cam.vl["SCC12"]
     #scc12 = cp.vl["SCC12"]
@@ -498,6 +513,13 @@ class CarState(CarStateBase):
     else:
       signals.append(("CF_Lvr_Gear", "LVR12"))
       checks.append(("LVR12", 100))
+
+    if CP.naviCluster == 1:
+      signals += [
+        ("SpeedLim_Nav_Clu", "Navi_HU"),
+        ("SpeedLim_Nav_Cam","Navi_HU")
+      ]
+      checks.append(("Navi_HU", 5))
 
     return CANParser(DBC[CP.carFingerprint]["pt"], signals, checks, 0, enforce_checks=False)
 

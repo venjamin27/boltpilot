@@ -312,7 +312,7 @@ class CruiseHelper:
     road_speed_limiter = get_road_speed_limiter()
     self.ndaActive = 1 if road_speed_limiter_get_active() > 0 else 0
     apply_limit_speed, road_limit_speed, left_dist, first_started, max_speed_log = \
-      road_speed_limiter.get_max_speed(clu11_speed, True, self.autoNaviSpeedCtrlStart, self.autoNaviSpeedCtrlEnd) #self.is_metric)
+      road_speed_limiter.get_max_speed(CS, clu11_speed, True, self.autoNaviSpeedCtrlStart, self.autoNaviSpeedCtrlEnd) #self.is_metric)
 
     controls.debugText1 = max_speed_log
 
@@ -762,8 +762,8 @@ class CruiseHelper:
         if self.naviSpeed < self.v_cruise_kph_apply:
           #self.send_apilot_event(controls, EventName.speedDown, 60.0)  #시끄러..
           pass
-        self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, self.naviSpeed)
-        self.ndaActive = 2 if self.ndaActive == 1 else 0
+          self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, self.naviSpeed)
+          self.ndaActive = 2 if self.ndaActive == 1 else 0
       if self.roadSpeed > 30 and False: # 로드스피드리밋 사용안함..
         if self.autoRoadLimitCtrl == 1:
           self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, self.roadSpeed)
