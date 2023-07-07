@@ -1417,7 +1417,8 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
             else if (navModifier == "slight right" || navModifier == "right") xTurnInfo = 4;
             xDistToTurn = navDistance;
         }
-        if (xSpdLimit >= 0 && xSpdDist >= 0) {
+        if (limit_speed > 0);
+        else if (xSpdLimit >= 0 && xSpdDist >= 0) {
             limit_speed = xSpdLimit;
             left_dist = xSpdDist;
         }
