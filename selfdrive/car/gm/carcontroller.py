@@ -124,7 +124,7 @@ class CarController:
     if self.CP.openpilotLongitudinalControl:
       # Gas/regen, brakes, and UI commands - all at 25Hz
 
-      if CC.longActive and actuators.accel < -0.45:
+      if CC.longActive and actuators.accel < -1.0:
         can_sends.append(gmcan.create_regen_paddle_command(self.packer_pt, CanBus.POWERTRAIN))
         actuators.regenPaddle = True  # for icon
       else:
@@ -172,12 +172,12 @@ class CarController:
           self.pedal_gas_max = interp(CS.out.vEgo, [0.0 * CV.KPH_TO_MS, 120.0 * CV.KPH_TO_MS], [0.3275,  0.3650])
 
           if actuators.accel > 0.:
-            accGain = interp(CS.out.vEgo, [0., 5], [0.25, 0.135])
+            accGain = interp(CS.out.vEgo, [0., 5], [0.23, 0.135])
           else:
-            accGain = interp(CS.out.vEgo, [0., 5], [0.25, 0.165])
+            accGain = interp(CS.out.vEgo, [0., 5], [0.23, 0.165])
 
-          accCorrection = 0.01
-          zero = interp(CS.out.vEgo,[0., 5], [0.156, 0.2185]) + accCorrection
+          accCorrection = 0.005
+          zero = interp(CS.out.vEgo,[0., 5, 30], [0.165, 0.2185, 0.245]) + accCorrection
           # accGain = interp(CS.out.vEgo,[0., 5], [0.25, 0.1667])
           pedal_gas = clip((actuators.accel * accGain + zero), 0.0, 1.0)
 
