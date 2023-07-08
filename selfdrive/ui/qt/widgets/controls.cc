@@ -3,16 +3,16 @@
 #include <QPainter>
 #include <QStyleOption>
 
-QFrame *horizontal_line(QWidget *parent) {
-  QFrame *line = new QFrame(parent);
-  line->setFrameShape(QFrame::StyledPanel);
-  line->setStyleSheet(R"(
+QFrame* horizontal_line(QWidget* parent) {
+    QFrame* line = new QFrame(parent);
+    line->setFrameShape(QFrame::StyledPanel);
+    line->setStyleSheet(R"(
     border-width: 1px;
     border-bottom-style: solid;
     border-color: gray;
   )");
-  line->setFixedHeight(2);
-  return line;
+    line->setFixedHeight(2);
+    return line;
 }
 
 AbstractControl::AbstractControl(const QString &title, const QString &desc, const QString &icon, QWidget *parent) : QFrame(parent) {

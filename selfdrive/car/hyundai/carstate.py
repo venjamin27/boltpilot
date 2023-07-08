@@ -268,7 +268,8 @@ class CarState(CarStateBase):
       ret.speedLimit = speedLimit if speedLimit < 255 and speedLimitCam == 1 else 0
       if ret.speedLimit>0:
         if self.speedLimitDistance <= self.totalDistance:
-          self.speedLimitDistance = self.totalDistance + ret.speedLimit * 10  #일반적으로 속도*10M 시점에 안내하는것으로 보임.
+          self.speedLimitDistance = self.totalDistance + ret.speedLimit * 6  #일반적으로 속도*6M 시점에 안내하는것으로 보임.
+        self.speedLimitDistance = max(self.totalDistance+1, self.speedLimitDistance) #구간또는 거리가 벗어난경우에는 1M를 유지함.
       else:
         self.speedLimitDistance = self.totalDistance
       ret.speedLimitDistance = self.speedLimitDistance - self.totalDistance

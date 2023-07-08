@@ -146,7 +146,7 @@ class RoadLimitSpeedServer:
   def send_sdp(self, sock):
     try:
       sock.sendto('EON:ROAD_LIMIT_SERVICE:v1'.encode(), (self.remote_addr[0], Port.BROADCAST_PORT))
-      print(self.remote_addr[0])
+      #print(self.remote_addr[0])
       sock.sendto('EON:ROAD_LIMIT_SERVICE:v1'.encode(), (self.remote_addr[0], 2898))
     except:
       pass
@@ -159,7 +159,7 @@ class RoadLimitSpeedServer:
       if ret:
         data, self.remote_addr = sock.recvfrom(2048)
         json_obj = json.loads(data.decode())
-        print(json_obj)
+        #print(json_obj)
 
         if 'cmd' in json_obj:
           try:

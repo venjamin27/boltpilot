@@ -762,8 +762,8 @@ class CruiseHelper:
         if self.naviSpeed < self.v_cruise_kph_apply:
           #self.send_apilot_event(controls, EventName.speedDown, 60.0)  #시끄러..
           pass
-          self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, self.naviSpeed)
-          self.ndaActive = 2 if self.ndaActive == 1 else 0
+        self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, self.naviSpeed)
+        self.ndaActive = 2 if self.ndaActive == 1 else 0
       if self.roadSpeed > 30 and False: # 로드스피드리밋 사용안함..
         if self.autoRoadLimitCtrl == 1:
           self.v_cruise_kph_apply = min(self.v_cruise_kph_apply, self.roadSpeed)
