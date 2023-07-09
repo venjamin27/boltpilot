@@ -259,7 +259,7 @@ class CarController:
           jerk_u = 0
         else:
           jerk_u = jerk #actuators.jerk *3
-          jerk_l = 0 if actuators.jerk > 0.5 else 1.0
+          jerk_l = jerk #0 if actuators.jerk > 0.5 else 1.0
         can_sends.extend(hyundaican.create_acc_commands_mix_scc(self.CP, self.packer, CC.enabled, accel, jerk_u, jerk_l, int(self.frame / 2),
                                                       hud_control, set_speed_in_units, stopping, CC, CS, self.softHoldMode))
         self.accel_last = accel
