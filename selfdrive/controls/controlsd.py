@@ -648,7 +648,7 @@ class Controls:
     # Check which actuators can be enabled
     standstill = CS.vEgo <= max(self.CP.minSteerSpeed, MIN_LATERAL_CONTROL_SPEED) or CS.standstill
     CC.latEnabled = True if self.active and CS.gearShifter in [GearShifter.drive, GearShifter.low] else False
-    CC.longEnabled = True if self.enabled and CS.gearShifter in [GearShifter.drive, GearShifter.low] else False
+    CC.longEnabled = True if self.enabled and CS.gearShifter in [GearShifter.low] else False
     if self.enableMainCruiseOnOff:
       CC.longEnabled = CC.longEnabled and CS.cruiseState.available #disable long control when MainCruise is On
     CC.latActive = self.active and not CS.steerFaultTemporary and not CS.steerFaultPermanent and \
