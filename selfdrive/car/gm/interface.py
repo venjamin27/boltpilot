@@ -310,7 +310,7 @@ class CarInterface(CarInterfaceBase):
     if self.CP.enableGasInterceptor and self.CP.transmissionType == TransmissionType.direct and not self.CS.single_pedal_mode:
       if ret.gearShifter in [GearShifter.reverse] :
         events.add(EventName.reverseGear)
-      elif ret.gearShifter in [GearShifter.park, GearShifter.neutral, GearShifter.manumatic, GearShifter.drive] :
+      elif ret.gearShifter in [GearShifter.park, GearShifter.neutral, GearShifter.manumatic] :
         events.add(EventName.wrongGear)
       else:
         pass
