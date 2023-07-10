@@ -144,6 +144,7 @@ def manager_init() -> None:
     ("PathOffset", "0"),  
     ("PathCostApply", "100"),
     ("HapticFeedbackWhenSpeedCamera", "0"),       
+    ("MaxAngleFrames", "89"),       
     ("SoftHoldMode", "1"),       
     ("ApplyModelDistOrder", "32"),       
     ("TrafficStopAdjustRatio", "90"),       

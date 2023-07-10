@@ -232,6 +232,11 @@ class CarInterface(CarInterfaceBase):
       ret.steerRatio = 16.3
       ret.centerToFront = ret.wheelbase * 0.5
       tire_stiffness_factor = 1.0
+      # On the Bolt, the ECM and camera independently check that you are either above 5 kph or at a stop
+      # with foot on brake to allow engagement, but this platform only has that check in the camera.
+      # TODO: check if this is split by EV/ICE with more platforms in the future
+      if ret.openpilotLongitudinalControl:
+        ret.minEnableSpeed = -1.
       CarInterfaceBase.configure_torque_tune(candidate, ret.lateralTuning)
 
     elif candidate == CAR.EQUINOX:
@@ -304,7 +309,7 @@ class CarInterface(CarInterfaceBase):
       events.add(EventName.parkBrake)
     if ret.cruiseState.standstill:
       events.add(EventName.resumeRequired)
-    # belowsteerspeed alerteventëŠ” ë‚´ì§€ ì•Šë„ë¡ í•œë‹¤. í…ìŠ¤íŠ¸ë¡œ í‘œì‹œë§Œ ë”°ë¡œ í•˜ì—¬ debug ui ì¶œë ¥ì„ í™•ë³´í•œë‹¤.  
+    # belowsteerspeed alertevent´Â ³»Áö ¾Êµµ·Ï ÇÑ´Ù. ÅØ½ºÆ®·Î Ç¥½Ã¸¸ µû·Î ÇÏ¿© debug ui Ãâ·ÂÀ» È®º¸ÇÑ´Ù.  
     #if ret.vEgo < self.CP.minSteerSpeed:
     #  events.add(EventName.belowSteerSpeed)
     if self.CP.enableGasInterceptor and self.CP.transmissionType == TransmissionType.direct and not self.CS.single_pedal_mode:
