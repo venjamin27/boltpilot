@@ -309,7 +309,7 @@ class CarInterface(CarInterfaceBase):
       events.add(EventName.parkBrake)
     if ret.cruiseState.standstill:
       events.add(EventName.resumeRequired)
-    # belowsteerspeed alertevent´Â ³»Áö ¾Êµµ·Ï ÇÑ´Ù. ÅØ½ºÆ®·Î Ç¥½Ã¸¸ µû·Î ÇÏ¿© debug ui Ãâ·ÂÀ» È®º¸ÇÑ´Ù.  
+    # belowsteerspeed alerteventëŠ” ë‚´ì§€ ì•Šë„ë¡ í•œë‹¤. í…ìŠ¤íŠ¸ë¡œ í‘œì‹œë§Œ ë”°ë¡œ í•˜ì—¬ debug ui ì¶œë ¥ì„ í™•ë³´í•œë‹¤.  
     #if ret.vEgo < self.CP.minSteerSpeed:
     #  events.add(EventName.belowSteerSpeed)
     if self.CP.enableGasInterceptor and self.CP.transmissionType == TransmissionType.direct and not self.CS.single_pedal_mode:
