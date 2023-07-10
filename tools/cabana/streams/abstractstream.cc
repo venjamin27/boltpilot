@@ -12,29 +12,12 @@ StreamNotifier *StreamNotifier::instance() {
 AbstractStream::AbstractStream(QObject *parent) : new_msgs(new QHash<MessageId, CanData>()), QObject(parent) {
   assert(parent != nullptr);
   QObject::connect(this, &AbstractStream::seekedTo, this, &AbstractStream::updateLastMsgsTo);
-  QObject::connect(&settings, &Settings::changed, this, &AbstractStream::updateMasks);
-  QObject::connect(dbc(), &DBCManager::DBCFileChanged, this, &AbstractStream::updateMasks);
-  QObject::connect(dbc(), &DBCManager::maskUpdated, this, &AbstractStream::updateMasks);
   QObject::connect(this, &AbstractStream::streamStarted, [this]() {
     emit StreamNotifier::instance()->changingStream();
     delete can;
     can = this;
     emit StreamNotifier::instance()->streamStarted();
   });
-}
-
-void AbstractStream::updateMasks() {
-  std::lock_guard lk(mutex);
-  masks.clear();
-  if (settings.suppress_defined_signals) {
-    for (auto s : sources) {
-      if (auto f = dbc()->findDBCFile(s)) {
-        for (const auto &[address, m] : f->getMessages()) {
-          masks[{.source = (uint8_t)s, .address = address}] = m.mask;
-        }
-      }
-    }
-  }
 }
 
 void AbstractStream::updateMessages(QHash<MessageId, CanData> *messages) {
@@ -46,7 +29,6 @@ void AbstractStream::updateMessages(QHash<MessageId, CanData> *messages) {
     sources.insert(id.source);
   }
   if (sources.size() != prev_src_size) {
-    updateMasks();
     emit sourcesUpdated(sources);
   }
   emit updated();
@@ -56,9 +38,7 @@ void AbstractStream::updateMessages(QHash<MessageId, CanData> *messages) {
 }
 
 void AbstractStream::updateEvent(const MessageId &id, double sec, const uint8_t *data, uint8_t size) {
-  std::lock_guard lk(mutex);
-  auto mask_it = masks.find(id);
-  std::vector<uint8_t> *mask = mask_it == masks.end() ? nullptr : &mask_it->second;
+  QList<uint8_t> mask = settings.suppress_defined_signals ? dbc()->mask(id) : QList<uint8_t>();
   all_msgs[id].compute((const char *)data, size, sec, getSpeed(), mask);
   if (!new_msgs->contains(id)) {
     new_msgs->insert(id, {});
@@ -67,8 +47,7 @@ void AbstractStream::updateEvent(const MessageId &id, double sec, const uint8_t 
 
 bool AbstractStream::postEvents() {
   // delay posting CAN message if UI thread is busy
-  if (processing == false) {
-    processing = true;
+  if (processing.exchange(true) == false) {
     for (auto it = new_msgs->begin(); it != new_msgs->end(); ++it) {
       it.value() = all_msgs[it.key()];
     }
@@ -105,8 +84,7 @@ void AbstractStream::updateLastMsgsTo(double sec) {
     auto it = std::lower_bound(ev.crbegin(), ev.crend(), last_ts, [](auto e, uint64_t ts) {
       return e->mono_time > ts;
     });
-    auto mask_it = masks.find(id);
-    std::vector<uint8_t> *mask = mask_it == masks.end() ? nullptr : &mask_it->second;
+    QList<uint8_t> mask = settings.suppress_defined_signals ? dbc()->mask(id) : QList<uint8_t>();
     if (it != ev.crend()) {
       double ts = (*it)->mono_time / 1e9 - routeStartTime();
       auto &m = all_msgs[id];
@@ -115,10 +93,7 @@ void AbstractStream::updateLastMsgsTo(double sec) {
       m.freq = m.count / std::max(1.0, ts);
     }
   }
-
-  // deep copy all_msgs to last_msgs to avoid multi-threading issue.
   last_msgs = all_msgs;
-  last_msgs.detach();
   // use a timer to prevent recursive calls
   QTimer::singleShot(0, [this]() {
     emit updated();
@@ -196,7 +171,7 @@ static inline QColor blend(const QColor &a, const QColor &b) {
   return QColor((a.red() + b.red()) / 2, (a.green() + b.green()) / 2, (a.blue() + b.blue()) / 2, (a.alpha() + b.alpha()) / 2);
 }
 
-void CanData::compute(const char *can_data, const int size, double current_sec, double playback_speed, const std::vector<uint8_t> *mask, uint32_t in_freq) {
+void CanData::compute(const char *can_data, const int size, double current_sec, double playback_speed, const QList<uint8_t> &mask, uint32_t in_freq) {
   ts = current_sec;
   ++count;
   const double sec_to_first_event = current_sec - (can->allEvents().front()->mono_time / 1e9 - can->routeStartTime());
@@ -215,7 +190,7 @@ void CanData::compute(const char *can_data, const int size, double current_sec, 
     const QColor &greyish_blue = !lighter ? GREYISH_BLUE : GREYISH_BLUE_LIGHTER;
 
     for (int i = 0; i < size; ++i) {
-      const uint8_t mask_byte = (mask && i < mask->size()) ? (~((*mask)[i])) : 0xff;
+      const uint8_t mask_byte = (i < mask.size()) ? (~mask[i]) : 0xff;
       const uint8_t last = dat[i] & mask_byte;
       const uint8_t cur = can_data[i] & mask_byte;
       const int delta = cur - last;

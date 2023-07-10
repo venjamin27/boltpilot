@@ -209,10 +209,10 @@ void CameraWidget::updateFrameMat() {
       // for narrow come and a little lower for wide cam.
       // TODO: use proper perspective transform?
       if (active_stream_type == VISION_STREAM_WIDE_ROAD) {
-        intrinsic_matrix = ECAM_INTRINSIC_MATRIX;
+        intrinsic_matrix = ecam_intrinsic_matrix;
         zoom = 2.0;
       } else {
-        intrinsic_matrix = FCAM_INTRINSIC_MATRIX;
+        intrinsic_matrix = fcam_intrinsic_matrix;
         zoom = 1.1;
       }
       const vec3 inf = {{1000., 0., 0.}};

@@ -53,6 +53,7 @@ typedef struct CameraInfo {
 
 typedef struct FrameMetadata {
   uint32_t frame_id;
+  unsigned int frame_length;
 
   // Timestamps
   uint64_t timestamp_sof; // only set on tici
@@ -89,6 +90,8 @@ public:
   std::unique_ptr<VisionBuf[]> camera_bufs;
   std::unique_ptr<FrameMetadata[]> camera_bufs_metadata;
   int rgb_width, rgb_height, rgb_stride;
+
+  mat3 yuv_transform;
 
   CameraBuf() = default;
   ~CameraBuf();

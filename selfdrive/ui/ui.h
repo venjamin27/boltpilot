@@ -17,8 +17,9 @@
 #include "common/params.h"
 #include "common/timing.h"
 
-const int UI_BORDER_SIZE = 30;
-const int UI_HEADER_HEIGHT = 420;
+const int bdr_s = 30;
+const int header_h = 420;
+const int footer_h = 280;
 
 const int UI_FREQ = 20; // Hz
 typedef cereal::CarControl::HUDControl::AudibleAlert AudibleAlert;
@@ -50,7 +51,6 @@ struct Alert {
   QString text2;
   QString type;
   cereal::ControlsState::AlertSize size;
-  cereal::ControlsState::AlertStatus status;
   AudibleAlert sound;
 
   bool equal(const Alert &a2) {
@@ -59,43 +59,34 @@ struct Alert {
 
   static Alert get(const SubMaster &sm, uint64_t started_frame) {
     const cereal::ControlsState::Reader &cs = sm["controlsState"].getControlsState();
-    const uint64_t controls_frame = sm.rcv_frame("controlsState");
-
-    Alert alert = {};
-    if (controls_frame >= started_frame) {  // Don't get old alert.
-      alert = {cs.getAlertText1().cStr(), cs.getAlertText2().cStr(),
-               cs.getAlertType().cStr(), cs.getAlertSize(),
-               cs.getAlertStatus(),
-               cs.getAlertSound()};
-    }
-
-    if (!sm.updated("controlsState") && (sm.frame - started_frame) > 5 * UI_FREQ) {
+    if (sm.updated("controlsState")) {
+      return {cs.getAlertText1().cStr(), cs.getAlertText2().cStr(),
+              cs.getAlertType().cStr(), cs.getAlertSize(),
+              cs.getAlertSound()};
+    } else if ((sm.frame - started_frame) > 5 * UI_FREQ) {
       const int CONTROLS_TIMEOUT = 5;
       const int controls_missing = (nanos_since_boot() - sm.rcv_time("controlsState")) / 1e9;
 
       // Handle controls timeout
-      if (controls_frame < started_frame) {
+      if (sm.rcv_frame("controlsState") < started_frame) {
         // car is started, but controlsState hasn't been seen at all
-        alert = {"openpilot Unavailable", "Waiting for controls to start",
-                 "controlsWaiting", cereal::ControlsState::AlertSize::MID,
-                 cereal::ControlsState::AlertStatus::NORMAL,
-                 AudibleAlert::NONE};
+        return {"openpilot Unavailable", "Waiting for controls to start",
+                "controlsWaiting", cereal::ControlsState::AlertSize::MID,
+                AudibleAlert::NONE};
       } else if (controls_missing > CONTROLS_TIMEOUT && !Hardware::PC()) {
         // car is started, but controls is lagging or died
         if (cs.getEnabled() && (controls_missing - CONTROLS_TIMEOUT) < 10) {
-          alert = {"TAKE CONTROL IMMEDIATELY", "Controls Unresponsive",
-                   "controlsUnresponsive", cereal::ControlsState::AlertSize::FULL,
-                   cereal::ControlsState::AlertStatus::CRITICAL,
-                   AudibleAlert::WARNING_IMMEDIATE};
+          return {"TAKE CONTROL IMMEDIATELY", "Controls Unresponsive",
+                  "controlsUnresponsive", cereal::ControlsState::AlertSize::FULL,
+                  AudibleAlert::WARNING_IMMEDIATE};
         } else {
-          alert = {"Controls Unresponsive", "Reboot Device",
-                   "controlsUnresponsivePermanent", cereal::ControlsState::AlertSize::MID,
-                   cereal::ControlsState::AlertStatus::NORMAL,
-                   AudibleAlert::NONE};
+          return {"Controls Unresponsive", "Reboot Device",
+                  "controlsUnresponsivePermanent", cereal::ControlsState::AlertSize::MID,
+                  AudibleAlert::NONE};
         }
       }
     }
-    return alert;
+    return {};
   }
 };
 
@@ -115,12 +106,6 @@ const QColor bg_colors [] = {
   [STATUS_WARNING] = QColor(0xDA, 0x6F, 0x25, 0xf1),
   [STATUS_ALERT] = QColor(0xC9, 0x22, 0x31, 0xf1),
   [STATUS_CRUISE_STOP] = QColor(0x00, 0x64, 0xC8, 0x96),
-};
-
-static std::map<cereal::ControlsState::AlertStatus, QColor> alert_colors = {
-  {cereal::ControlsState::AlertStatus::NORMAL, QColor(0x15, 0x15, 0x15, 0xf1)},
-  {cereal::ControlsState::AlertStatus::USER_PROMPT, QColor(0xDA, 0x6F, 0x25, 0xf1)},
-  {cereal::ControlsState::AlertStatus::CRITICAL, QColor(0xC9, 0x22, 0x31, 0xf1)},
 };
 
 typedef struct {
@@ -260,6 +245,7 @@ private:
 
   void updateBrightness(const UIState &s);
   void updateWakefulness(const UIState &s);
+  bool motionTriggered(const UIState &s);
   void setAwake(bool on);
 
 signals:

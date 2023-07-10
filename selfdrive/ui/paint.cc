@@ -1383,7 +1383,6 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
         x = 400;
     }
 
-    QString navText = "";
     // 속도표시
     if (true) {
         const auto road_limit_speed = sm["roadLimitSpeed"].getRoadLimitSpeed();
@@ -1425,47 +1424,6 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
             limit_speed = sectionLimitSpeed;
             left_dist = sectionLeftDist;
         }
-        //const auto road_limit_speed = sm["roadLimitSpeed"].getRoadLimitSpeed();
-        int xTurnInfo = road_limit_speed.getXTurnInfo();
-        int xDistToTurn = road_limit_speed.getXDistToTurn();
-        int xSpdDist = road_limit_speed.getXSpdDist();
-        int xSpdLimit = road_limit_speed.getXSpdLimit();
-        int xSignType = road_limit_speed.getXSignType();
-        navText = QString::fromStdString(road_limit_speed.getXRoadName());
-#ifdef __TEST
-        xTurnInfo = 2;
-        xDistToTurn = 120;
-#endif
-
-        auto navInstruction = sm["navInstruction"].getNavInstruction();
-        float navDistance = navInstruction.getManeuverDistance();
-        //float distance_remaining = navInstruction.getDistanceRemaining();
-        QString navType = QString::fromStdString(navInstruction.getManeuverType());
-        QString navModifier = QString::fromStdString(navInstruction.getManeuverModifier());
-        //navText = QString::fromStdString(navInstruction.getManeuverSecondaryText());
-
-        if (navType == "turn") {
-            if (navModifier == "sharp left" || navModifier == "slight left" || navModifier == "left") xTurnInfo = 1; // left turn
-            else if (navModifier == "sharp right" || navModifier == "slight right" || navModifier == "right") xTurnInfo = 2;
-            else if (navModifier == "uturn") xTurnInfo = 5;
-            xDistToTurn = navDistance;
-        }
-        else if (navType == "fork" || navType == "off ramp") {
-            if (navModifier == "slight left" || navModifier == "left") xTurnInfo = 3; // left turn
-            else if (navModifier == "slight right" || navModifier == "right") xTurnInfo = 4;
-            xDistToTurn = navDistance;
-        }
-        if (limit_speed > 0);
-        else if (xSpdLimit >= 0 && xSpdDist >= 0) {
-            limit_speed = xSpdLimit;
-            left_dist = xSpdDist;
-        }
-        else if (xTurnInfo >= 0) {
-            left_dist = xDistToTurn;
-        }
-
-        //sprintf(str, "%.1f/%.1f %s(%s)", distance, distance_remaining, type.length() ? type.toStdString().c_str() : "", modifier.length() ? modifier.toStdString().c_str() : "");
-
 
         int radar_tracks = Params().getBool("EnableRadarTracks");
         //QString nda_mode_str = QString::fromStdString(Params().get("AutoNaviSpeedCtrl"));
@@ -1502,7 +1460,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
         if (s->show_conn_info) {
             //ui_draw_text(s, strlen(str) / 2 * 35 / 2 + 50,40, str, 35, COLOR_WHITE, BOLD);
             if (sccBus) ui_draw_image(s, { 30, 20, 120, 54 }, "ic_scc2", 1.0f);
-            if (activeNDA%100==1) ui_draw_image(s, { 30 + 135, 20, 120, 54 }, "ic_nda", 1.0f);
+            if (activeNDA) ui_draw_image(s, { 30 + 135, 20, 120, 54 }, "ic_nda", 1.0f);
             if (radar_tracks) ui_draw_image(s, { 30 + 135 * 2, 20, 240, 54 }, "ic_radartracks", 1.0f);
         }
 
@@ -1556,12 +1514,6 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
             bx = 100;
             by = 650;
         }
-        if (left_dist > 0) {
-            if (left_dist < 1000) sprintf(str, "%d m", left_dist);
-            else  sprintf(str, "%.1f km", left_dist / 1000.f);
-            ui_draw_text(s, bx, by + 120, str, 40, COLOR_WHITE, BOLD);
-        }
-
         if (limit_speed > 0) {
             nvgBeginPath(s->vg);
             nvgCircle(s->vg, bx, by, 140 / 2);
@@ -1575,34 +1527,12 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
             nvgCircle(s->vg, bx, by, 110 / 2);
             nvgFillColor(s->vg, COLOR_WHITE);
             nvgFill(s->vg);
-            if (xSignType == 124) {
-                sprintf(str, "방지턱");
-                ui_draw_text(s, bx, by + 20, str, 35, COLOR_BLACK, BOLD, 0.0f, 0.0f);
-            }
-            else {
-                sprintf(str, "%d", limit_speed);
-                ui_draw_text(s, bx, by + 25, str, 60, COLOR_BLACK, BOLD, 0.0f, 0.0f);
-            }
-            if (false && left_dist > 0) {
+            sprintf(str, "%d", limit_speed);
+            ui_draw_text(s, bx, by + 25, str, 60, COLOR_BLACK, BOLD, 0.0f, 0.0f);
+            if (left_dist > 0) {
                 if (left_dist < 1000) sprintf(str, "%d m", left_dist);
                 else  sprintf(str, "%.1f km", left_dist / 1000.f);
                 ui_draw_text(s, bx, by + 120, str, 40, COLOR_WHITE, BOLD);
-            }
-        }
-        else if (xTurnInfo >= 0) {
-            switch (xTurnInfo) {
-            case 1: ui_draw_image(s, { bx - icon_size / 2, by - icon_size / 2, icon_size, icon_size }, "ic_turn_l", 1.0f); break;
-            case 2: ui_draw_image(s, { bx - icon_size / 2, by - icon_size / 2, icon_size, icon_size }, "ic_turn_r", 1.0f); break;
-            case 3: ui_draw_image(s, { bx - icon_size / 2, by - icon_size / 2, icon_size, icon_size }, "ic_lane_change_l", 1.0f); break;
-            case 4: ui_draw_image(s, { bx - icon_size / 2, by - icon_size / 2, icon_size, icon_size }, "ic_lane_change_r", 1.0f); break;
-            case 5: ui_draw_text(s, bx, by + 20, "U턴", 35, COLOR_WHITE, BOLD, 0.0f, 0.0f); break;
-            case 35: ui_draw_text(s, bx, by + 20, "좌측고가 진입", 35, COLOR_WHITE, BOLD, 0.0f, 0.0f); break;
-            case 43: ui_draw_text(s, bx, by + 20, "지하차도 우측", 35, COLOR_WHITE, BOLD, 0.0f, 0.0f); break;
-            case 48: ui_draw_text(s, bx, by + 20, "휴게소", 35, COLOR_WHITE, BOLD, 0.0f, 0.0f); break;
-            default:
-                sprintf(str, "%d", xTurnInfo);
-                ui_draw_text(s, bx, by + 20, str, 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
-                break;
             }
         }
         else if (roadLimitSpeed > 0 && roadLimitSpeed < 200) {
@@ -1623,7 +1553,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
     }
     // Tpms...
     if (s->show_tpms) {
-        int bx = (192 - 24) / 2 + (UI_BORDER_SIZE * 2);
+        int bx = (192 - 24) / 2 + (bdr_s * 2);
         int by = s->fb_h - 280 / 2;
         auto tpms = car_state.getTpms();
         float fl = tpms.getFl();
@@ -1677,19 +1607,14 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
         time_t now = time(nullptr);
         struct tm* local = localtime(&now);
 
-        int nav_y = 170 + 40;
-
         if (s->show_datetime == 1 || s->show_datetime == 2) {
             strftime(str, sizeof(str), "%H:%M", local);
             ui_draw_text(s, 170, 170, str, 100, COLOR_WHITE, BOLD, 3.0f, 8.0f);
-
         }
         if (s->show_datetime == 1 || s->show_datetime == 3) {
             strftime(str, sizeof(str), "%m-%d-%a", local);
             ui_draw_text(s, 170, 170+70, str, 60, COLOR_WHITE, BOLD, 3.0f, 8.0f);
-            nav_y += 70;
         }
-        ui_draw_text(s, 170, nav_y, navText.toStdString().c_str(), 35, COLOR_WHITE, BOLD, 3.0f, 8.0f);
     }
     v_ego_kph = v_ego_kph;
     brake_valid = brake_valid;
@@ -1718,9 +1643,7 @@ void DrawApilot::drawDeviceState(UIState* s) {
         cpuTemp = cpuTemp / (float)std::size(cpuTempC);
     }
     auto car_state = sm["carState"].getCarState();
-    const cereal::ModelDataV2::Reader& model = sm["modelV2"].getModelV2();
-    bool navEnabled = model.getNavEnabled();
-    sprintf(str, "%d MEM: %d%% STORAGE: %.0f%% CPU: %.0f°C AMBIENT: %.0f°C", navEnabled, memoryUsagePercent, freeSpacePercent, cpuTemp, ambientTemp);
+    sprintf(str, "MEM: %d%% STORAGE: %.0f%% CPU: %.0f°C AMBIENT: %.0f°C", memoryUsagePercent, freeSpacePercent, cpuTemp, ambientTemp);
     int r = interp<float>(cpuTemp, { 50.f, 90.f }, { 200.f, 255.f }, false);
     int g = interp<float>(cpuTemp, { 50.f, 90.f }, { 255.f, 200.f }, false);
     NVGcolor textColor = nvgRGBA(r, g, 200, 255);
@@ -1774,49 +1697,6 @@ void DrawApilot::drawDebugText(UIState* s) {
     qstr = QString::fromStdString(controls_state.getDebugText2().cStr());
     y += dy;
     ui_draw_text(s, text_x, y, qstr.toStdString().c_str(), 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
-
-    const cereal::ModelDataV2::Reader& model = sm["modelV2"].getModelV2();
-    bool navEnabled = model.getNavEnabled();
-    auto meta = sm["modelV2"].getModelV2().getMeta();
-    const char* desireStr[7] = { "None", "TurnLeft", "TurnRight", "ChangeLeft", "ChangeRight", "KeepLeft", "KeepRight" };
-    float desireState[7];
-    int     desireActive = 0;
-    for (int i = 0; i < 7; i++) {
-        desireState[i] = meta.getDesireState()[i];
-        if (desireState[i] > 0.5) desireActive = i;
-    }
-    sprintf(str, "NOO:%d, %10s(%.1f,%.1f,%.1f,%.1f,%.1f,%.1f,%.1f)", navEnabled, desireStr[desireActive], desireState[0], desireState[1], desireState[2], desireState[3], desireState[4], desireState[5], desireState[6]);
-    y += dy;
-    ui_draw_text(s, text_x, y, str, 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
-
-
-    auto instruction = sm["navInstruction"].getNavInstruction();
-    float distance = instruction.getManeuverDistance();
-    float distance_remaining = instruction.getDistanceRemaining();
-    QString type = QString::fromStdString(instruction.getManeuverType());
-    QString modifier = QString::fromStdString(instruction.getManeuverModifier());
-    QString text2 = QString::fromStdString(instruction.getManeuverSecondaryText());
-    sprintf(str,"[%s], %.1f/%.1f %s(%s)", text2.toStdString().c_str(), distance, distance_remaining, type.length() ? type.toStdString().c_str() : "", modifier.length() ? modifier.toStdString().c_str() : "");
-    y += dy;
-    ui_draw_text(s, text_x, y, str, 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
-
-    const auto road_limit_speed = sm["roadLimitSpeed"].getRoadLimitSpeed();
-    int xTurnInfo = road_limit_speed.getXTurnInfo();
-    int xDistToTurn = road_limit_speed.getXDistToTurn();
-    int xSpdDist = road_limit_speed.getXSpdDist();
-    int xSpdLimit = road_limit_speed.getXSpdLimit();
-    int xSignType = road_limit_speed.getXSignType();
-    int xRoadSignType = road_limit_speed.getXRoadSignType();
-    int xRoadLimitSpeed = road_limit_speed.getXRoadLimitSpeed();
-
-    auto lateralPlan = sm["lateralPlan"].getLateralPlan();
-    float laneWidth = lateralPlan.getLaneWidth();
-
-
-    sprintf(str, "Mappy: Turn(%d,%d), Spd(%d,%d),Sign(%d), Road(%d,%d), LW:%.1f", xTurnInfo, xDistToTurn, xSpdDist, xSpdLimit, xSignType, xRoadSignType, xRoadLimitSpeed, laneWidth);
-    y += dy;
-    ui_draw_text(s, text_x, y, str, 35, COLOR_WHITE, BOLD, 0.0f, 0.0f);
-
     //p.drawText(text_x, y + 160, QString::fromStdString(controls_state.getDebugText2().cStr()));
     //p.drawText(text_x, y + 240, QString::fromStdString(controls_state.getDebugText1().cStr()));
 
@@ -1910,8 +1790,8 @@ void ui_draw_alert(UIState* s) {
         ui_draw_text(s, s->fb_w / 2, s->fb_h - 200, alert.text2.toStdString().c_str(), 70, alert_color, BOLD, 3.0f, 8.0f);
     }
 }
-void ui_update_alert(const Alert& a) {
-    //alert_color = nvgRGBA(color.red(), color.green(), color.blue(), color.alpha());
+void ui_update_alert(const Alert& a, const QColor& color) {
+    alert_color = nvgRGBA(color.red(), color.green(), color.blue(), color.alpha());
     //printf("r=%d, g=%d, b=%d\n", color.red(), color.green(), color.blue());
     alert = a;
 }

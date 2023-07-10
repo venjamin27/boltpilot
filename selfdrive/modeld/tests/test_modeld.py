@@ -9,7 +9,10 @@ from cereal.visionipc import VisionIpcServer, VisionStreamType
 from common.transformations.camera import tici_f_frame_size
 from common.realtime import DT_MDL
 from selfdrive.manager.process_config import managed_processes
-from selfdrive.test.process_replay.vision_meta import meta_from_camera_state
+
+
+VIPC_STREAM = {"roadCameraState": VisionStreamType.VISION_STREAM_ROAD, "driverCameraState": VisionStreamType.VISION_STREAM_DRIVER,
+               "wideRoadCameraState": VisionStreamType.VISION_STREAM_WIDE_ROAD}
 
 IMG = np.zeros(int(tici_f_frame_size[0]*tici_f_frame_size[1]*(3/2)), dtype=np.uint8)
 IMG_BYTES = IMG.flatten().tobytes()
@@ -45,10 +48,9 @@ class TestModeld(unittest.TestCase):
       cs.frameId = frame_id
       cs.timestampSof = int((frame_id * DT_MDL) * 1e9)
       cs.timestampEof = int(cs.timestampSof + (DT_MDL * 1e9))
-      cam_meta = meta_from_camera_state(cam)
 
       self.pm.send(msg.which(), msg)
-      self.vipc_server.send(cam_meta.stream, IMG_BYTES, cs.frameId,
+      self.vipc_server.send(VIPC_STREAM[msg.which()], IMG_BYTES, cs.frameId,
                             cs.timestampSof, cs.timestampEof)
     return cs
 

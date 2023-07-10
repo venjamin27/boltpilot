@@ -1,21 +1,21 @@
 {
   "Offroad_TemperatureTooHigh": {
-    "text": "Device temperature too high. System cooling down before starting. Current internal component temperature: %1",
+    "text": "Device temperature too high. System won't start.",
     "severity": 1
   },
   "Offroad_ConnectivityNeededPrompt": {
-    "text": "Immediately connect to the internet to check for updates. If you do not connect to the internet, openpilot won't engage in %1",
+    "text": "Immediately connect to the internet to check for updates. If you do not connect to the internet, openpilot won't engage in ",
     "severity": 0,
-    "_comment": "Set extra field to number of days"
+    "_comment": "Append the number of days at the end of the text"
   },
   "Offroad_ConnectivityNeeded": {
     "text": "Connect to internet to check for updates. openpilot won't automatically start until it connects to internet to check for updates.",
     "severity": 1
   },
   "Offroad_UpdateFailed": {
-    "text": "Unable to download updates\n%1",
+    "text": "Unable to download updates\n",
     "severity": 1,
-    "_comment": "Set extra field to the failed reason."
+    "_comment": "Append the command and error to the text."
   },
   "Offroad_InvalidTime": {
     "text": "Invalid date and time settings, system won't start. Connect to internet to set time.",
