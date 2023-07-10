@@ -3,18 +3,16 @@
 #include <QPainter>
 #include <QStyleOption>
 
-QFrame *horizontal_line(QWidget *parent) {
-  QFrame *line = new QFrame(parent);
-  line->setFrameShape(QFrame::StyledPanel);
-  line->setStyleSheet(R"(
-    margin-left: 40px;
-    margin-right: 40px;
+QFrame* horizontal_line(QWidget* parent) {
+    QFrame* line = new QFrame(parent);
+    line->setFrameShape(QFrame::StyledPanel);
+    line->setStyleSheet(R"(
     border-width: 1px;
     border-bottom-style: solid;
     border-color: gray;
   )");
-  line->setFixedHeight(2);
-  return line;
+    line->setFixedHeight(2);
+    return line;
 }
 
 AbstractControl::AbstractControl(const QString &title, const QString &desc, const QString &icon, QWidget *parent) : QFrame(parent) {
@@ -126,20 +124,4 @@ void ElidedLabel::paintEvent(QPaintEvent *event) {
   QStyleOption opt;
   opt.initFrom(this);
   style()->drawItemText(&painter, contentsRect(), alignment(), opt.palette, isEnabled(), elidedText_, foregroundRole());
-}
-
-ClickableWidget::ClickableWidget(QWidget *parent) : QWidget(parent) { }
-
-void ClickableWidget::mouseReleaseEvent(QMouseEvent *event) {
-  if (rect().contains(event->pos())) {
-    emit clicked();
-  }
-}
-
-// Fix stylesheets
-void ClickableWidget::paintEvent(QPaintEvent *) {
-  QStyleOption opt;
-  opt.init(this);
-  QPainter p(this);
-  style()->drawPrimitive(QStyle::PE_Widget, &opt, &p, this);
 }

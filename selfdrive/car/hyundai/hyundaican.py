@@ -9,7 +9,23 @@ def create_lkas11(packer, frame, car_fingerprint, send_lfa_mfa, apply_steer, ste
                   torque_fault, lkas11, sys_warning, sys_state, enabled,
                   left_lane, right_lane,
                   left_lane_depart, right_lane_depart):
-  values = lkas11
+  values = {s: lkas11[s] for s in [
+    "CF_Lkas_LdwsActivemode",
+    "CF_Lkas_LdwsSysState",
+    "CF_Lkas_SysWarning",
+    "CF_Lkas_LdwsLHWarning",
+    "CF_Lkas_LdwsRHWarning",
+    "CF_Lkas_HbaLamp",
+    "CF_Lkas_FcwBasReq",
+    "CF_Lkas_HbaSysState",
+    "CF_Lkas_FcwOpt",
+    "CF_Lkas_HbaOpt",
+    "CF_Lkas_FcwSysState",
+    "CF_Lkas_FcwCollisionWarning",
+    "CF_Lkas_FusionState",
+    "CF_Lkas_FcwOpt_USM",
+    "CF_Lkas_LdwsOpt_USM",
+  ]}
   values["CF_Lkas_LdwsSysState"] = sys_state
   values["CF_Lkas_SysWarning"] = 0 # ajouatom: 계기판에 안나오게함..   #3 if sys_warning else 0
   values["CF_Lkas_LdwsLHWarning"] = left_lane_depart
@@ -82,7 +98,20 @@ def create_lkas11(packer, frame, car_fingerprint, send_lfa_mfa, apply_steer, ste
 
 
 def create_clu11(packer, frame, clu11, button, car_fingerprint):
-  values = clu11
+  values = {s: clu11[s] for s in [
+    "CF_Clu_CruiseSwState",
+    "CF_Clu_CruiseSwMain",
+    "CF_Clu_SldMainSW",
+    "CF_Clu_ParityBit1",
+    "CF_Clu_VanzDecimal",
+    "CF_Clu_Vanz",
+    "CF_Clu_SPEED_UNIT",
+    "CF_Clu_DetentOut",
+    "CF_Clu_RheostatLevel",
+    "CF_Clu_CluInfo",
+    "CF_Clu_AmpInfo",
+    "CF_Clu_AliveCnt1",
+  ]}
   values["CF_Clu_CruiseSwState"] = button
   values["CF_Clu_AliveCnt1"] = frame % 0x10
   # send buttons to camera on camera-scc based cars
@@ -115,7 +144,7 @@ def create_lfahda_mfc(packer, CC, blinking_signal):
   # VAL_ 1157 HDA_SysWarning 0 "no_message" 1 "driving_convenience_systems_cancelled" 2 "highway_drive_assist_system_cancelled";
   return packer.make_can_msg("LFAHDA_MFC", 0, values)
 
-def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud_control, set_speed, stopping, CC, CS, softHoldMode):
+def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, lower_jerk, idx, hud_control, set_speed, stopping, CC, CS, softHoldMode):
   lead_visible = hud_control.leadVisible
   cruiseGap = hud_control.cruiseGap
   softHold = hud_control.softHold
@@ -151,14 +180,14 @@ def create_acc_commands_mix_scc(CP, packer, enabled, accel, upper_jerk, idx, hud
     #comfortBandUpper = 50 if CP.carFingerprint in (CAR.KONA_EV) else 0
     #comfortBandLower = 50 if CP.carFingerprint in (CAR.KONA_EV) else 0
     jerkUpperLimit = upper_jerk
-    jerkLowerLimit = upper_jerk #5.0
+    jerkLowerLimit = lower_jerk #upper_jerk #5.0
   else:
     scc12_accMode = 0
     scc14_accMode = 0
     comfortBandUpper = 0.0
     comfortBandLower = 0.0
     jerkUpperLimit = upper_jerk
-    jerkLowerLimit = upper_jerk #5.0
+    jerkLowerLimit = lower_jerk #5.0
     stopReq = 0
 
   makeNewCommands = True if CP.sccBus == 0 else False
