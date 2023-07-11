@@ -180,7 +180,10 @@ class DesireHelper:
           need_torque = True
           nav_direction = direction
         nav_event = EventName.audioTurn if nav_turn else EventName.audioLaneChange
+      else:
+        nav_turn = False
     else:
+      nav_turn = False
       self.desireReady = 0
       direction = LaneChangeDirection.none
 
@@ -247,7 +250,6 @@ class DesireHelper:
       self.lane_change_direction = LaneChangeDirection.none
     else:
       if self.lane_change_state == LaneChangeState.off and one_blinker and not self.prev_one_blinker: # and not below_lane_change_speed:
-        print(nav_direction, nav_turn)
         self.lane_change_state = LaneChangeState.preLaneChange
         self.lane_change_ll_prob = 1.0
 
