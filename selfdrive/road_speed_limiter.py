@@ -407,7 +407,7 @@ def main():
           xBumpDistance = -1
 
         if server.active_apilot:
-          dat.roadLimitSpeed.active += 100
+          dat.roadLimitSpeed.active = 100 + server.active
         #print("turn={},{}".format(xTurnInfo, xDistToTurn))
         dat.roadLimitSpeed.xTurnInfo = int(xTurnInfo)
         dat.roadLimitSpeed.xDistToTurn = int(xDistToTurn)
@@ -476,12 +476,15 @@ class RoadSpeedLimiter:
 
         self.session_limit = False if cam_limit_speed_left_dist < 50 else self.session_limit
 
+      if CS.speedLimit>0 and CS.speedLimitDistance>0:
+        log = "hda_limit={:.1f},{:.1f}".format(float(CS.speedLimit), CS.speedLimitDistance)
+
       if cam_limit_speed <= 0:
         if CS.speedLimit>0 and CS.speedLimitDistance>0:
           cam_limit_speed_left_dist = CS.speedLimitDistance
           cam_limit_speed = CS.speedLimit
           self.session_limit = True if cam_limit_speed_left_dist > 3000 else False
-          log = "hda_limit={:.1f},{:.1f}".format(float(CS.speedLimit), CS.speedLimitDistance)
+          #log = "hda_limit={:.1f},{:.1f}".format(float(CS.speedLimit), CS.speedLimitDistance)
 
           self.session_limit = False if cam_limit_speed_left_dist < 50 else self.session_limit
 

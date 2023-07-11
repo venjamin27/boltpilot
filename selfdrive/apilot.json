@@ -485,32 +485,12 @@
     {
       "group": "조향일반",
       "name": "AutoTurnControl",
-      "title": "자동턴기능(0)",
+      "title": "NOO Helper(0)",
       "descr": "0:자체NOO,1:오파NOO, 2:맵피 NOO",
       "min": 0,
       "max": 2,
       "default": 0,
       "unit": 1
-    },
-    {
-      "group": "조향일반",
-      "name": "AutoTurnSpeed",
-      "title": "자동모델턴제어:속도(40)",
-      "descr": "해당속도이하에서 자동턴시작",
-      "min": 2,
-      "max": 60,
-      "default": 40,
-      "unit": 5
-    },
-    {
-      "group": "조향일반",
-      "name": "AutoTurnTimeMax",
-      "title": "자동모델턴제어:시간제한(200)",
-      "descr": "자동턴 시간제한 설정",
-      "min": 30,
-      "max": 500,
-      "default": 200,
-      "unit": 5
     },
     {
       "group": "조향일반",
