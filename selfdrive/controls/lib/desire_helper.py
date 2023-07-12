@@ -202,6 +202,7 @@ class DesireHelper:
       nav_turn = False
       nav_event = 0
       need_torque = False
+      self.desireReady = 0
 
     leftBlinker = carstate.leftBlinker
     rightBlinker = carstate.rightBlinker
