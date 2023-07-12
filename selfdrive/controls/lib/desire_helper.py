@@ -151,9 +151,9 @@ class DesireHelper:
     nav_event = 0
     need_torque = False
     if self.autoTurnControl == 1:
-      nav_distance = navInstruction.maneuverDistance;
-      nav_type = navInstruction.maneuverType;
-      nav_modifier = navInstruction.maneuverModifier;
+      nav_distance = navInstruction.maneuverDistance
+      nav_type = navInstruction.maneuverType
+      nav_modifier = navInstruction.maneuverModifier
       if nav_type in ['turn', 'fork', 'off ramp']:
         nav_turn = True if nav_type == 'turn' and nav_modifier in ['left', 'right'] else False
         direction = LaneChangeDirection.left if nav_modifier in ['slight left', 'left'] else LaneChangeDirection.right if nav_modifier in ['slight right', 'right'] else LaneChangeDirection.none
@@ -256,7 +256,7 @@ class DesireHelper:
       elif self.lane_change_state == LaneChangeState.preLaneChange:
         self.lane_change_direction = LaneChangeDirection.left if leftBlinker else LaneChangeDirection.right
         if not one_blinker:
-          self.lane_change_state == LaneChangeState.off
+          self.lane_change_state = LaneChangeState.off
           self.lane_change_direction = LaneChangeDirection.none
         else:
           if nav_turn:
