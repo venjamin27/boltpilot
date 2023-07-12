@@ -256,7 +256,7 @@ class DesireHelper:
       elif self.lane_change_state == LaneChangeState.preLaneChange:
         self.lane_change_direction = LaneChangeDirection.left if leftBlinker else LaneChangeDirection.right
         if not one_blinker:
-          self.lane_change_state == LaneChangeState.off
+          self.lane_change_state = LaneChangeState.off
           self.lane_change_direction = LaneChangeDirection.none
         else:
           if nav_turn:
