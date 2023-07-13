@@ -49,6 +49,7 @@ class DesireHelper:
     self.prev_rightBlinker = False
     self.desireEvent = 0
     self.needTorque = False
+    self.desireReady = 0
 
   def update_(self, carstate, lateral_active, lane_change_prob):
     v_ego = carstate.vEgo
@@ -202,6 +203,7 @@ class DesireHelper:
       nav_turn = False
       nav_event = 0
       need_torque = False
+      self.desireReady = 0
 
     leftBlinker = carstate.leftBlinker
     rightBlinker = carstate.rightBlinker
