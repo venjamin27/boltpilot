@@ -280,8 +280,8 @@ class DesireHelper:
         leftBlinker = True
 
     # 깜박이 없이 핸들에 1초이상 힘을 가한경우..
-    if not leftBlinker and not rightBlinker and self.lane_change_state == LaneChangeState.off and self.autoTurnControl == 2:
-      if md.laneLineProbs[1] > 0.5 and md.laneLineProbs[1]:
+    if not leftBlinker and not rightBlinker and self.lane_change_state == LaneChangeState.off:
+      if False and md.laneLineProbs[1] > 0.5 and md.laneLineProbs[1]:
         car_lane_pos = md.laneLines[1].y[0] + md.laneLines[2].y[0]  # -값이면 오른쪽 치우침.
       else:
         car_lane_pos = 0.0
