@@ -154,7 +154,7 @@ class DesireHelper:
       return -1 #left roadedge detected
     return 0
 
-  def detect_road_edge_apilot(self, md):
+  def detect_road_edge_apilot(self, md, lane_width):
     #로드엣지 읽기..
     #left_road_edge = -md.roadEdges[0].y[0]
     #right_road_edge = md.roadEdges[1].y[0]
@@ -165,9 +165,9 @@ class DesireHelper:
     # 왼쪽엣지 - 왼쪽차선
     self.left_road_edge = self.left_road_edge * (1-alpha) + (-md.roadEdges[0].y[0] + md.laneLines[1].y[0]) * alpha
     self.right_road_edge = self.right_road_edge * (1-alpha) + (md.roadEdges[1].y[0] - md.laneLines[2].y[0]) * alpha
-    if self.left_road_edge < 3.0:
+    if self.left_road_edge < lane_width:
       return -1
-    elif self.right_road_edge < 3.0:
+    elif self.right_road_edge < lane_width:
       return 1
     return 0
 
@@ -240,7 +240,7 @@ class DesireHelper:
     v_ego = carstate.vEgo
     v_ego_kph = v_ego * CV.MS_TO_KPH
 
-    road_edge_stat = self.detect_road_edge_apilot(md)
+    road_edge_stat = self.detect_road_edge_apilot(md, lane_width)
     if self.autoTurnControl > 0:
       nav_direction, nav_turn, need_torque, nav_event = self.nav_update(carstate, navInstruction, roadLimitSpeed, road_edge_stat)
     else:
@@ -416,6 +416,7 @@ class DesireHelper:
             self.needTorque = False # 두번째부터 토크... 일단 삭제..
           else:
             self.lane_change_state = LaneChangeState.off
+            self.lane_change_direction = LaneChangeDirection.none
 
     if self.lane_change_state in (LaneChangeState.off, LaneChangeState.preLaneChange) or nav_turn or self.turnState:
       self.lane_change_timer = 0.0
