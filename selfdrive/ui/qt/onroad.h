@@ -114,6 +114,9 @@ protected:
   
   void paintEvent(QPaintEvent *event) override;
   
+private:
+  ScreenRecoder* recorder;
+  std::shared_ptr<QTimer> record_timer;
 };
 
 // container for all onroad widgets
@@ -123,9 +126,10 @@ class OnroadWindow : public QWidget {
 public:
   OnroadWindow(QWidget* parent = 0);
   bool isMapVisible() const { return map && map->isVisible(); }
+  void showMapPanel(bool show) { if (map) map->setVisible(show); }
 
 signals:
-  void mapWindowShown();
+  void mapPanelRequested();
 
 private:
   void paintEvent(QPaintEvent *event);
@@ -135,7 +139,6 @@ private:
   QColor bg = bg_colors[STATUS_DISENGAGED];
   QWidget *map = nullptr;
   QHBoxLayout* split;
-  bool navDisabled = false;
 
   // neokii
 private:

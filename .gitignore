@@ -79,3 +79,4 @@ build/
 !**/.gitkeep
 
 .vs
+/.editorconfig
