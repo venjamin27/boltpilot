@@ -1,3 +1,7 @@
+230714 - APILOT
+========================
+* NOO Helper - 0:None,1:Mappy,Waze, 2:시험
+
 230711 - APILOT
 ========================
 * NOO Helper - 0:None,1:Openpilot,2:Mappy

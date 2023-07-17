@@ -1623,8 +1623,8 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
     }
     // Tpms...
     if (s->show_tpms) {
-        int bx = (192 - 24) / 2 + UI_BORDER_SIZE + 15;
-        int by = s->fb_h - 280 / 2;
+        int bx = (192 - 24) / 2 + UI_BORDER_SIZE + 10;
+        int by = s->fb_h - 280 / 2 + 10;
         auto tpms = car_state.getTpms();
         float fl = tpms.getFl();
         float fr = tpms.getFr();
