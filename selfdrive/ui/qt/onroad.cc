@@ -92,6 +92,7 @@ OnroadWindow::OnroadWindow(QWidget *parent) : QWidget(parent) {
   recorder_widget->raise();
   alerts->raise();
 #endif
+#endif
 
 }
 
