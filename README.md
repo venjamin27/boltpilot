@@ -1,11 +1,13 @@
 
 
 # For foreign users (non Korean.)
-### 2023-07-18
+#### working tested : BoltEV premier 2017, 2018, 2019, 2020
+thx for @andyroo-t that BoltEV premier 2020 tests 
+### 2023-07-18 (release/develop)
 - feature-develop branch is synced with latest feature/opgm-ap-integration
 - base fork chaged to Apilot
 - full clean wipe & factory reset the device when you read this first time.
-### 2022-12-21
+### 2022-12-21 (v0819-c3)
 - full clean wipe & factory reset the device when you read this first time.
 - try fine tuning with "https://github.com/jc01rho-openpilot-BoltEV2019-KoKr/boltpilot/blob/release/nTune-1.7.1-legacy-minSDK23.apk"
 
@@ -104,15 +106,18 @@ If you find this fork useful, please consider donating to support the continued 
 
 ### 콤마2 혹은 lepro 이온 사용불가합니다. comma2_Eon-final을 사용하세요.
 ### 일반 사용자분들은 "develop" 혹은 "release" 브랜치를 사용하세요. 버전이 올라가도 최신을 그곳에 유지하겠습니다.
-### 0.8.14부터 @neokii님의 HKG향 코드를 기반으로 하고있습니다. 항상 감사드립니다.
-### pedal 사용자의 경우 옵션에서 켜주셔야합니다 꼭.
+### 0.8.14부터 @neokii님의 HKG향 코드를 기반으로 하고있습니다.
+### pedal 사용자의 경우 옵션에서 켜주셔야합니다 꼭. (v0819-c3)
+### 0.9.1 부터 @ajouatom님의 apilot 코드를 기반으로 하고있습니다. 
+
 
 - hanabi95(@hanabi95) 님의 작업에서 safety 및 can 관련 내용을 기본으로 하고 있습니다. 항상 감사드립니다.
 - lat_icon_image, thanks to @Hammie K 
 - screenrecorder, thanks to neokii
 
-### 문의사항은 오카방 혹은 이슈 생성으로 주십시오. 감사합니다.
-#### working tested : BoltEV premier 2017, 2018, 2019
+### 문의사항은 이슈 생성으로 주십시오. 감사합니다.
+#### working tested : BoltEV premier 2017, 2018, 2019, 2020
+thx for @andyroo-t that BoltEV premier 2020 tests
 rkjnice@gmail.com
 
 
