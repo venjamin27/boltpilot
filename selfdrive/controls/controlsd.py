@@ -7,7 +7,7 @@ from cereal import car, log
 from common.numpy_fast import clip, interp
 from common.realtime import sec_since_boot, config_realtime_process, Priority, Ratekeeper, DT_CTRL
 from common.profiler import Profiler
-from common.params import Params, put_nonblocking
+from common.params import Params, put_nonblocking, put_bool_nonblocking
 import cereal.messaging as messaging
 from cereal.visionipc import VisionIpcClient, VisionStreamType
 from common.conversions import Conversions as CV
@@ -221,8 +221,8 @@ class Controls:
     if REPLAY:
       controls_state = Params().get("ReplayControlsState")
       if controls_state is not None:
-        controls_state = log.ControlsState.from_bytes(controls_state)
-        self.v_cruise_helper.v_cruise_kph = controls_state.vCruise
+        with log.ControlsState.from_bytes(controls_state) as controls_state:
+          self.v_cruise_helper.v_cruise_kph = controls_state.vCruise
 
       if any(ps.controlsAllowed for ps in self.sm['pandaStates']):
         self.state = State.enabled
@@ -401,7 +401,7 @@ class Controls:
     else:
       self.logged_comm_issue = None
 
-    if not self.sm['liveParameters'].valid and not TESTING_CLOSET and not SIMULATION:
+    if not self.sm['liveParameters'].valid and not TESTING_CLOSET and (not SIMULATION or REPLAY):
       self.events.add(EventName.vehicleModelInvalid)
     if not self.sm['lateralPlan'].mpcSolutionValid:
       self.events.add(EventName.plannerError)
@@ -464,7 +464,7 @@ class Controls:
     if not self.initialized:
       all_valid = CS.canValid and self.sm.all_checks()
       timed_out = self.sm.frame * DT_CTRL > (6. if REPLAY else 3.5)
-      if all_valid or timed_out or SIMULATION:
+      if all_valid or timed_out or (SIMULATION and not REPLAY):
         available_streams = VisionIpcClient.available_streams("camerad", block=False)
         if VisionStreamType.VISION_STREAM_ROAD not in available_streams:
           self.sm.ignore_alive.append('roadCameraState')
@@ -476,7 +476,7 @@ class Controls:
 
         self.initialized = True
         self.set_initial_state()
-        Params().put_bool("ControlsReady", True)
+        put_bool_nonblocking("ControlsReady", True)
 
     # Check for CAN timeout
     if not can_strs:
@@ -976,7 +976,7 @@ class Controls:
     self.prof.checkpoint("Ratekeeper", ignore=True)
 
     self.is_metric = self.params.get_bool("IsMetric")
-    self.experimental_mode = self.params.get_bool("ExperimentalMode") and self.CP.openpilotLongitudinalControl
+    self.experimental_mode = self.params.get_bool("ExperimentalMode")
     #self.experimental_mode = self.experimental_mode or self.sm['lateralPlan'].desireReady != 0
     #self.experimental_mode = self.sm['longitudinalPlan'].xState in [XState.e2eStop, XState.e2eCruisePrepare]
 

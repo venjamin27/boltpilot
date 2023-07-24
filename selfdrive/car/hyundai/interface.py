@@ -29,7 +29,7 @@ class CarInterface(CarInterfaceBase):
     # These cars have been put into dashcam only due to both a lack of users and test coverage.
     # These cars likely still work fine. Once a user confirms each car works and a test route is
     # added to selfdrive/car/tests/routes.py, we can remove it from this list.
-    ret.dashcamOnly = candidate in {CAR.KIA_OPTIMA_H, }
+    ret.dashcamOnly = candidate in {CAR.KIA_OPTIMA_H, CAR.IONIQ_6}
 
     hda2 = Ecu.adas in [fw.ecu for fw in car_fw]
     CAN = CanBus(None, hda2, fingerprint)
@@ -198,10 +198,10 @@ class CarInterface(CarInterfaceBase):
       ret.wheelbase = 2.9
       ret.steerRatio = 16.
       tire_stiffness_factor = 0.65
-    elif candidate == CAR.IONIQ_5:
-      ret.mass = 2012 + STD_CARGO_KG
-      ret.wheelbase = 3.0
-      ret.steerRatio = 16.
+    elif candidate in (CAR.IONIQ_5, CAR.IONIQ_6):
+      ret.mass = 1948 + STD_CARGO_KG
+      ret.wheelbase = 2.97
+      ret.steerRatio = 14.26
       tire_stiffness_factor = 0.65
     elif candidate == CAR.KIA_SPORTAGE_HYBRID_5TH_GEN:
       ret.mass = 1767. + STD_CARGO_KG  # SX Prestige trim support only
@@ -218,6 +218,10 @@ class CarInterface(CarInterfaceBase):
         ret.mass = 3957 * CV.LB_TO_KG + STD_CARGO_KG
       else:
         ret.mass = 4537 * CV.LB_TO_KG + STD_CARGO_KG
+    elif candidate == CAR.KIA_CARNIVAL_4TH_GEN:
+      ret.mass = 2087. + STD_CARGO_KG
+      ret.wheelbase = 3.09
+      ret.steerRatio = 14.23
 
     # Genesis
     elif candidate == CAR.GENESIS_GV60_EV_1ST_GEN:
@@ -245,6 +249,10 @@ class CarInterface(CarInterfaceBase):
       ret.mass = 2200
       ret.wheelbase = 3.15
       ret.steerRatio = 12.069
+    elif candidate == CAR.GENESIS_GV80:
+      ret.mass = 2258. + STD_CARGO_KG
+      ret.wheelbase = 2.95
+      ret.steerRatio = 14.14
 
     elif candidate in [CAR.GRANDEUR_IG, CAR.GRANDEUR_IG_HEV]:
       ret.mass = 1570. + STD_CARGO_KG
@@ -361,6 +369,9 @@ class CarInterface(CarInterfaceBase):
 
       if candidate in CAMERA_SCC_CAR:
         ret.safetyConfigs[0].safetyParam |= Panda.FLAG_HYUNDAI_CAMERA_SCC
+      if ret.sccBus == 2:
+        ret.openpilotLongitudinalControl = True
+        ret.safetyConfigs = [get_safety_config(car.CarParams.SafetyModel.hyundaiLegacy)]
 
     if ret.openpilotLongitudinalControl:
       ret.safetyConfigs[-1].safetyParam |= Panda.FLAG_HYUNDAI_LONG

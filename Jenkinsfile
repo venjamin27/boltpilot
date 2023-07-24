@@ -18,6 +18,12 @@ export GIT_SSH_COMMAND="ssh -i /data/gitkey"
 source ~/.bash_profile
 if [ -f /TICI ]; then
   source /etc/profile
+
+  if ! systemctl is-active --quiet systemd-resolved; then
+    echo "restarting resolved"
+    sudo systemctl start systemd-resolved
+    sleep 3
+  fi
 fi
 if [ -f /data/openpilot/launch_env.sh ]; then
   source /data/openpilot/launch_env.sh
@@ -181,6 +187,7 @@ pipeline {
               ["test encoder", "LD_LIBRARY_PATH=/usr/local/lib python system/loggerd/tests/test_encoder.py"],
               ["test pigeond", "python system/sensord/tests/test_pigeond.py"],
               ["test manager", "python selfdrive/manager/test/test_manager.py"],
+              ["test nav", "pytest selfdrive/navd/tests/"],
             ])
           }
         }
