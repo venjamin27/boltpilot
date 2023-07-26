@@ -421,6 +421,9 @@ def main():
         nSdiPlusType = int(server.get_apilot_val("nSdiPlusType", -1))
         nSdiPlusDist = int(server.get_apilot_val("nSdiPlusDist", -1))
         nSdiPlusSpeedLimit = int(server.get_apilot_val("nSdiPlusSpeedLimit", -1))
+        nSdiBlockType = int(server.get_apilot_val("nSdiBlockType", -1))
+        nSdiBlockSpeed = int(server.get_apilot_val("nSdiBlockSpeed", -1))
+        nSdiBlockDist = int(server.get_apilot_val("nSdiBlockDist", -1))
         #sdiType: 
         # 0: speedLimit, 1: speedLimitPos, 2:SpeedBlockStartPos, 3: SpeedBlockEndPos, 4:SpeedBlockMidPos, 
         # 5: Tail, 6: SignalAccidentPos, 7: SpeedLimitDangerous, 8:BoxSpeedLimit, 9: BusLane, 
@@ -429,10 +432,12 @@ def main():
         # 20:SchoolZoneStart, 21:SchoolZoneEnd, 22:SpeedBump, 23:LpgStation, 24:TunnelArea, 
         # 25:ServiceArea
         # 66:ChangableSpeedBlockStartPos, 67:ChangableSpeedBlockEndPos
-        if nSdiType in [0,1,2,3,8] and nSdiSpeedLimit > 0: # SpeedLimitPos, nSdiSection: 2,
+        if nSdiType in [0,1,2,3,4,8] and nSdiSpeedLimit > 0: # SpeedLimitPos, nSdiSection: 2,
           xSpdLimit = nSdiSpeedLimit
           xSpdDist = nSdiDist
           sdiType = nSdiType
+          if sdiType == 4: ## 구간단속
+            xSpdDist = nSdiBlockDist if nSdiBlockDist > 0 else 80
         elif nSdiPlusType == 22 or nSdiType == 22: # SpeedBump
           xSpdLimit = 35
           xSpdDist = nSdiPlusDist if nSdiPlusType == 22 else nSdiDist
@@ -548,7 +553,7 @@ class RoadSpeedLimiter:
       if self.roadLimitSpeed.xSpdLimit > 0 and self.roadLimitSpeed.xSpdDist > 0:
         cam_limit_speed_left_dist = self.roadLimitSpeed.xSpdDist
         cam_limit_speed = self.roadLimitSpeed.xSpdLimit
-        self.session_limit = True if (self.roadLimitSpeed.xSignType == 165) or (cam_limit_speed_left_dist > 3000) else False
+        self.session_limit = True if (self.roadLimitSpeed.xSignType == 165) or (cam_limit_speed_left_dist > 3000) or cam_type==4 else False
         #log = "limit={:.1f},{:.1f}".format(self.roadLimitSpeed.xSpdLimit, self.roadLimitSpeed.xSpdDist)
 
         self.session_limit = False if cam_limit_speed_left_dist < 50 else self.session_limit
