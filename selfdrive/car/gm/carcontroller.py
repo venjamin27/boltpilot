@@ -171,14 +171,14 @@ class CarController:
 
           self.pedal_gas_max = interp(CS.out.vEgo, [0.0, 5, 30], [0.2725, 0.3275,  0.3650])
 
-          if actuators.accel > 0.:
-            accGain = interp(CS.out.vEgo, [0., 5], [0.23, 0.130])
-          else:
-            accGain = interp(CS.out.vEgo, [0., 5], [0.23, 0.165])
+          # if actuators.accel > 0.:
+          #   accGain = interp(CS.out.vEgo, [0., 5], [0.23, 0.130])
+          # else:
+          #   accGain = interp(CS.out.vEgo, [0., 5], [0.23, 0.165])
+          accGain = 0.15
 
           accCorrection = 0.00
-          zero = interp(CS.out.vEgo,[0., 5, 30], [0.165, 0.2050, 0.260]) + accCorrection
-          # accGain = interp(CS.out.vEgo,[0., 5], [0.25, 0.1667])
+          zero = interp(CS.out.vEgo,[0., 5, 30], [0.0, 0.180, 0.260]) + accCorrection
           pedal_gas = clip((actuators.accel * accGain + zero), 0.0, 1.0)
 
 
