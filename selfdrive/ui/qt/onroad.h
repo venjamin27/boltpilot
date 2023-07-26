@@ -6,7 +6,6 @@
 
 #include "common/util.h"
 #include "selfdrive/ui/ui.h"
-
 #include "selfdrive/ui/qt/widgets/cameraview.h"
 
 
@@ -23,7 +22,7 @@ class OnroadAlerts : public QWidget {
 
 public:
   OnroadAlerts(QWidget *parent = 0) : QWidget(parent) {};
-  void updateAlert(const Alert &a, const QColor &color);
+  void updateAlert(const Alert &a);
 
 protected:
   void paintEvent(QPaintEvent*) override;
@@ -42,10 +41,13 @@ public:
 
 private:
   void paintEvent(QPaintEvent *event) override;
+  void changeMode();
 
   Params params;
   QPixmap engage_img;
   QPixmap experimental_img;
+  bool experimental_mode;
+  bool engageable;
 };
 
 // container window for the NVG UI
@@ -112,6 +114,9 @@ protected:
   
   void paintEvent(QPaintEvent *event) override;
   
+private:
+  ScreenRecoder* recorder;
+  std::shared_ptr<QTimer> record_timer;
 };
 
 // container for all onroad widgets
@@ -121,6 +126,10 @@ class OnroadWindow : public QWidget {
 public:
   OnroadWindow(QWidget* parent = 0);
   bool isMapVisible() const { return map && map->isVisible(); }
+  void showMapPanel(bool show) { if (map) map->setVisible(show); }
+
+signals:
+  void mapPanelRequested();
 
 private:
   void paintEvent(QPaintEvent *event);

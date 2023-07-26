@@ -128,6 +128,8 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     audioPrompt @125; #ajouatom
     audioRefuse @126; #ajouatom
     stopStop @127; #ajouatom
+    audioLaneChange @130; #ajouatom
+    audioTurn @131; #ajouatom
     radarCanErrorDEPRECATED @15;
     communityFeatureDisallowedDEPRECATED @62;
     radarCommIssueDEPRECATED @67;
@@ -163,9 +165,9 @@ struct CarState {
 
   #BOLT EV
   vehicleSpeed @58 :Float32;
-  regenPressed @55 :Bool; #this is regen button only
-  adaptiveCruise @56 :Bool;
-  mainOn @54 :Bool;
+  regenPressed @60 :Bool; #this is regen button only
+  adaptiveCruise @61 :Bool;
+  mainOn @59 :Bool;
   lkasEnable @57 :Bool;
 
 
@@ -186,7 +188,7 @@ struct CarState {
   # gas pedal, 0.0-1.0
   gas @3 :Float32;        # this is user pedal only
   gasPressed @4 :Bool;    # this is user pedal only
-  
+
   engineRpm @46 :Float32;
 
   # brake pedal, 0.0-1.0
@@ -245,6 +247,9 @@ struct CarState {
   driverOverride @50 : Int32; #0: Normal, 1:Gas, 2:Brake
   chargeMeter @51 : Float32;
   motorRpm @52 : Float32;
+  totalDistance @54 : Float32;
+  speedLimit @55 : Int32;
+  speedLimitDistance @56 : Float32;
 
   struct Tpms {
     fl @0 :Float32;
@@ -393,8 +398,9 @@ struct CarControl {
     speed @6: Float32; # m/s
     accel @4: Float32; # m/s^2
     longControlState @5: LongControlState;
+    jerk @9: Float32; # apilot
 
-    regenPaddle @9: Bool;
+    regenPaddle @14: Bool;
     pedalGas @10: Float32;
     pedalGasRaw @11: Float32;
     pedalGasAvg @12: Float32;
@@ -474,6 +480,7 @@ struct CarControl {
       bsdWarning @19;
       speedDown @20;
       stopStop @21;
+      audioTurn @22;
       
     }
   }
@@ -562,6 +569,7 @@ struct CarParams {
 
   sccBus @72 : Int8;
   hasLfaHda @73 : Bool;
+  naviCluster @74 : Int8;
 
   struct SafetyConfig {
     safetyModel @0 :SafetyModel;
@@ -701,6 +709,7 @@ struct CarParams {
     engine @4;
     unknown @5;
     transmission @8; # Transmission Control Module
+    hybrid @18; # hybrid control unit, e.g. Chrysler's HCP, Honda's IMA Control Unit, Toyota's hybrid control computer
     srs @9; # airbag
     gateway @10; # can gateway
     hud @11; # heads up display
@@ -711,6 +720,9 @@ struct CarParams {
     cornerRadar @21;
     hvac @20;
     parkingAdas @7;  # parking assist system ECU, e.g. Toyota's IPAS, Hyundai's RSPA, etc.
+    epb @22;  # electronic parking brake
+    telematics @23;
+    body @24;  # body control module
 
     # Toyota only
     dsu @6;
@@ -719,11 +731,7 @@ struct CarParams {
     vsa @13; # Vehicle Stability Assist
     programmedFuelInjection @14;
 
-    # Chrysler only
-    hcp @18;  # Hybrid Control Processor
-
     debug @17;
-    unused @22;
   }
 
   enum FingerprintSource {

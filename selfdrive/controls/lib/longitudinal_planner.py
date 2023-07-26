@@ -116,7 +116,7 @@ class LongitudinalPlanner:
       j = np.zeros(len(T_IDXS_MPC))
       y = np.zeros(len(T_IDXS_MPC))
       
-    if autoTurnControl == 2: # 속도를 줄이자~
+    if False: #autoTurnControl == 2: # 속도를 줄이자~
       max_lat_accel = interp(v_ego, [5, 10, 20], [1.5, 2.0, 3.0])
       curvatures = np.interp(T_IDXS_MPC, T_IDXS, model_msg.orientationRate.z) / np.clip(v, 0.3, 100.0)
       max_v = np.sqrt(max_lat_accel / (np.abs(curvatures) + 1e-3)) - 2.0

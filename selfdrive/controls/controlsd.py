@@ -406,7 +406,7 @@ class Controls:
     else:
       self.logged_comm_issue = None
 
-    if not self.sm['liveParameters'].valid and not TESTING_CLOSET:
+    if not self.sm['liveParameters'].valid and not TESTING_CLOSET and not SIMULATION:
       self.events.add(EventName.vehicleModelInvalid)
     if not self.sm['lateralPlan'].mpcSolutionValid:
       self.events.add(EventName.plannerError)
@@ -648,7 +648,7 @@ class Controls:
     # Check which actuators can be enabled
     standstill = CS.vEgo <= max(self.CP.minSteerSpeed, MIN_LATERAL_CONTROL_SPEED) or CS.standstill
     CC.latEnabled = True if self.active and CS.gearShifter in [GearShifter.drive, GearShifter.low] else False
-    CC.longEnabled = True if self.enabled and CS.gearShifter in [GearShifter.drive, GearShifter.low] else False
+    CC.longEnabled = True if self.enabled and CS.gearShifter in [GearShifter.low] else False
     if self.enableMainCruiseOnOff:
       CC.longEnabled = CC.longEnabled and CS.cruiseState.available #disable long control when MainCruise is On
     CC.latActive = self.active and not CS.steerFaultTemporary and not CS.steerFaultPermanent and \
@@ -676,6 +676,7 @@ class Controls:
     actuators = CC.actuators
     actuators.longControlState = self.LoC.long_control_state
     actuators.regenPaddle = self.regenPressed
+    actuators.jerk = 0.0
 
     # Enable blinkers while lane changing
     if self.sm['lateralPlan'].laneChangeState != LaneChangeState.off:
@@ -696,7 +697,7 @@ class Controls:
       # accel PID loop
       pid_accel_limits = self.CI.get_pid_accel_limits(self.CP, CS.vEgo, self.v_cruise_helper.v_cruise_kph * CV.KPH_TO_MS)
       t_since_plan = (self.sm.frame - self.sm.rcv_frame['longitudinalPlan']) * DT_CTRL
-      actuators.accel = self.LoC.update(CC.longActive, CS, long_plan, pid_accel_limits, t_since_plan, CC)
+      actuators.accel, actuators.jerk = self.LoC.update(CC.longActive, CS, long_plan, pid_accel_limits, t_since_plan, CC)
       #self.debugText2 = 'Accel=[{:1.2f}]: {:1.2f},{:1.2f}'.format(actuators.accel, pid_accel_limits[0], pid_accel_limits[1])
       #print(self.debugText2)
 
@@ -988,6 +989,7 @@ class Controls:
 
     self.is_metric = self.params.get_bool("IsMetric")
     self.experimental_mode = self.params.get_bool("ExperimentalMode") and self.CP.openpilotLongitudinalControl
+    #self.experimental_mode = self.experimental_mode or self.sm['lateralPlan'].desireReady != 0
     #self.experimental_mode = self.sm['longitudinalPlan'].xState in [XState.e2eStop, XState.e2eCruisePrepare]
 
     # Sample data from sockets and get a carState

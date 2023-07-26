@@ -169,7 +169,7 @@ class CarController:
         # TODO: JJS Detect saturated battery?
         if CS.single_pedal_mode:
 
-          self.pedal_gas_max = interp(CS.out.vEgo, [0.0, 5, 30], [0.2725, 0.3275,  0.3650])
+          self.pedal_gas_max = interp(CS.out.vEgo, [0.0, 5, 30], [0.2725, 0.3275,  0.3725])
 
           # if actuators.accel > 0.:
           #   accGain = interp(CS.out.vEgo, [0., 5], [0.23, 0.130])
