@@ -178,7 +178,7 @@ class CarController:
           accGain = 0.15
 
           accCorrection = 0.00
-          zero = interp(CS.out.vEgo,[0., 5, 30], [0.0, 0.158, 0.260]) + accCorrection
+          zero = interp(CS.out.vEgo,[0., 5, 30], [0.0, 0.158, 0.265]) + accCorrection
           pedal_gas = clip((actuators.accel * accGain + zero), 0.0, 1.0)
 
 
