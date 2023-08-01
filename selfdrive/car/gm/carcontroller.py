@@ -176,8 +176,8 @@ class CarController:
           # else:
           #   accGain = interp(CS.out.vEgo, [0., 5], [0.23, 0.165])
           accGain = 0.1429
-
-          zero = interp(CS.out.vEgo,[0., 5, 10, 30], [0, 0.145, 0.19, 0.265])
+          accGain2 = interp(actuators.accel, [-3.5, 2], [0.1667, 0.1325])
+          zero = interp(CS.out.vEgo,[0., 5, 10, 30], [0, accGain2, 0.19, 0.265])
           pedal_gas = clip((actuators.accel * accGain + zero), 0.0, 1.0)
 
           self.pedalGasRaw_valueStore = pedal_gas
