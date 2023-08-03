@@ -168,7 +168,7 @@ def manager_init() -> None:
     #BoltEV
     ("PowerOffTime", "0"),
     ("PedalPressedThreshold", "20"), 
-    ("EnableMainCruiseOnOff", "0"),
+    ("EnableMainCruiseOnOff", "1"),
   ]
   if not PC:
     default_params.append(("LastUpdateTime", datetime.datetime.utcnow().isoformat().encode('utf8')))
