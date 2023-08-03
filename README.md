@@ -6,6 +6,8 @@ thx for @andyroo-t that BoltEV premier 2020 tests
 ### 2023-07-18 (release/develop)
 - feature-develop branch is synced with latest feature/opgm-ap-integration
 - base fork chaged to Apilot
+- engaging method has changed. 
+- now, you can engage by pressing the "SET" button on the steering wheel.
 - full clean wipe & factory reset the device when you read this first time.
 ### 2022-12-21 (v0819-c3)
 - full clean wipe & factory reset the device when you read this first time.
@@ -62,7 +64,7 @@ A video showing installation of a pedal interceptor on a Bolt EV can be found he
 Thanks to Jason Shuler of Stand Back Labs for making these videos available.
 
 
-Software installation
+Software installation (v0819-c3)
 ------
 
 1. Select your WiFi network and enter Wi-Fi password on your Comma 3 device.
@@ -71,7 +73,7 @@ Software installation
 
 3. Your device will reboot after installation. When prompted, scroll to accept the terms and conditions, then follow the on-screen instructions to complete the openpilot training.
 
-4. Click the Gear icon to open settings. Under the 'Toggles' menu, ensure 'Enable openpilot' and 'Use Metric System' toggles are enabled. This fork is not compatible with imperial measures. 
+4. Click the Gear icon to open settings. Under the 'Toggles' menu, ensure 'Enable openpilot'  
 
 5. Under the 'Vehicle' settings, ensure the 'Use Comma Pedal' toggle is enabled. The two buttons at the top of the Vehicle settings are used to set steering control and vehicle settings. Click the top right button and select 'Chevrolet Bolt EV' for your vehicle. Next, click the top left button and select the type of steering control you wish to use. Each option represents a a different mathematical approach for steering control calculations. Good results have been reported with the PID, TORQUE and LQR options. The INDI option will soon be phased out. You may wish to experiment with all steering control options to determine which one produces the best results on your vehicle. Reboot your device by selecting the 'Device' menu, and then press the 'Reboot' button. Important: you must reboot your device after changing steering control options for the settings to take effect. 
 
