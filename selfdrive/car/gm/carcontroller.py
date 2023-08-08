@@ -188,9 +188,9 @@ class CarController:
         if not CC.longActive:
           pedal_gas = 0.0  # May not be needed with the enable param
 
-        self.pedal_hyst_gap = interp(CS.out.vEgo, [40.0 * CV.KPH_TO_MS, 100.0 * CV.KPH_TO_MS], [0.01, 0.0050])
-        pedal_final, self.pedal_steady = actuator_hystereses(pedal_gas, self.pedal_steady, self.pedal_hyst_gap)
-        pedal_gas = clip(pedal_final, 0., self.pedal_gas_max)
+        # self.pedal_hyst_gap = interp(CS.out.vEgo, [40.0 * CV.KPH_TO_MS, 100.0 * CV.KPH_TO_MS], [0.01, 0.0050])
+        # pedal_final, self.pedal_steady = actuator_hystereses(pedal_gas, self.pedal_steady, self.pedal_hyst_gap)
+        pedal_gas = clip(pedal_gas, 0., self.pedal_gas_max)
         if self.frame % 4 == 0:
           idx = (self.frame // 4) % 4
           can_sends.append(create_gas_interceptor_command(self.packer_pt, pedal_gas, idx))
