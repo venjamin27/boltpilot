@@ -7,7 +7,7 @@ from typing import Optional, Dict, Any
 import capnp
 from cereal import messaging, log, car
 from common.numpy_fast import interp
-from common.params import Params
+
 from common.realtime import Ratekeeper, Priority, config_realtime_process
 from system.swaglog import cloudlog
 
@@ -136,9 +136,6 @@ class Track:
       "aLeadTau": 0.3 if useVisionMix else float(self.aLeadTau)
     }
 
-  def __str__(self):
-    ret = f"x: {self.dRel:4.1f}  y: {self.yRel:4.1f}  v: {self.vRel:4.1f}  a: {self.aLeadK:4.1f}"
-    return ret
 
   def potential_low_speed_lead(self, v_ego: float):
     # stop for stuff in front of you and low speed, even without model confirmation
