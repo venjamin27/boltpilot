@@ -74,10 +74,28 @@ class CarController:
 
     self.pedal_hyst_gap = 1.0
     self.pedal_gas_max = 0.3275
+    # self.current_pitch_debug = 0.0
+    #pitch :  캘리브레이션 설정창에 나오는 장치는 n 도 위로 보고있고.. 의 그것.
+    self.current_pitch = -100.0
+    self.default_pitch = -100.0
 
+
+    self.sm = messaging.SubMaster(['liveCalibration'])
 
 
   def update(self, CC, CS, now_nanos):
+
+    if self.frame % 10 == 0:
+      self.sm.update(0)
+
+
+    if sm.updated['liveCalibration']:
+      # self.current_pitch_debug = self.sm['liveCalibration'].liveCalibration.liveMpcDebug.currentPitch
+      if self.default_pitch == -100.0:
+        self.default_pitch = np.asarray(sm['liveCalibration'].rpyCalib)[1]
+      else :
+        self.current_pitch = np.asarray(sm['liveCalibration'].rpyCalib)[1]
+
     actuators = CC.actuators
     hud_control = CC.hudControl
     hud_alert = hud_control.visualAlert
