@@ -316,6 +316,15 @@ APILOT inegration temporary readme
         * https://kibua20.tistory.com/165
         * https://forbes.tistory.com/1256
     * 확인방법: Mappy실행 후 목적지설정하고 나서, ApilotMan화면에 메시지출력이 나오면 정상작동
+    * 작동방법
+      * Mappy/Waze/Tmap 으로부터 TBT정도 수신
+      * 200M부터 작동대기
+      * 좌/우 차로변경: 램프진입, 진출, 합류지점
+        * 우측차로변경: 깜박이 또는 조향토크작동시 로드엣지벗어나면 차로변경 시작(깜박이 없이 차로변경 시험중)
+        * 좌측차로변경: 깜박이 또는 조향토크작동시 차로변경 시작         
+      * 좌/우 턴
+        * 턴진입 200미터전 : 좌/우 차로변경시작 (로드에지, BSD작동시 안함)
+        * 턴진입 50미터전: 좌/우 턴시작
 
 * 설정: 토글
   * Experimental openpilot Longitudinal Control(롱컨트롤)
