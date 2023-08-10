@@ -187,18 +187,16 @@ class CarController:
         # TODO: JJS Detect saturated battery?
         if CS.single_pedal_mode:
 
-          self.pedal_gas_max = interp(CS.out.vEgo, [0.0, 5, 30], [0.2725, 0.3275,  0.3725])
+          self.pedal_gas_max = interp(CS.out.vEgo, [0.0, 5, 30], [0.20, 0.3275,  0.3725])
 
-          if actuators.accel > 0.:
-            accGain = interp(CS.out.vEgo, [0., 5], [0.23, 0.130])
-          else:
-            accGain = interp(CS.out.vEgo, [0., 5], [0.23, 0.165])
-
-          accCorrection = 0.00
-          zero = interp(CS.out.vEgo,[0., 5, 30], [0.165, 0.2050, 0.260]) + accCorrection
-          # accGain = interp(CS.out.vEgo,[0., 5], [0.25, 0.1667])
+          # if actuators.accel > 0.:
+          #   accGain = interp(CS.out.vEgo, [0., 5], [0.23, 0.130])
+          # else:
+          #   accGain = interp(CS.out.vEgo, [0., 5], [0.23, 0.165])
+          accGain = 0.1429
+          accGain2 = interp(actuators.accel, [-3.5, 2], [0.1667, 0.1325])
+          zero = interp(CS.out.vEgo,[0., 5, 10, 30], [0, accGain2, 0.19, 0.265])
           pedal_gas = clip((actuators.accel * accGain + zero), 0.0, 1.0)
-
 
           self.pedalGasRaw_valueStore = pedal_gas
 
@@ -208,9 +206,9 @@ class CarController:
         if not CC.longActive:
           pedal_gas = 0.0  # May not be needed with the enable param
 
-        self.pedal_hyst_gap = interp(CS.out.vEgo, [40.0 * CV.KPH_TO_MS, 100.0 * CV.KPH_TO_MS], [0.01, 0.0050])
-        pedal_final, self.pedal_steady = actuator_hystereses(pedal_gas, self.pedal_steady, self.pedal_hyst_gap)
-        pedal_gas = clip(pedal_final, 0., self.pedal_gas_max)
+        # self.pedal_hyst_gap = interp(CS.out.vEgo, [40.0 * CV.KPH_TO_MS, 100.0 * CV.KPH_TO_MS], [0.01, 0.0050])
+        # pedal_final, self.pedal_steady = actuator_hystereses(pedal_gas, self.pedal_steady, self.pedal_hyst_gap)
+        pedal_gas = clip(pedal_gas, 0., self.pedal_gas_max)
         if self.frame % 4 == 0:
           idx = (self.frame // 4) % 4
           can_sends.append(create_gas_interceptor_command(self.packer_pt, pedal_gas, idx))
