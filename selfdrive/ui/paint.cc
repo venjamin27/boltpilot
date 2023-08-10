@@ -1620,7 +1620,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
         }
         if (Params().getBool("EnableMainCruiseOnOff")) {  //show if mainCruise(longControl) is enabled.
             float img_alpha = car_state.getCruiseState().getAvailable() ? 0.1f : 1.0f;
-            ui_draw_image(s, { bx - 60 + ( 50 ), by - 50, 150, 150 }, "ic_latMainOn", img_alpha);
+            ui_draw_image(s, { bx - 60 + ( 100 ), by - 50, 140, 140 }, "ic_latMainOn", img_alpha);
         }
     }
     // Tpms...
