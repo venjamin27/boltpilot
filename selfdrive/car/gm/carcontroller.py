@@ -1,5 +1,6 @@
 import math
-
+import cereal.messaging as messaging
+import numpy as np
 from cereal import car
 from common.conversions import Conversions as CV
 from common.numpy_fast import interp, clip
@@ -9,6 +10,7 @@ from selfdrive.car import apply_driver_steer_torque_limits, create_gas_intercept
 from selfdrive.car.gm import gmcan
 from selfdrive.car.gm.values import DBC, CanBus, CarControllerParams, CruiseButtons, CC_ONLY_CAR
 from collections import deque
+
 
 VisualAlert = car.CarControl.HUDControl.VisualAlert
 NetworkLocation = car.CarParams.NetworkLocation
@@ -74,10 +76,28 @@ class CarController:
 
     self.pedal_hyst_gap = 1.0
     self.pedal_gas_max = 0.3275
+    # self.current_pitch_debug = 0.0
+    #pitch :  캘리브레이션 설정창에 나오는 장치는 n 도 위로 보고있고.. 의 그것.
+    self.current_pitch = -100.0
+    self.default_pitch = -100.0
 
+
+    self.sm = messaging.SubMaster(['liveCalibration'])
 
 
   def update(self, CC, CS, now_nanos):
+
+    if self.frame % 10 == 0:
+      self.sm.update(0)
+
+
+    if self.sm.updated['liveCalibration']:
+      # self.current_pitch_debug = self.sm['liveCalibration'].liveCalibration.liveMpcDebug.currentPitch
+      if self.default_pitch == -100.0:
+        self.default_pitch = np.asarray(self.sm['liveCalibration'].rpyCalib)[1]
+      else :
+        self.current_pitch = np.asarray(self.sm['liveCalibration'].rpyCalib)[1]
+
     actuators = CC.actuators
     hud_control = CC.hudControl
     hud_alert = hud_control.visualAlert
@@ -169,18 +189,16 @@ class CarController:
         # TODO: JJS Detect saturated battery?
         if CS.single_pedal_mode:
 
-          self.pedal_gas_max = interp(CS.out.vEgo, [0.0, 5, 30], [0.2725, 0.3275,  0.3725])
+          self.pedal_gas_max = interp(CS.out.vEgo, [0.0, 5, 30], [0.20, 0.3275,  0.3725])
 
-          if actuators.accel > 0.:
-            accGain = interp(CS.out.vEgo, [0., 5], [0.23, 0.130])
-          else:
-            accGain = interp(CS.out.vEgo, [0., 5], [0.23, 0.165])
-
-          accCorrection = 0.00
-          zero = interp(CS.out.vEgo,[0., 5, 30], [0.165, 0.2050, 0.260]) + accCorrection
-          # accGain = interp(CS.out.vEgo,[0., 5], [0.25, 0.1667])
+          # if actuators.accel > 0.:
+          #   accGain = interp(CS.out.vEgo, [0., 5], [0.23, 0.130])
+          # else:
+          #   accGain = interp(CS.out.vEgo, [0., 5], [0.23, 0.165])
+          accGain = 0.1429
+          accGain2 = interp(actuators.accel, [-3.5, 2], [0.1667, 0.1325])
+          zero = interp(CS.out.vEgo,[0., 5, 10, 30], [0, accGain2, 0.19, 0.265])
           pedal_gas = clip((actuators.accel * accGain + zero), 0.0, 1.0)
-
 
           self.pedalGasRaw_valueStore = pedal_gas
 
@@ -190,9 +208,9 @@ class CarController:
         if not CC.longActive:
           pedal_gas = 0.0  # May not be needed with the enable param
 
-        self.pedal_hyst_gap = interp(CS.out.vEgo, [40.0 * CV.KPH_TO_MS, 100.0 * CV.KPH_TO_MS], [0.01, 0.0050])
-        pedal_final, self.pedal_steady = actuator_hystereses(pedal_gas, self.pedal_steady, self.pedal_hyst_gap)
-        pedal_gas = clip(pedal_final, 0., self.pedal_gas_max)
+        # self.pedal_hyst_gap = interp(CS.out.vEgo, [40.0 * CV.KPH_TO_MS, 100.0 * CV.KPH_TO_MS], [0.01, 0.0050])
+        # pedal_final, self.pedal_steady = actuator_hystereses(pedal_gas, self.pedal_steady, self.pedal_hyst_gap)
+        pedal_gas = clip(pedal_gas, 0., self.pedal_gas_max)
         if self.frame % 4 == 0:
           idx = (self.frame // 4) % 4
           can_sends.append(create_gas_interceptor_command(self.packer_pt, pedal_gas, idx))
