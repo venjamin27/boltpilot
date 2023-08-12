@@ -1,13 +1,19 @@
 
 
 # For foreign users (non Korean.)
-#### working tested : BoltEV premier 2017, 2018, 2019, 2020
+#### working tested : BoltEV premier 2017, 2018, 2019, 2020  (also works if using imperal units)
 thx for @andyroo-t that BoltEV premier 2020 tests 
+
+### 2023-08-09 (release/develop)
+- settings->ETC->EnableMainCruiseOnOff is added. and this is highly recommended to ON. 
+  - please turn this on if you read first time.
+  - (you can enable/disable cruise control by pressing the "SET" button on the steering wheel.)
+
 ### 2023-07-18 (release/develop)
 - feature-develop branch is synced with latest feature/opgm-ap-integration
 - base fork chaged to Apilot
 - engaging method has changed. 
-- now, you can engage by pressing the "SET" button on the steering wheel.
+  - now, you can engage by pressing the "SET" button on the steering wheel.
 - full clean wipe & factory reset the device when you read this first time.
 ### 2022-12-21 (v0819-c3)
 - full clean wipe & factory reset the device when you read this first time.
@@ -69,13 +75,13 @@ Software installation (v0819-c3)
 
 1. Select your WiFi network and enter Wi-Fi password on your Comma 3 device.
 
-2. When asked to choose between Dashcam and Custom Software, choose Custom Software and enter the URL https://smiskol.com/fork/jc01rho-openpilot-BoltEV2019-KoKr/[branch] where [branch] is the desired branch name. For example, to install the 'develop' branch, enter https://smiskol.com/fork/jc01rho-openpilot-BoltEV2019-KoKr/develop. The 'develop' branch is currently recommended for most purposes as it is actively maintained and contains the most up-to-date changes and features. You can also use the shortcut https://tiny.one/boltpilot-develop to install the 'develop' branch. This will automatically redirect to the longer URL listed above.
+2. When asked to choose between Dashcam and Custom Software, choose Custom Software and enter the URL https://smiskol.com/fork/jc01rho-openpilot-BoltEV2019-KoKr/[branch] where [branch] is the desired branch name. For example, to install the 'release' branch, enter https://smiskol.com/fork/jc01rho-openpilot-BoltEV2019-KoKr/release. The 'release' branch is currently recommended for most purposes as it is actively maintained and is stable. You can also use the shortcut https://tiny.one/boltpilot-release to install the 'release' branch. This will automatically redirect to the longer URL listed above.
 
 3. Your device will reboot after installation. When prompted, scroll to accept the terms and conditions, then follow the on-screen instructions to complete the openpilot training.
 
-4. Click the Gear icon to open settings. Under the 'Toggles' menu, ensure 'Enable openpilot'  
+4. Click the Gear icon to open settings. Under the 'Toggles' menu, ensure 'Enable openpilot' is turned on. 
 
-5. Under the 'Vehicle' settings, ensure the 'Use Comma Pedal' toggle is enabled. The two buttons at the top of the Vehicle settings are used to set steering control and vehicle settings. Click the top right button and select 'Chevrolet Bolt EV' for your vehicle. Next, click the top left button and select the type of steering control you wish to use. Each option represents a a different mathematical approach for steering control calculations. Good results have been reported with the PID, TORQUE and LQR options. The INDI option will soon be phased out. You may wish to experiment with all steering control options to determine which one produces the best results on your vehicle. Reboot your device by selecting the 'Device' menu, and then press the 'Reboot' button. Important: you must reboot your device after changing steering control options for the settings to take effect. 
+5. Under the 'ETC' settings, select your vehicle at the top. For example, 'Chevrolet Bolt EV No ACC'. Reboot your device by selecting the 'Device' menu, and then press the 'Reboot' button. 
 
 
 Boltpilot usage
@@ -85,11 +91,13 @@ Calibration: Your device requires a one-time calibration after software installa
 
 Gear selection: This fork is designed for use in L-mode only. You must place the gear shifter in L. Your vehicle's regenerative braking will be used to lower the speed when requried.
 
-Bolt pilot has two main operation modes: (1) full control mode, which controls both steering and speed, and (2) lateral control mode, which controls only the steering.
+Bolt pilot has three main operation modes: (1) full control mode, which controls both steering and speed, (2) lateral control mode, which controls only the steering, and (3) lateral control mode with built-in non-adaptive cruise control, which controls your steering automatically, but uses your vehicle's built-in non-adaptive cruise control.
 
-Full control mode: To engage both steering and speed control, make sure the stock cruise control is turned off, and then while driving press the Set/- button (bottom button on the left steering wheel control pad). Pressing the X (left) keypad button or the brake pedal will disengage openpilot. 
+Mode 1 - Full control mode: To engage both steering and speed control, make sure the stock cruise control is turned off, and then while driving press the Set/- button (bottom button on the left steering wheel control pad). Pressing the X (left) keypad button or the brake pedal will disengage openpilot. 
 
-Lateral control mode: Use the stock cruise control button (right button on steering wheel keypad) to toggle steering control only. 
+Mode 2 - Lateral control mode: Use the stock cruise control button (right button on steering wheel keypad) to toggle steering control only. Openpilot will look after steering, but you will need to control your speed using the accelerator pedal. 
+
+Mode 3 - Lateral control mode with stock cruise control: Use the stock cruise control button (right button on steering wheel keypad) to toggle steering control only as described in Mode 2. Immediately after engaging steering control mode, press the Set/- button to engage your vehicle's stock cruise control. Adjust your desired sped using the +/- buttons.'
 
 
 Acknowledgments
@@ -316,6 +324,15 @@ APILOT inegration temporary readme
         * https://kibua20.tistory.com/165
         * https://forbes.tistory.com/1256
     * 확인방법: Mappy실행 후 목적지설정하고 나서, ApilotMan화면에 메시지출력이 나오면 정상작동
+    * 작동방법
+      * Mappy/Waze/Tmap 으로부터 TBT정도 수신
+      * 200M부터 작동대기
+      * 좌/우 차로변경: 램프진입, 진출, 합류지점
+        * 우측차로변경: 깜박이 또는 조향토크작동시 로드엣지벗어나면 차로변경 시작(깜박이 없이 차로변경 시험중)
+        * 좌측차로변경: 깜박이 또는 조향토크작동시 차로변경 시작         
+      * 좌/우 턴
+        * 턴진입 200미터전 : 좌/우 차로변경시작 (로드에지, BSD작동시 안함)
+        * 턴진입 50미터전: 좌/우 턴시작
 
 * 설정: 토글
   * Experimental openpilot Longitudinal Control(롱컨트롤)

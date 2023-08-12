@@ -269,7 +269,7 @@ Version 0.8.12 (2021-12-15)
    * Display burn in mitigation
    * Improved audio amplifier configuration
    * System reliability improvements
-   * Update Python to 3.8.10
+   * Update Python to 3.11.4
  * Raw logs upload moved to connect.comma.ai
  * Fixed HUD alerts on newer Honda Bosch thanks to csouers!
  * Audi Q3 2020-21 support thanks to jyoung8607!

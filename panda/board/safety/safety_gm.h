@@ -27,8 +27,6 @@ const LongitudinalLimits *gm_long_limits;
 
 const int GM_STANDSTILL_THRSLD = 10;  // 0.311kph
 
-// panda interceptor threshold needs to be equivalent to openpilot threshold to avoid controls mismatches
-// If thresholds are mismatched then it is possible for panda to see the gas fall and rise while openpilot is in the pre-enabled state
 const int GM_GAS_INTERCEPTOR_THRESHOLD = 506; // (610 + 306.25) / 2 ratio between offset and gain from dbc file
 #define GM_GET_INTERCEPTOR(msg) (((GET_BYTE((msg), 0) << 8) + GET_BYTE((msg), 1) + (GET_BYTE((msg), 2) << 8) + GET_BYTE((msg), 3)) / 2U) // avg between 2 tracks
 
@@ -48,8 +46,12 @@ AddrCheckStruct gm_addr_checks[] = {
   {.msg = {{388, 0, 8, .expected_timestep = 100000U}, { 0 }, { 0 }}},
   {.msg = {{842, 0, 5, .expected_timestep = 100000U}, { 0 }, { 0 }}},
   {.msg = {{481, 0, 7, .expected_timestep = 100000U}, { 0 }, { 0 }}},
+  {.msg = {{190, 0, 6, .expected_timestep = 100000U},    // Volt, Silverado, Acadia Denali
+           {190, 0, 7, .expected_timestep = 100000U},    // Bolt EUV
+           {190, 0, 8, .expected_timestep = 100000U}}},  // Escalade
   {.msg = {{241, 0, 6, .expected_timestep = 100000U}, { 0 }, { 0 }}},
   {.msg = {{452, 0, 8, .expected_timestep = 100000U}, { 0 }, { 0 }}},
+  {.msg = {{201, 0, 8, .expected_timestep = 100000U}, { 0 }, { 0 }}},
 };
 #define GM_RX_CHECK_LEN (sizeof(gm_addr_checks) / sizeof(gm_addr_checks[0]))
 addr_checks gm_rx_checks = {gm_addr_checks, GM_RX_CHECK_LEN};
@@ -90,7 +92,8 @@ static int gm_rx_hook(CANPacket_t *to_push) {
     }
 
     // ACC steering wheel buttons (GM_CAM is tied to the PCM)
-    if ((addr == 481) && (gm_hw == GM_CAM)) {
+    if ((addr == 481) && !gm_pcm_cruise) { // from origin
+    //if ((addr == 481) && (gm_hw == GM_CAM)) { // from boltpilot
       int button = (GET_BYTE(to_push, 5) & 0x70U) >> 4;
 
       // enter controls on falling edge of set or rising edge of resume (avoids fault)
@@ -145,8 +148,9 @@ static int gm_rx_hook(CANPacket_t *to_push) {
 
     bool stock_ecu_detected = (addr == 384);  // ASCMLKASteeringCmd
 
-    // Only check ASCMGasRegenCmd if ASCM, GM_CAM uses stock longitudinal
-    if ((gm_hw == GM_ASCM) && (addr == 715)) {
+    // Check ASCMGasRegenCmd only if we're blocking it
+    if (!gm_pcm_cruise && (addr == 715)) { // from origin
+    //if ((gm_hw == GM_ASCM) && (addr == 715)) { // from boltpilot
       stock_ecu_detected = true;
     }
     generic_rx_checks(stock_ecu_detected);
@@ -217,17 +221,23 @@ static int gm_tx_hook(CANPacket_t *to_send) {
   }
 
   // BUTTONS: used for resume spamming and cruise cancellation with stock longitudinal
-  if ((addr == 481) && (gm_pcm_cruise || gm_hw == GM_CAM)) {
+  if ((addr == 481) && gm_pcm_cruise) { // from origin
+  //if ((addr == 481) && (gm_pcm_cruise || gm_hw == GM_CAM)) { //from boltpilot
     int button = (GET_BYTE(to_send, 5) >> 4) & 0x7U;
 
-    bool allowed_btn = (button == GM_BTN_CANCEL) && cruise_engaged_prev;
-    // For standard CC, allow spamming of SET / RESUME
-    allowed_btn |= cruise_engaged_prev && (gm_hw == GM_CAM) && (button == GM_BTN_SET || button == GM_BTN_RESUME || button == GM_BTN_UNPRESS);
-    // TODO: With a Pedal, CC needs to be canceled
-
-    if (!allowed_btn) {
+    //from origin
+    bool allowed_cancel = (button == 6) && cruise_engaged_prev;
+    if (!allowed_cancel) {
       tx = 0;
     }
+    //from boltpilot
+    // For standard CC, allow spamming of SET / RESUME
+    //allowed_btn |= cruise_engaged_prev && (gm_hw == GM_CAM) && (button == GM_BTN_SET || button == GM_BTN_RESUME || button == GM_BTN_UNPRESS);
+    // TODO: With a Pedal, CC needs to be canceled
+    //
+    //if (!allowed_btn) {
+    //  tx = 0;
+    //}
   }
 
   // 1 allows the message through

@@ -1097,6 +1097,8 @@ struct LateralPlan @0xe1e9318e2ae8b51e {
   #apilot
   desireEvent @36 : Int32;
   desireReady @37 : Int32;
+  roadEdgeStat @38 : Int32;
+  latDebugText @39 : Text;
 
   mpcSolutionValid @9 :Bool;
   desire @17 :Desire;
@@ -2127,6 +2129,8 @@ struct NavInstruction {
   speedLimit @10 :Float32; # m/s
   speedLimitSign @11 :SpeedLimitSign;
 
+  allManeuvers @12 :List(Maneuver);
+
   struct Lane {
     directions @0 :List(Direction);
     active @1 :Bool;
@@ -2143,7 +2147,13 @@ struct NavInstruction {
   enum SpeedLimitSign {
     mutcd @0; # US Style
     vienna @1; # EU Style
-    }
+  }
+
+  struct Maneuver {
+    distance @0 :Float32;
+    type @1 :Text;
+    modifier @2 :Text;
+  }
 }
 
 struct NavRoute {

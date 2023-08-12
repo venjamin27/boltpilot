@@ -19,6 +19,13 @@ BUTTONS_DICT = {CruiseButtons.RES_ACCEL: ButtonType.accelCruise, CruiseButtons.D
                 CruiseButtons.MAIN: ButtonType.altButton3, CruiseButtons.CANCEL: ButtonType.cancel}
 
 
+NON_LINEAR_TORQUE_PARAMS = {
+  CAR.BOLT_CC: [2.6531724862969748, 1.0, 0.1919764879840985, 0.009054123646805178],
+  #CAR.BOLT_EUV: [2.6531724862969748, 1.0, 0.1919764879840985, 0.009054123646805178],
+  #CAR.ACADIA: [4.78003305, 1.0, 0.3122, 0.05591772]
+}
+
+
 class CarInterface(CarInterfaceBase):
   @staticmethod
   def get_pid_accel_limits(CP, current_speed, cruise_speed):
@@ -45,9 +52,8 @@ class CarInterface(CarInterfaceBase):
     else:
       return CarInterfaceBase.get_steer_feedforward_default
 
-  @staticmethod
-  def torque_from_lateral_accel_bolt(lateral_accel_value: float, torque_params: car.CarParams.LateralTorqueTuning,
-                                     lateral_accel_error: float, lateral_accel_deadzone: float, friction_compensation: bool) -> float:
+  def torque_from_lateral_accel_siglin(self, lateral_accel_value: float, torque_params: car.CarParams.LateralTorqueTuning,
+                                       lateral_accel_error: float, lateral_accel_deadzone: float, friction_compensation: bool) -> float:
     friction = get_friction(lateral_accel_error, lateral_accel_deadzone, FRICTION_THRESHOLD, torque_params, friction_compensation)
 
     def sig(val):
@@ -57,14 +63,16 @@ class CarInterface(CarInterfaceBase):
     # An important thing to consider is that the slope at 0 should be > 0 (ideally >1)
     # This has big effect on the stability about 0 (noise when going straight)
     # ToDo: To generalize to other GMs, explore tanh function as the nonlinear
+    # non_linear_torque_params = NON_LINEAR_TORQUE_PARAMS.get(self.CP.carFingerprint)
+    # assert non_linear_torque_params, "The params are not defined"
+    # a, b, c, _ = non_linear_torque_params
     a, b, c, _ = [2.6531724862969748, 1.0, 0.1919764879840985, 0.009054123646805178]  # weights computed offline
-
     steer_torque = (sig(lateral_accel_value * a) * b) + (lateral_accel_value * c)
     return float(steer_torque) + friction
 
   def torque_from_lateral_accel(self) -> TorqueFromLateralAccelCallbackType:
     if self.CP.carFingerprint in (CAR.BOLT_EUV, CAR.BOLT_CC):
-      return self.torque_from_lateral_accel_bolt
+      return self.torque_from_lateral_accel_siglin
     else:
       return self.torque_from_lateral_accel_linear
 
@@ -88,7 +96,7 @@ class CarInterface(CarInterfaceBase):
     ret.longitudinalTuning.kiBP = [0.]
 
     if candidate in CAMERA_ACC_CAR:
-      ret.experimentalLongitudinalAvailable = candidate not in CC_ONLY_CAR
+      ret.experimentalLongitudinalAvailable = True
       ret.networkLocation = NetworkLocation.fwdCamera
       ret.radarUnavailable = True  # no radar
       ret.pcmCruise = True
@@ -177,7 +185,8 @@ class CarInterface(CarInterfaceBase):
       ret.wheelbase = 2.86
       ret.steerRatio = 14.4  # end to end is 13.46
       ret.centerToFront = ret.wheelbase * 0.4
-      ret.lateralTuning.pid.kf = 1.  # get_steer_feedforward_acadia()
+      ret.steerActuatorDelay = 0.2
+      CarInterfaceBase.configure_torque_tune(candidate, ret.lateralTuning)
 
     elif candidate == CAR.BUICK_LACROSSE:
       ret.mass = 1712. + STD_CARGO_KG
