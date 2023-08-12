@@ -1,5 +1,6 @@
 import math
-
+import cereal.messaging as messaging
+import numpy as np
 from cereal import car
 from common.conversions import Conversions as CV
 from common.numpy_fast import interp, clip
@@ -9,7 +10,7 @@ from selfdrive.car import apply_driver_steer_torque_limits, create_gas_intercept
 from selfdrive.car.gm import gmcan
 from selfdrive.car.gm.values import DBC, CanBus, CarControllerParams, CruiseButtons, CC_ONLY_CAR
 from collections import deque
-import cereal.messaging as messaging
+
 
 VisualAlert = car.CarControl.HUDControl.VisualAlert
 NetworkLocation = car.CarParams.NetworkLocation
@@ -90,12 +91,12 @@ class CarController:
       self.sm.update(0)
 
 
-    if sm.updated['liveCalibration']:
+    if self.sm.updated['liveCalibration']:
       # self.current_pitch_debug = self.sm['liveCalibration'].liveCalibration.liveMpcDebug.currentPitch
       if self.default_pitch == -100.0:
-        self.default_pitch = np.asarray(sm['liveCalibration'].rpyCalib)[1]
+        self.default_pitch = np.asarray(self.sm['liveCalibration'].rpyCalib)[1]
       else :
-        self.current_pitch = np.asarray(sm['liveCalibration'].rpyCalib)[1]
+        self.current_pitch = np.asarray(self.sm['liveCalibration'].rpyCalib)[1]
 
     actuators = CC.actuators
     hud_control = CC.hudControl
