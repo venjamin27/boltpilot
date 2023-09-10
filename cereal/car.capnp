@@ -130,6 +130,8 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     stopStop @127; #ajouatom
     audioLaneChange @130; #ajouatom
     audioTurn @131; #ajouatom
+    pedalInterceptorNoBrake @132;
+
     radarCanErrorDEPRECATED @15;
     communityFeatureDisallowedDEPRECATED @62;
     radarCommIssueDEPRECATED @67;
@@ -162,14 +164,6 @@ struct CarEvent @0x9b1657f34caf3ad3 {
 
 struct CarState {
   events @13 :List(CarEvent);
-
-  #BOLT EV
-  vehicleSpeed @58 :Float32;
-  regenPressed @60 :Bool; #this is regen button only
-  adaptiveCruise @61 :Bool;
-  mainOn @59 :Bool;
-  lkasEnable @57 :Bool;
-
 
   # CAN health
   canValid @26 :Bool;       # invalid counter/checksums
@@ -400,12 +394,6 @@ struct CarControl {
     longControlState @5: LongControlState;
     jerk @9: Float32; # apilot
 
-    regenPaddle @14: Bool;
-    pedalGas @10: Float32;
-    pedalGasRaw @11: Float32;
-    pedalGasAvg @12: Float32;
-    aEgoAvg @13: Float32;
-
     enum LongControlState @0xe40f3a917d908282{
       off @0;
       pid @1;
@@ -527,6 +515,7 @@ struct CarParams {
 
   # things we can derive
   rotationalInertia @22 :Float32;    # [kg*m2] body rotational inertia
+  tireStiffnessFactor @72 :Float32;  # scaling factor used in calculating tireStiffness[Front,Rear]
   tireStiffnessFront @23 :Float32;   # [N/rad] front tire coeff of stiff
   tireStiffnessRear @24 :Float32;    # [N/rad] rear tire coeff of stiff
 
@@ -567,9 +556,9 @@ struct CarParams {
 
   wheelSpeedFactor @63 :Float32; # Multiplier on wheels speeds to computer actual speeds
 
-  sccBus @72 : Int8;
-  hasLfaHda @73 : Bool;
-  naviCluster @74 : Int8;
+  sccBus @73 : Int8;
+  hasLfaHda @74 : Bool;
+  naviCluster @75 : Int8;
 
   struct SafetyConfig {
     safetyModel @0 :SafetyModel;
@@ -672,6 +661,7 @@ struct CarParams {
     hongqi @26;
     body @27;
     hyundaiCanfd @28;
+    volkswagenMqbEvo @29;
   }
 
   enum SteerControlType {

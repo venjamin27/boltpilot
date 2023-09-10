@@ -1,4 +1,6 @@
-#include "map_settings.h"
+#include "selfdrive/ui/qt/maps/map_settings.h"
+
+#include <utility>
 
 #include <QApplication>
 #include <QDebug>
@@ -8,8 +10,8 @@
 #include "selfdrive/ui/qt/widgets/scrollview.h"
 
 MapSettings::MapSettings(bool closeable, QWidget *parent) : QFrame(parent) {
-  close_icon = loadPixmap("../assets/icons/close.svg", {100, 100});
   setContentsMargins(0, 0, 0, 0);
+  setAttribute(Qt::WA_NoMousePropagation);
 
   auto *frame = new QVBoxLayout(this);
   frame->setContentsMargins(40, 40, 40, 0);
@@ -87,11 +89,6 @@ MapSettings::MapSettings(bool closeable, QWidget *parent) : QFrame(parent) {
   QObject::connect(NavigationRequest::instance(), &NavigationRequest::nextDestinationUpdated, this, &MapSettings::updateCurrentRoute);
 
   current_locations = NavigationRequest::instance()->currentLocations();
-}
-
-void MapSettings::mousePressEvent(QMouseEvent *ev) {
-  // Prevent mouse event from propagating up
-  ev->accept();
 }
 
 void MapSettings::showEvent(QShowEvent *event) {

@@ -1,275 +1,4 @@
-
-
-# For foreign users (non Korean.)
-#### working tested : BoltEV premier 2017, 2018, 2019, 2020  (also works if using imperal units)
-thx for @andyroo-t that BoltEV premier 2020 tests 
-
-### 2023-08-09 (release/develop)
-- settings->ETC->EnableMainCruiseOnOff is added. and this is highly recommended to ON. 
-  - please turn this on if you read first time.
-  - (you can enable/disable cruise control by pressing the "SET" button on the steering wheel.)
-
-### 2023-07-18 (release/develop)
-- feature-develop branch is synced with latest feature/opgm-ap-integration
-- base fork chaged to Apilot
-- engaging method has changed. 
-  - now, you can engage by pressing the "SET" button on the steering wheel.
-- full clean wipe & factory reset the device when you read this first time.
-### 2022-12-21 (v0819-c3)
-- full clean wipe & factory reset the device when you read this first time.
-- try fine tuning with "https://github.com/jc01rho-openpilot-BoltEV2019-KoKr/boltpilot/blob/release/nTune-1.7.1-legacy-minSDK23.apk"
-
-=======================
-![boltpilot](https://i.imgur.com/azNrGqZ.gif)
-
-Table of Contents
-=======================
-
-* [What is boltpilot?](#what-is-boltpilot)
-* [Hardware requirements](#hardware-requirements)
-* [Hardware installation](#hardware-installation)
-* [Software installation](#software-installation)
-* [Boltpilot usage](#usage)
-* [Donations](#donations)
-* [Community and Contributing](#community-and-contributing)
-* [User Data and comma Account](#user-data-and-comma-account)
-* [Safety and Testing](#safety-and-testing)
-* [Directory Structure](#directory-structure)
-* [Licensing](#licensing)
-
----
-
-
-What is boltpilot?
-------
-
-This "boltpilot" fork is a community supported fork of the open source driver assistance system called openpilot. Although the Bolt EV is not currently supported by Comma.ai in the main openpilot release, this customized fork fills that gap. Boltpilot was designed spefically for Chevrolet Bolt EV models that lack ACC (Adaptive Cruise Control). Compatibility has been verified with 2017, 2018 and 2019 Bolt EV models with lane keep assist. More recent year models might also be compatible but have not yet been tested.
-
-Currently, boltpilot performs the functions of Adaptive Cruise Control (ACC) and Automated Lane Centering (ALC). It will control your steering wheel to keep your vehicle centred in the lane and can optionally also control your vehicle's speed. The system does not offer full self-driving capabilities and will not, for example, stop for red lights or stop signs, although some of these features are currently under development by Comma.ai. The driver must remain alert and able to take control at all times. 
-
-This is an experimental application used for research and development. It is not a product and carries no warranty exporessed or implied. Use at your own risk. Issue reports are welcome via github, or contact rkjnice@gmail.com.
-
-
-Hardware requirements
-------
-
-This Bolt-specific fork requires a Comma 3 device (https://comma.ai/shop), a harness box (https://comma.ai/shop/products/harness-box), a custom wiring harness made for GM vehicles (make your own or purchase one online), and a pedal interceptor designed specifically for GM vehicles (make your own or purchase one online). 
-
-Making a custom Bolt EV wiring harness and pedal interceptor requires specialized equipment and considerable skill. However, both of these devices are currently available for purchase from BearTechWorkshop's Etsy store (https://www.etsy.com/ca/shop/BearTechWorkshop).
-
-Earlier comma devices including the Comma 2 and Eon are not supported by the actively maintained branches of this fork. If you intend on using a Comma 2 or Eon you must use the comma2_Eon-final branch, and you may need additional hardware as described in the Chevy-Bolt openpilot Wiki (https://github.com/commaai/openpilot/wiki/Chevy-Bolt).
-
-
-Hardware installation
-------
-
-A video showing installation of a Comma 2 into a Bolt EV can be found at https://www.youtube.com/watch?v=5D21wzCcycE. Installation of the Comma 3 requires the same basic procedure.
-
-A video showing installation of a pedal interceptor on a Bolt EV can be found here: https://www.youtube.com/watch?v=wLepOnjGoh8
-
-Thanks to Jason Shuler of Stand Back Labs for making these videos available.
-
-
-Software installation (v0819-c3)
-------
-
-1. Select your WiFi network and enter Wi-Fi password on your Comma 3 device.
-
-2. When asked to choose between Dashcam and Custom Software, choose Custom Software and enter the URL https://smiskol.com/fork/jc01rho-openpilot-BoltEV2019-KoKr/[branch] where [branch] is the desired branch name. For example, to install the 'release' branch, enter https://smiskol.com/fork/jc01rho-openpilot-BoltEV2019-KoKr/release. The 'release' branch is currently recommended for most purposes as it is actively maintained and is stable. You can also use the shortcut https://tiny.one/boltpilot-release to install the 'release' branch. This will automatically redirect to the longer URL listed above.
-
-3. Your device will reboot after installation. When prompted, scroll to accept the terms and conditions, then follow the on-screen instructions to complete the openpilot training.
-
-4. Click the Gear icon to open settings. Under the 'Toggles' menu, ensure 'Enable openpilot' is turned on. 
-
-5. Under the 'ETC' settings, select your vehicle at the top. For example, 'Chevrolet Bolt EV No ACC'. Reboot your device by selecting the 'Device' menu, and then press the 'Reboot' button. 
-
-
-Boltpilot usage
-------
-
-Calibration: Your device requires a one-time calibration after software installation. This takes only a couple minutes and will occur automatically at the beginning of your first drive.
-
-Gear selection: This fork is designed for use in L-mode only. You must place the gear shifter in L. Your vehicle's regenerative braking will be used to lower the speed when requried.
-
-Bolt pilot has three main operation modes: (1) full control mode, which controls both steering and speed, (2) lateral control mode, which controls only the steering, and (3) lateral control mode with built-in non-adaptive cruise control, which controls your steering automatically, but uses your vehicle's built-in non-adaptive cruise control.
-
-Mode 1 - Full control mode: To engage both steering and speed control, make sure the stock cruise control is turned off, and then while driving press the Set/- button (bottom button on the left steering wheel control pad). Pressing the X (left) keypad button or the brake pedal will disengage openpilot. 
-
-Mode 2 - Lateral control mode: Use the stock cruise control button (right button on steering wheel keypad) to toggle steering control only. Openpilot will look after steering, but you will need to control your speed using the accelerator pedal. 
-
-Mode 3 - Lateral control mode with stock cruise control: Use the stock cruise control button (right button on steering wheel keypad) to toggle steering control only as described in Mode 2. Immediately after engaging steering control mode, press the Set/- button to engage your vehicle's stock cruise control. Adjust your desired sped using the +/- buttons.'
-
-
-Acknowledgments
-------
-
-This fork is maintained by @whrho (Discord user @jc01rho) of Korea (kjnice@gmail.com). Special thanks to Jason Shuler of Stand Back Labs for his extensive openpilot development work on GM vehicles--especially the Bolt EV, GM giraffe, GM harness, GM Pedal, pedal firmware, and panda coding. Without his work the creation of this fork would not have been possible. Starting with version 0.8.14 this fork is based on the work of @neokii with the Hyundai-Kia fork. Thanks to hanabi95 (@hanabi95) for safety and CAN bus related content. Thank you @Hammie K for the lat_icon_image, and @neokii for the screenrecorder.
-
-
-Donations
-------
-
-If you find this fork useful, please consider donating to support the continued development and maintenance. Donations can be made at https://jc01rho.com/donation
-
-
-# 볼트EV + 콤마3 전용 오픈파일럿 포크
-
-### 콤마2 혹은 lepro 이온 사용불가합니다. comma2_Eon-final을 사용하세요.
-### 일반 사용자분들은 "develop" 혹은 "release" 브랜치를 사용하세요. 버전이 올라가도 최신을 그곳에 유지하겠습니다.
-### 0.8.14부터 @neokii님의 HKG향 코드를 기반으로 하고있습니다.
-### pedal 사용자의 경우 옵션에서 켜주셔야합니다 꼭. (v0819-c3)
-### 0.9.1 부터 @ajouatom님의 apilot 코드를 기반으로 하고있습니다. 
-
-
-- hanabi95(@hanabi95) 님의 작업에서 safety 및 can 관련 내용을 기본으로 하고 있습니다. 항상 감사드립니다.
-- lat_icon_image, thanks to @Hammie K 
-- screenrecorder, thanks to neokii
-
-### 문의사항은 이슈 생성으로 주십시오. 감사합니다.
-#### working tested : BoltEV premier 2017, 2018, 2019, 2020
-thx for @andyroo-t that BoltEV premier 2020 tests
-rkjnice@gmail.com
-
-
-What is openpilot?
-------
-
-[openpilot](http://github.com/commaai/openpilot) is an open source driver assistance system. Currently, openpilot performs the functions of Adaptive Cruise Control (ACC), Automated Lane Centering (ALC), Forward Collision Warning (FCW), and Lane Departure Warning (LDW) for a growing variety of [supported car makes, models, and model years](docs/CARS.md). In addition, while openpilot is engaged, a camera-based Driver Monitoring (DM) feature alerts distracted and asleep drivers. See more about [the vehicle integration](docs/INTEGRATION.md) and [limitations](docs/LIMITATIONS.md).
-
-<table>
-  <tr>
-    <td><a href="https://youtu.be/NmBfgOanCyk" title="Video By Greer Viau"><img src="https://i.imgur.com/1w8c6d2.jpg"></a></td>
-    <td><a href="https://youtu.be/VHKyqZ7t8Gw" title="Video By Logan LeGrand"><img src="https://i.imgur.com/LnBucik.jpg"></a></td>
-    <td><a href="https://youtu.be/VxiR4iyBruo" title="Video By Charlie Kim"><img src="https://i.imgur.com/4Qoy48c.jpg"></a></td>
-    <td><a href="https://youtu.be/-IkImTe1NYE" title="Video By Aragon"><img src="https://i.imgur.com/04VNzPf.jpg"></a></td>
-  </tr>
-  <tr>
-    <td><a href="https://youtu.be/iIUICQkdwFQ" title="Video By Logan LeGrand"><img src="https://i.imgur.com/b1LHQTy.jpg"></a></td>
-    <td><a href="https://youtu.be/XOsa0FsVIsg" title="Video By PinoyDrives"><img src="https://i.imgur.com/6FG0Bd8.jpg"></a></td>
-    <td><a href="https://youtu.be/bCwcJ98R_Xw" title="Video By JS"><img src="https://i.imgur.com/zO18CbW.jpg"></a></td>
-    <td><a href="https://youtu.be/BQ0tF3MTyyc" title="Video By Tsai-Fi"><img src="https://i.imgur.com/eZzelq3.jpg"></a></td>
-  </tr>
-</table>
-
-
-Running on a dedicated device in a car
-------
-
-To use openpilot in a car, you need four things
-* A supported device to run this software: a [comma three](https://comma.ai/shop/products/three).
-* This software. The setup procedure of the comma three allows the user to enter a URL for custom software.
-The URL, openpilot.comma.ai will install the release version of openpilot. To install openpilot master, you can use installer.comma.ai/commaai/master, and replacing commaai with another GitHub username can install a fork.
-* One of [the 200+ supported cars](docs/CARS.md). We support Honda, Toyota, Hyundai, Nissan, Kia, Chrysler, Lexus, Acura, Audi, VW, and more. If your car is not supported but has adaptive cruise control and lane-keeping assist, it's likely able to run openpilot.
-* A [car harness](https://comma.ai/shop/products/car-harness) to connect to your car.
-
-We have detailed instructions for [how to mount the device in a car](https://comma.ai/setup).
-
-Running on PC
-------
-
-All openpilot services can run as usual on a PC without requiring special hardware or a car. You can also run openpilot on recorded or simulated data to develop or experiment with openpilot.
-
-With openpilot's tools, you can plot logs, replay drives, and watch the full-res camera streams. See [the tools README](tools/README.md) for more information.
-
-You can also run openpilot in simulation [with the CARLA simulator](tools/sim/README.md). This allows openpilot to drive around a virtual car on your Ubuntu machine. The whole setup should only take a few minutes but does require a decent GPU.
-
-A PC running openpilot can also control your vehicle if it is connected to a [webcam](https://github.com/commaai/openpilot/tree/master/tools/webcam), a [black panda](https://comma.ai/shop/products/panda), and a [harness](https://comma.ai/shop/products/car-harness).
-
-Community and Contributing
-------
-
-openpilot is developed by [comma](https://comma.ai/) and by users like you. We welcome both pull requests and issues on [GitHub](http://github.com/commaai/openpilot). Bug fixes and new car ports are encouraged. Check out [the contributing docs](docs/CONTRIBUTING.md).
-
-Documentation related to openpilot development can be found on [docs.comma.ai](https://docs.comma.ai). Information about running openpilot (e.g. FAQ, fingerprinting, troubleshooting, custom forks, community hardware) should go on the [wiki](https://github.com/commaai/openpilot/wiki).
-
-You can add support for your car by following guides we have written for [Brand](https://blog.comma.ai/how-to-write-a-car-port-for-openpilot/) and [Model](https://blog.comma.ai/openpilot-port-guide-for-toyota-models/) ports. Generally, a car with adaptive cruise control and lane keep assist is a good candidate. [Join our Discord](https://discord.comma.ai) to discuss car ports: most car makes have a dedicated channel.
-
-Want to get paid to work on openpilot? [comma is hiring](https://comma.ai/jobs/).
-
-And [follow us on Twitter](https://twitter.com/comma_ai).
-
-User Data and comma Account
-------
-
-By default, openpilot uploads the driving data to comma.ai's servers. You can also access your data through [comma connect](https://connect.comma.ai/). We use your data to train better models and improve openpilot for everyone.
-
-openpilot is open source software: the user is free to disable data collection if they wish to do so.
-
-openpilot logs the road-facing cameras, CAN, GPS, IMU, magnetometer, thermal sensors, crashes, and operating system logs.
-The driver-facing camera is only logged if you explicitly opt-in in settings. The microphone is not recorded.
-
-By using openpilot, you agree to [our Privacy Policy](https://comma.ai/privacy). You understand that use of this software or its related services will generate certain types of user data, which may be logged and stored at the sole discretion of comma. By accepting this agreement, you grant an irrevocable, perpetual, worldwide right to comma for the use of this data.
-
-Safety and Testing
-----
-
-* openpilot observes ISO26262 guidelines, see [SAFETY.md](docs/SAFETY.md) for more details.
-* openpilot has software-in-the-loop [tests](.github/workflows/selfdrive_tests.yaml) that run on every commit.
-* The code enforcing the safety model lives in panda and is written in C, see [code rigor](https://github.com/commaai/panda#code-rigor) for more details.
-* panda has software-in-the-loop [safety tests](https://github.com/commaai/panda/tree/master/tests/safety).
-* Internally, we have a hardware-in-the-loop Jenkins test suite that builds and unit tests the various processes.
-* panda has additional hardware-in-the-loop [tests](https://github.com/commaai/panda/blob/master/Jenkinsfile).
-* We run the latest openpilot in a testing closet containing 10 comma devices continuously replaying routes.
-
-Directory Structure
-------
-    .
-    ├── cereal              # The messaging spec and libs used for all logs
-    ├── common              # Library like functionality we've developed here
-    ├── docs                # Documentation
-    ├── opendbc             # Files showing how to interpret data from cars
-    ├── panda               # Code used to communicate on CAN
-    ├── third_party         # External libraries
-    ├── pyextra             # Extra python packages
-    └── system              # Generic services
-        ├── camerad         # Driver to capture images from the camera sensors
-        ├── clocksd         # Broadcasts current time
-        ├── hardware        # Hardware abstraction classes
-        ├── logcatd         # systemd journal as a service
-        └── proclogd        # Logs information from /proc
-    └── selfdrive           # Code needed to drive the car
-        ├── assets          # Fonts, images, and sounds for UI
-        ├── athena          # Allows communication with the app
-        ├── boardd          # Daemon to talk to the board
-        ├── car             # Car specific code to read states and control actuators
-        ├── controls        # Planning and controls
-        ├── debug           # Tools to help you debug and do car ports
-        ├── locationd       # Precise localization and vehicle parameter estimation
-        ├── loggerd         # Logger and uploader of car data
-        ├── manager         # Daemon that starts/stops all other daemons as needed
-        ├── modeld          # Driving and monitoring model runners
-        ├── monitoring      # Daemon to determine driver attention
-        ├── navd            # Turn-by-turn navigation
-        ├── sensord         # IMU interface code
-        ├── test            # Unit tests, system tests, and a car simulator
-        └── ui              # The UI
-
-Licensing
-------
-
-openpilot is released under the MIT license. Some parts of the software are released under other licenses as specified.
-
-Any user of this software shall indemnify and hold harmless Comma.ai, Inc. and its directors, officers, employees, agents, stockholders, affiliates, subcontractors and customers from and against all allegations, claims, actions, suits, demands, damages, liabilities, obligations, losses, settlements, judgments, costs and expenses (including without limitation attorneys’ fees and costs) which arise out of, relate to or result from any use of this software by user.
-
-**THIS IS ALPHA QUALITY SOFTWARE FOR RESEARCH PURPOSES ONLY. THIS IS NOT A PRODUCT.
-YOU ARE RESPONSIBLE FOR COMPLYING WITH LOCAL LAWS AND REGULATIONS.
-NO WARRANTY EXPRESSED OR IMPLIED.**
-
----
-
-<img src="https://d1qb2nb5cznatu.cloudfront.net/startups/i/1061157-bc7e9bf3b246ece7322e6ffe653f6af8-medium_jpg.jpg?buster=1458363130" width="75"></img> <img src="https://cdn-images-1.medium.com/max/1600/1*C87EjxGeMPrkTuVRVWVg4w.png" width="225"></img>
-
-[![openpilot tests](https://github.com/commaai/openpilot/workflows/openpilot%20tests/badge.svg?event=push)](https://github.com/commaai/openpilot/actions)
-[![Total alerts](https://img.shields.io/lgtm/alerts/g/commaai/openpilot.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/commaai/openpilot/alerts/)
-[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/commaai/openpilot.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/commaai/openpilot/context:python)
-[![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/commaai/openpilot.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/commaai/openpilot/context:cpp)
-[![codecov](https://codecov.io/gh/commaai/openpilot/branch/master/graph/badge.svg)](https://codecov.io/gh/commaai/openpilot)
-
-
-
-=======================
-APILOT inegration temporary readme
-
+APILOT
 ------
 * PREVIEW
 
@@ -278,12 +7,16 @@ APILOT inegration temporary readme
   ![image](https://user-images.githubusercontent.com/43668841/234758774-851624ee-5f15-4492-bbaf-9239bf5ddb94.png)
 
   ![image](https://user-images.githubusercontent.com/43668841/231068110-1bd61f5b-8c1f-406b-bacd-419e47289a08.png)
-
+  
   ![image](https://user-images.githubusercontent.com/43668841/231068378-ebbcaafe-55d1-4e18-a08c-8dd01a337a7f.png)
-
+  
   ![image](https://user-images.githubusercontent.com/43668841/231068460-11c7977a-feaa-4f1c-b4be-263d4132d213.png)
 
 * 읽어보기
+  * Ver 23.08.01부터 APM0.90으로 업뎃해야하며, NDA와 APM동시지원 안됨
+  * NDA와 APM을 같이 사용하려면
+    * APM0.85 사용
+    * 감속제어: 과속카메라 작동방법: 3 으로 하고 재시작 (단, APM090 연결안됨)
   * 설정값을 함부로 건들면 사고의 위험이 있으며, 사고/고장 발생시 본인의 책임입니다.
   * Panda코드를 수정하였으므로, comma connect에 연결되면 BAN당함(연결되어도 업로드안됨)!
   * 배선개조: SCC모듈(레이더)의 CCAN연결을 절단 -> 판다의 CAN2에 연결
@@ -293,7 +26,7 @@ APILOT inegration temporary readme
     * 콤마2, 이온/원플러스: c2-master
   * 신호정지모드
     * 신호정지감속정지상태에서 GAS페달: 신호무시
-    * 소프트 브레이크홀드기능: 정지상태에서 Brake페달 0.7초이상: 신호무시하고 정지유지
+    * 소프트 브레이크홀드기능: 정지상태에서 Brake페달 0.7초이상: 신호무시하고 정지유지 
   * 테스트된차량: SCC모듈(레이더) 배선개조 CAN BUS2로 연결된차량
     * Hyundai SANTAFE HYBRID Hybrid 2022 (배선개조 안된것도 가능,단,AEB off됨) (RadarTracks)
     * Kia STINGER
@@ -317,7 +50,7 @@ APILOT inegration temporary readme
   * NOO Helper (Navigate On Openpilot)
     * 이 기능은 C3의 경우 자체네비, C2의 경우 외부네비(Mappy)를 이용한 조향 및 턴제어 보조 기능입니다(시험용)
     * NOO Helper를 1로 변경하면 작동
-    * APilotMan 필수설치(첨부)
+    * APM(APilotMan 필수설치(첨부)
     * Mappy 설치 (첨부)
     * PC에 폰을 연결하고 다음을 실행해야함. (필수)
       * adb shell pm grant com.ajouatom.apilotman android.permission.READ_LOGS
@@ -354,7 +87,7 @@ APILOT inegration temporary readme
     * 0: 사용안함
     * 1: NDA 사용, Neokii의 NDA지원 단말기 설치시 자동으로 연결: 같은 네트워크에 있어야함.
     * 과속카메라 속도제한은 무조건 작동함.
-  * 크루즈소리
+  * 크루즈소리 
     * 0: 크루즈 작동소리가 안남
     * 1: 일부소리가 남.
     * 2: 모든 크루즈 작동소리가 안남.
@@ -447,10 +180,10 @@ APILOT inegration temporary readme
   * 모델커브속도조절(ON): 곡선도로를 만나면 자동으로 속도를 줄여줌.
 
 * 엑셀에서 발을 떼었을때
-  * 크루즈ON 조건
+  * 크루즈ON 조건 
     * 엑셀크루즈ON 설정상태
     * 핸들20도이내이고 엑셀크루즈ON속도이상 또는 가속페달을 60%이상 밟았을때
-    * 적색 신호감지는 안되어있는 상태
+    * 적색 신호감지는 안되어있는 상태 
     * 속도세트
       * 60%이상밟았을때 기존속도
       * 엑셀크루즈ON: 속도복원설정에 따라 속도복원
@@ -566,8 +299,154 @@ APILOT inegration temporary readme
     * 상대속도: 102
     * 차량간격비율: 95
     * 차량간격유지 동적제어사용: 1
-
+  
 
 ![](https://i.imgur.com/b0ZyIx5.jpg)
+
+Table of Contents
 =======================
 
+* [What is openpilot?](#what-is-openpilot)
+* [Running in a car](#running-on-a-dedicated-device-in-a-car)
+* [Running on PC](#running-on-pc)
+* [Community and Contributing](#community-and-contributing)
+* [User Data and comma Account](#user-data-and-comma-account)
+* [Safety and Testing](#safety-and-testing)
+* [Directory Structure](#directory-structure)
+* [Licensing](#licensing)
+
+---
+
+What is openpilot?
+------
+
+[openpilot](http://github.com/commaai/openpilot) is an open source driver assistance system. Currently, openpilot performs the functions of Adaptive Cruise Control (ACC), Automated Lane Centering (ALC), Forward Collision Warning (FCW), and Lane Departure Warning (LDW) for a growing variety of [supported car makes, models, and model years](docs/CARS.md). In addition, while openpilot is engaged, a camera-based Driver Monitoring (DM) feature alerts distracted and asleep drivers. See more about [the vehicle integration](docs/INTEGRATION.md) and [limitations](docs/LIMITATIONS.md).
+
+<table>
+  <tr>
+    <td><a href="https://youtu.be/NmBfgOanCyk" title="Video By Greer Viau"><img src="https://i.imgur.com/1w8c6d2.jpg"></a></td>
+    <td><a href="https://youtu.be/VHKyqZ7t8Gw" title="Video By Logan LeGrand"><img src="https://i.imgur.com/LnBucik.jpg"></a></td>
+    <td><a href="https://youtu.be/VxiR4iyBruo" title="Video By Charlie Kim"><img src="https://i.imgur.com/4Qoy48c.jpg"></a></td>
+    <td><a href="https://youtu.be/-IkImTe1NYE" title="Video By Aragon"><img src="https://i.imgur.com/04VNzPf.jpg"></a></td>
+  </tr>
+  <tr>
+    <td><a href="https://youtu.be/iIUICQkdwFQ" title="Video By Logan LeGrand"><img src="https://i.imgur.com/b1LHQTy.jpg"></a></td>
+    <td><a href="https://youtu.be/XOsa0FsVIsg" title="Video By PinoyDrives"><img src="https://i.imgur.com/6FG0Bd8.jpg"></a></td>
+    <td><a href="https://youtu.be/bCwcJ98R_Xw" title="Video By JS"><img src="https://i.imgur.com/zO18CbW.jpg"></a></td>
+    <td><a href="https://youtu.be/BQ0tF3MTyyc" title="Video By Tsai-Fi"><img src="https://i.imgur.com/eZzelq3.jpg"></a></td>
+  </tr>
+</table>
+
+
+Running on a dedicated device in a car
+------
+
+To use openpilot in a car, you need four things
+* A supported device to run this software: a [comma three](https://comma.ai/shop/products/three).
+* This software. The setup procedure of the comma three allows the user to enter a URL for custom software.
+The URL, openpilot.comma.ai will install the release version of openpilot. To install openpilot master, you can use installer.comma.ai/commaai/master, and replacing commaai with another GitHub username can install a fork.
+* One of [the 200+ supported cars](docs/CARS.md). We support Honda, Toyota, Hyundai, Nissan, Kia, Chrysler, Lexus, Acura, Audi, VW, and more. If your car is not supported but has adaptive cruise control and lane-keeping assist, it's likely able to run openpilot.
+* A [car harness](https://comma.ai/shop/products/car-harness) to connect to your car.
+
+We have detailed instructions for [how to mount the device in a car](https://comma.ai/setup).
+
+Running on PC
+------
+
+All openpilot services can run as usual on a PC without requiring special hardware or a car. You can also run openpilot on recorded or simulated data to develop or experiment with openpilot.
+
+With openpilot's tools, you can plot logs, replay drives, and watch the full-res camera streams. See [the tools README](tools/README.md) for more information.
+
+You can also run openpilot in simulation [with the CARLA simulator](tools/sim/README.md). This allows openpilot to drive around a virtual car on your Ubuntu machine. The whole setup should only take a few minutes but does require a decent GPU.
+
+A PC running openpilot can also control your vehicle if it is connected to a [webcam](https://github.com/commaai/openpilot/tree/master/tools/webcam), a [black panda](https://comma.ai/shop/products/panda), and a [harness](https://comma.ai/shop/products/car-harness).
+
+Community and Contributing
+------
+
+openpilot is developed by [comma](https://comma.ai/) and by users like you. We welcome both pull requests and issues on [GitHub](http://github.com/commaai/openpilot). Bug fixes and new car ports are encouraged. Check out [the contributing docs](docs/CONTRIBUTING.md).
+
+Documentation related to openpilot development can be found on [docs.comma.ai](https://docs.comma.ai). Information about running openpilot (e.g. FAQ, fingerprinting, troubleshooting, custom forks, community hardware) should go on the [wiki](https://github.com/commaai/openpilot/wiki).
+
+You can add support for your car by following guides we have written for [Brand](https://blog.comma.ai/how-to-write-a-car-port-for-openpilot/) and [Model](https://blog.comma.ai/openpilot-port-guide-for-toyota-models/) ports. Generally, a car with adaptive cruise control and lane keep assist is a good candidate. [Join our Discord](https://discord.comma.ai) to discuss car ports: most car makes have a dedicated channel.
+
+Want to get paid to work on openpilot? [comma is hiring](https://comma.ai/jobs/).
+
+And [follow us on Twitter](https://twitter.com/comma_ai).
+
+User Data and comma Account
+------
+
+By default, openpilot uploads the driving data to our servers. You can also access your data through [comma connect](https://connect.comma.ai/). We use your data to train better models and improve openpilot for everyone.
+
+openpilot is open source software: the user is free to disable data collection if they wish to do so.
+
+openpilot logs the road-facing cameras, CAN, GPS, IMU, magnetometer, thermal sensors, crashes, and operating system logs.
+The driver-facing camera is only logged if you explicitly opt-in in settings. The microphone is not recorded.
+
+By using openpilot, you agree to [our Privacy Policy](https://comma.ai/privacy). You understand that use of this software or its related services will generate certain types of user data, which may be logged and stored at the sole discretion of comma. By accepting this agreement, you grant an irrevocable, perpetual, worldwide right to comma for the use of this data.
+
+Safety and Testing
+----
+
+* openpilot observes ISO26262 guidelines, see [SAFETY.md](docs/SAFETY.md) for more details.
+* openpilot has software-in-the-loop [tests](.github/workflows/selfdrive_tests.yaml) that run on every commit.
+* The code enforcing the safety model lives in panda and is written in C, see [code rigor](https://github.com/commaai/panda#code-rigor) for more details.
+* panda has software-in-the-loop [safety tests](https://github.com/commaai/panda/tree/master/tests/safety).
+* Internally, we have a hardware-in-the-loop Jenkins test suite that builds and unit tests the various processes.
+* panda has additional hardware-in-the-loop [tests](https://github.com/commaai/panda/blob/master/Jenkinsfile).
+* We run the latest openpilot in a testing closet containing 10 comma devices continuously replaying routes.
+
+Directory Structure
+------
+    .
+    ├── cereal              # The messaging spec and libs used for all logs
+    ├── common              # Library like functionality we've developed here
+    ├── docs                # Documentation
+    ├── opendbc             # Files showing how to interpret data from cars
+    ├── panda               # Code used to communicate on CAN
+    ├── third_party         # External libraries
+    ├── pyextra             # Extra python packages
+    └── system              # Generic services
+        ├── camerad         # Driver to capture images from the camera sensors
+        ├── clocksd         # Broadcasts current time
+        ├── hardware        # Hardware abstraction classes
+        ├── logcatd         # systemd journal as a service
+        └── proclogd        # Logs information from /proc
+    └── selfdrive           # Code needed to drive the car
+        ├── assets          # Fonts, images, and sounds for UI
+        ├── athena          # Allows communication with the app
+        ├── boardd          # Daemon to talk to the board
+        ├── car             # Car specific code to read states and control actuators
+        ├── controls        # Planning and controls
+        ├── debug           # Tools to help you debug and do car ports
+        ├── locationd       # Precise localization and vehicle parameter estimation
+        ├── loggerd         # Logger and uploader of car data
+        ├── manager         # Daemon that starts/stops all other daemons as needed
+        ├── modeld          # Driving and monitoring model runners
+        ├── monitoring      # Daemon to determine driver attention
+        ├── navd            # Turn-by-turn navigation
+        ├── sensord         # IMU interface code
+        ├── test            # Unit tests, system tests, and a car simulator
+        └── ui              # The UI
+
+Licensing
+------
+
+openpilot is released under the MIT license. Some parts of the software are released under other licenses as specified.
+
+Any user of this software shall indemnify and hold harmless Comma.ai, Inc. and its directors, officers, employees, agents, stockholders, affiliates, subcontractors and customers from and against all allegations, claims, actions, suits, demands, damages, liabilities, obligations, losses, settlements, judgments, costs and expenses (including without limitation attorneys’ fees and costs) which arise out of, relate to or result from any use of this software by user.
+
+**THIS IS ALPHA QUALITY SOFTWARE FOR RESEARCH PURPOSES ONLY. THIS IS NOT A PRODUCT.
+YOU ARE RESPONSIBLE FOR COMPLYING WITH LOCAL LAWS AND REGULATIONS.
+NO WARRANTY EXPRESSED OR IMPLIED.**
+
+---
+
+<img src="https://d1qb2nb5cznatu.cloudfront.net/startups/i/1061157-bc7e9bf3b246ece7322e6ffe653f6af8-medium_jpg.jpg?buster=1458363130" width="75"></img> <img src="https://cdn-images-1.medium.com/max/1600/1*C87EjxGeMPrkTuVRVWVg4w.png" width="225"></img>
+
+[![openpilot tests](https://github.com/commaai/openpilot/workflows/openpilot%20tests/badge.svg?event=push)](https://github.com/commaai/openpilot/actions)
+[![Total alerts](https://img.shields.io/lgtm/alerts/g/commaai/openpilot.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/commaai/openpilot/alerts/)
+[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/commaai/openpilot.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/commaai/openpilot/context:python)
+[![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/commaai/openpilot.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/commaai/openpilot/context:cpp)
+[![codecov](https://codecov.io/gh/commaai/openpilot/branch/master/graph/badge.svg)](https://codecov.io/gh/commaai/openpilot)

@@ -377,7 +377,9 @@ void DrawApilot::drawLaneLines(const UIState* s) {
     if (s->show_lane_info > 1) {
         for (int i = 0; i < std::size(scene.road_edge_vertices); ++i) {
             //color = nvgRGBAf(1.0, 0.0, 1.0, std::clamp<float>(3.0 - scene.road_edge_stds[i], 0.0, 1.0));
-            color = nvgRGBAf(1.0, 0.0, 1.0, (scene.road_edge_stds[i]<2.0)?1.0:0.0);
+            //color = nvgRGBAf(1.0, 0.0, 1.0, (scene.road_edge_stds[i] < 2.0) ? 1.0 : 0.0);
+            float temp_f = std::clamp<float>(scene.road_edge_stds[i] / 2., 0.0, 1.0);
+            color = nvgRGBAf(1.0 - temp_f, 0.0, temp_f, 1.0);
             ui_draw_line(s, scene.road_edge_vertices[i], &color, nullptr);
         }
     }
@@ -1192,6 +1194,8 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
             else if (longActiveUser > 0 && (stopping || lp.getTrafficState() >= 1000)) {
                 if (brake_hold || soft_hold) {
                     //drawTextWithColor(painter, x, dist_y, (brake_hold) ? "AUTOHOLD" : "SOFTHOLD", textColor);
+                    sprintf(str, "%s", (brake_hold) ? "AUTOHOLD" : "SOFTHOLD");
+                    ui_draw_text(s, x, dist_y, str, disp_size, COLOR_WHITE, BOLD);
                 }
                 else {
                     sprintf(str, "%s", (lp.getTrafficState() >= 1000) ? "신호오류" : "신호대기");
@@ -1396,6 +1400,12 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
         float applyMaxSpeed = controls_state.getVCruiseOut();// scc_smoother.getApplyMaxSpeed();
         float cruiseMaxSpeed = controls_state.getVCruiseCluster();// scc_smoother.getCruiseMaxSpeed();
         float curveSpeed = controls_state.getCurveSpeed();
+        bool speedCtrlActive = false;
+        if (curveSpeed < 0) {
+            speedCtrlActive = true;
+            curveSpeed = -curveSpeed;
+        }
+        
         //float xCruiseTarget = lp.getXCruiseTarget() * 3.6;
 
         //bool is_cruise_set = (cruiseMaxSpeed > 0 && cruiseMaxSpeed < 255);
@@ -1413,6 +1423,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
         int camLimitSpeedLeftDist = road_limit_speed.getCamLimitSpeedLeftDist();
         int sectionLimitSpeed = road_limit_speed.getSectionLimitSpeed();
         int sectionLeftDist = road_limit_speed.getSectionLeftDist();
+        int camType = road_limit_speed.getCamType();
 
         int limit_speed = 0;
         int left_dist = 0;
@@ -1456,7 +1467,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
             xDistToTurn = navDistance;
         }
         if (limit_speed > 0);
-        else if (xSpdLimit >= 0 && xSpdDist >= 0) {
+        else if (xSpdLimit > 0 && xSpdDist > 0) {
             limit_speed = xSpdLimit;
             left_dist = xSpdDist;
         }
@@ -1501,10 +1512,15 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
         }
         if (s->show_conn_info) {
             //ui_draw_text(s, strlen(str) / 2 * 35 / 2 + 50,40, str, 35, COLOR_WHITE, BOLD);
+            int hda_speedLimit = car_state.getSpeedLimit(); 
+            int hda_speedLimitDistance = car_state.getSpeedLimitDistance();
+            int naviCluster = (int)car_params.getNaviCluster();
             if (sccBus) ui_draw_image(s, { 30, 20, 120, 54 }, "ic_scc2", 1.0f);
             if (activeNDA >= 200) ui_draw_image(s, { 30 + 135, 20, 120, 54 }, "ic_apn", 1.0f);
+            else if (hda_speedLimit > 0 && hda_speedLimitDistance > 0) ui_draw_image(s, { 30 + 135, 20, 120, 54 }, "ic_hda", 1.0f);
             else if (activeNDA >= 100) ui_draw_image(s, { 30 + 135, 20, 120, 54 }, "ic_apm", 1.0f);
             else if (activeNDA % 100 > 0) ui_draw_image(s, { 30 + 135, 20, 120, 54 }, "ic_nda", 1.0f);
+            else if (naviCluster > 0) ui_draw_image(s, { 30 + 135, 20, 120, 54 }, "ic_hda", 1.0f);
             if (radar_tracks) ui_draw_image(s, { 30 + 135 * 2, 20, 240, 54 }, "ic_radartracks", 1.0f);
         }
 
@@ -1544,7 +1560,7 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
         if (true) {
             if (enabled && curveSpeed > 0 && curveSpeed < 150) {
                 sprintf(str, "%d", (int)(curveSpeed + 0.5));
-                ui_draw_text(s, bx + 140, by + 110, str, 50, COLOR_YELLOW, BOLD, 1.0, 5.0, COLOR_BLACK, COLOR_BLACK);
+                ui_draw_text(s, bx + 140, by + 110, str, 50, (speedCtrlActive)?COLOR_RED:COLOR_YELLOW, BOLD, 1.0, 5.0, COLOR_BLACK, COLOR_BLACK);
             }
         }
 
@@ -1565,23 +1581,22 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
         }
 
         if (limit_speed > 0) {
-            nvgBeginPath(s->vg);
-            nvgCircle(s->vg, bx, by, 140 / 2);
-            nvgFillColor(s->vg, COLOR_WHITE);
-            nvgFill(s->vg);
-            nvgBeginPath(s->vg);
-            nvgCircle(s->vg, bx, by, 130 / 2);
-            nvgFillColor(s->vg, COLOR_RED);
-            nvgFill(s->vg);
-            nvgBeginPath(s->vg);
-            nvgCircle(s->vg, bx, by, 110 / 2);
-            nvgFillColor(s->vg, COLOR_WHITE);
-            nvgFill(s->vg);
-            if (xSignType == 124) {
-                sprintf(str, "방지턱");
-                ui_draw_text(s, bx, by + 20, str, 35, COLOR_BLACK, BOLD, 0.0f, 0.0f);
+            if (xSignType == 124 || camType == 22) {
+                ui_draw_image(s, { bx - 60, by - 50, 120, 150 }, "ic_speed_bump", 1.0f);
             }
             else {
+                nvgBeginPath(s->vg);
+                nvgCircle(s->vg, bx, by, 140 / 2);
+                nvgFillColor(s->vg, COLOR_WHITE);
+                nvgFill(s->vg);
+                nvgBeginPath(s->vg);
+                nvgCircle(s->vg, bx, by, 130 / 2);
+                nvgFillColor(s->vg, COLOR_RED);
+                nvgFill(s->vg);
+                nvgBeginPath(s->vg);
+                nvgCircle(s->vg, bx, by, 110 / 2);
+                nvgFillColor(s->vg, COLOR_WHITE);
+                nvgFill(s->vg);
                 sprintf(str, "%d", limit_speed);
                 ui_draw_text(s, bx, by + 25, str, 60, COLOR_BLACK, BOLD, 0.0f, 0.0f);
             }
@@ -1611,16 +1626,6 @@ void DrawApilot::drawLeadApilot(const UIState* s) {
             ui_draw_image(s, { bx - 60, by - 50, 120, 150 }, "ic_road_speed", 1.0f);
             sprintf(str, "%d", roadLimitSpeed);
             ui_draw_text(s, bx, by + 75, str, 50, COLOR_BLACK, BOLD, 0.0f, 0.0f);
-        }
-
-        //BoltEV
-        if (true) { //show regenPaddle activation
-            float img_alpha = car_control.getActuators().getRegenPaddle() ? 1.0f : 0.15f;
-            ui_draw_image(s, { bx - 60 + (  120 + 120 ), by - 50, 150, 150 }, "ic_regenPaddle", img_alpha);
-        }
-        if (Params().getBool("EnableMainCruiseOnOff")) {  //show if mainCruise(longControl) is enabled.
-            float img_alpha = car_state.getCruiseState().getAvailable() ? 0.1f : 1.0f;
-            ui_draw_image(s, { bx - 60 + ( 100 ), by - 50, 140, 140 }, "ic_latMainOn", img_alpha);
         }
     }
     // Tpms...
@@ -1972,13 +1977,15 @@ void ui_nvg_init(UIState *s) {
   {"ic_traffic_red", "../assets/images/traffic_red.png"},
   {"ic_tire", "../assets/images/img_tire.png"},
   {"ic_road_speed", "../assets/images/road_speed.png"},
+  {"ic_speed_bump", "../assets/images/speed_bump.png"},
   {"ic_nda", "../assets/images/img_nda.png"},
   {"ic_navi","../assets/images/img_navi.png"},
   {"ic_scc2", "../assets/images/img_scc2.png"},
   {"ic_radartracks", "../assets/images/img_radartracks.png"},
   {"ic_apm", "../assets/images/img_apm.png"},
   {"ic_apn", "../assets/images/img_apn.png"},
-
+  {"ic_hda", "../assets/images/img_hda.png"},
+  
   {"ic_latMainOn", "../assets/images/img_lat_icon.png"},
   {"ic_regenPaddle", "../assets/images/img_regen.png"},
   

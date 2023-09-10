@@ -1,10 +1,10 @@
 from cereal import car
-from common.numpy_fast import clip, interp
-from common.realtime import DT_CTRL
-from selfdrive.controls.lib.drive_helpers import CONTROL_N, apply_deadzone
-from selfdrive.controls.lib.pid import PIDController
-from selfdrive.modeld.constants import T_IDXS
-from common.params import Params
+from openpilot.common.numpy_fast import clip, interp
+from openpilot.common.realtime import DT_CTRL
+from openpilot.selfdrive.controls.lib.drive_helpers import CONTROL_N, apply_deadzone
+from openpilot.selfdrive.controls.lib.pid import PIDController
+from openpilot.selfdrive.modeld.constants import T_IDXS
+from openpilot.common.params import Params
 
 LongCtrlState = car.CarControl.Actuators.LongControlState
 
@@ -183,7 +183,6 @@ class LongControl:
     self.last_output_accel = clip(output_accel, accel_limits[0], accel_limits[1])
 
     #self.debugLoCText = "T:{:.2f} V:{:.2f}={:.1f}-{:.1f} Aout:{:.2f}<{:.2f}".format(t_since_plan, (self.v_pid - CS.vEgo)*3.6, self.v_pid*3.6, CS.vEgo*3.3, self.last_output_accel, output_accel)
-    # self.debugLoCText = "pid={},vego={:.4f},vt={:.2f},{:.2f},vStop={:.2f}".format(self.long_control_state, CS.vEgo, v_target, v_target_1sec, self.CP.vEgoStopping)
-    self.debugLoCText = "vego={:.4f},vt={:.2f},{:.2f}".format(CS.vEgo, v_target, v_target_1sec)
+    self.debugLoCText = "pid={},vego={:.2f},vt={:.2f},{:.2f},vStop={:.2f}".format(self.long_control_state, CS.vEgo, v_target, v_target_1sec, self.CP.vEgoStopping)
 
     return self.last_output_accel, j_target

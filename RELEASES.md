@@ -1,3 +1,10 @@
+230801 - APILOT
+* APM(APilotMan)0.90: 포트변경, NDA와 구별하도록함.. 기존것은 접속안될수있음.
+  * 과속카메라작동방법: 3으로 하면 NDA 접속가능
+
+230726 - APILOT
+* APilotMan 0.81 : 구간단속
+
 230714 - APILOT
 ========================
 * NOO Helper - 0:None,1:Mappy,Waze, 2:시험
@@ -269,7 +276,7 @@ Version 0.8.12 (2021-12-15)
    * Display burn in mitigation
    * Improved audio amplifier configuration
    * System reliability improvements
-   * Update Python to 3.11.4
+   * Update Python to 3.8.10
  * Raw logs upload moved to connect.comma.ai
  * Fixed HUD alerts on newer Honda Bosch thanks to csouers!
  * Audi Q3 2020-21 support thanks to jyoung8607!
