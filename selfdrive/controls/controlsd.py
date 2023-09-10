@@ -601,7 +601,7 @@ class Controls:
             self.state = State.enabled
           self.current_alert_types.append(ET.ENABLE)
           self.v_cruise_helper.initialize_v_cruise(CS, self.experimental_mode)
-          self.cruise_helper.longActiveUser = 1 if self.enableAutoEngage == 2 else 0           
+          self.cruise_helper.longActiveUser = 1 if self.enableAutoEngage in [0,2] else 0           
 
     # Check if openpilot is engaged and actuators are enabled
     self.enabled = self.state in ENABLED_STATES
@@ -982,8 +982,6 @@ class Controls:
 
     self.is_metric = self.params.get_bool("IsMetric")
     self.experimental_mode = self.params.get_bool("ExperimentalMode")
-    #if self.cruise_helper.autoTurnControl == 4:
-    #  self.experimental_mode = self.cruise_helper.nooExperimentalMode
 
     #self.experimental_mode = self.experimental_mode or self.sm['lateralPlan'].desireReady != 0
     #self.experimental_mode = self.sm['longitudinalPlan'].xState in [XState.e2eStop, XState.e2eCruisePrepare]

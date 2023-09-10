@@ -6,7 +6,7 @@ from openpilot.common.numpy_fast import mean
 from opendbc.can.can_define import CANDefine
 from opendbc.can.parser import CANParser
 from openpilot.selfdrive.car.interfaces import CarStateBase
-from openpilot.selfdrive.car.gm.values import DBC, AccState, CanBus, STEER_THRESHOLD, GMFlags, CC_ONLY_CAR, CAMERA_ACC_CAR
+from openpilot.selfdrive.car.gm.values import DBC, AccState, CanBus, STEER_THRESHOLD, GMFlags, CC_ONLY_CAR, CAMERA_ACC_CAR, CruiseButtons
 
 from openpilot.common.realtime import DT_CTRL
 
@@ -28,6 +28,16 @@ class CarState(CarStateBase):
     self.loopback_lka_steering_cmd_ts_nanos = 0
     self.pt_lka_steering_cmd_counter = 0
     self.cam_lka_steering_cmd_counter = 0
+
+
+    # brakeLights
+    self.regenPaddlePressed = False
+
+    # engineRpm
+    self.engineRPM = 0
+
+    self.use_cluster_speed = True # Params().get_bool('UseClusterSpeed')
+
     self.buttons_counter = 0
 
     self.single_pedal_mode = False
@@ -36,7 +46,7 @@ class CarState(CarStateBase):
 
     self.totalDistance = 0.0
 
-  def update(self, pt_cp, cam_cp, loopback_cp):
+  def update(self, pt_cp, cam_cp, loopback_cp, chassis_cp): # brakeLights
     ret = car.CarState.new_message()
 
     self.distance_button_pressed = pt_cp.vl["ASCMSteeringButton"]["DistanceButton"] != 0
@@ -47,6 +57,9 @@ class CarState(CarStateBase):
     moving_forward = pt_cp.vl["EBCMWheelSpdRear"]["MovingForward"] != 0
     self.moving_backward = (pt_cp.vl["EBCMWheelSpdRear"]["MovingBackward"] != 0) and not moving_forward
 
+    if self.cruise_buttons in [CruiseButtons.UNPRESS, CruiseButtons.INIT] and self.distance_button_pressed:
+      self.cruise_buttons = CruiseButtons.GAP_DIST
+
     # Variables used for avoiding LKAS faults
     self.loopback_lka_steering_cmd_updated = len(loopback_cp.vl_all["ASCMLKASteeringCmd"]["RollingCounter"]) > 0
     if self.loopback_lka_steering_cmd_updated:
@@ -54,6 +67,9 @@ class CarState(CarStateBase):
     if self.CP.networkLocation == NetworkLocation.fwdCamera and not self.CP.flags & GMFlags.NO_CAMERA.value:
       self.pt_lka_steering_cmd_counter = pt_cp.vl["ASCMLKASteeringCmd"]["RollingCounter"]
       self.cam_lka_steering_cmd_counter = cam_cp.vl["ASCMLKASteeringCmd"]["RollingCounter"]
+
+    cluSpeed = pt_cp.vl["ECMVehicleSpeed"]["VehicleSpeed"]
+    ret.vEgoCluster = cluSpeed * CV.MPH_TO_MS
 
     ret.wheelSpeeds = self.get_wheel_speeds(
       pt_cp.vl["EBCMWheelSpdFront"]["FLWheelSpd"],
@@ -103,6 +119,12 @@ class CarState(CarStateBase):
       ret.brake = pt_cp.vl["EBCMBrakePedalPosition"]["BrakePedalPosition"] / 0xd0
     else:
       ret.brake = pt_cp.vl["ECMAcceleratorPos"]["BrakePedalPos"]
+
+    # Regen braking is braking
+    if self.CP.transmissionType == TransmissionType.direct:
+      ret.regenBraking = pt_cp.vl["EBCMRegenPaddle"]["RegenPaddle"] != 0
+      self.regenPaddlePressed = ret.regenBraking
+      self.single_pedal_mode = ret.gearShifter == GearShifter.low or pt_cp.vl["EVDriveMode"]["SinglePedalModeActive"] == 1
     if self.CP.networkLocation == NetworkLocation.fwdCamera:
       ret.brakePressed = pt_cp.vl["ECMEngineStatus"]["BrakePressed"] != 0
     else:
@@ -191,13 +213,16 @@ class CarState(CarStateBase):
       ret.cruiseState.enabled = pt_cp.vl["ECMCruiseControl"]["CruiseActive"] != 0
 
     # TODO: APILOT
-    ret.accFaulted = False ## for Test...
+    #Engine Rpm
+    self.engineRPM = pt_cp.vl["ECMEngineStatus"]["EngineRPM"]
+    ret.accFaulted = False # 벌트는 accFault를 체크하지 않는 걸로...
+
+    # brakeLight
+    ret.brakeLights = chassis_cp.vl["EBCMFrictionBrakeStatus"]["FrictionBrakePressure"] != 0 or ret.brakePressed
+
     ret.cruiseGap = 1
-    #ret.tpms =
-    ret.vCluRatio = 1.0
-    #ret.driverOverride
-    #ret.chargeMeter
-    #ret.motorRpm
+    #ret.tpms = 벌트에 해당되는 tpms 캔 주소를 찾아야 됨
+
     self.totalDistance += ret.vEgo * DT_CTRL # 후진할때는?
     ret.totalDistance = self.totalDistance
     ret.speedLimit = 0
@@ -243,6 +268,7 @@ class CarState(CarStateBase):
       ("ECMVehicleSpeed", 100),
       # ("SPEED_RELATED", 100),
       ("EPBStatus", 5),
+      
     ]
 
     # Used to read back last counter sent to PT by camera
@@ -279,3 +305,11 @@ class CarState(CarStateBase):
     ]
 
     return CANParser(DBC[CP.carFingerprint]["pt"], messages, CanBus.LOOPBACK)
+
+  # brakeLight
+  @staticmethod
+  def get_chassis_can_parser(CP):
+    messages = [
+      ("EBCMFrictionBrakeStatus", 100),
+    ]
+    return CANParser(DBC[CP.carFingerprint]["chassis"], messages, CanBus.CHASSIS)
