@@ -78,64 +78,6 @@ jobs:
 #        cd $STRIPPED_DIR
 #        ${{ env.RUN }} "pre-commit run --all"
 
-  auto-merge:
-    name: automerge
-    if: github.repository == 'jc01rho-openpilot-BoltEV2019-KoKr/boltpilot'
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: true
-      - name: pull-request
-        uses: repo-sync/pull-request@v2
-        id: open-pr
-        with:
-          source_branch: "feature/opgm-ap-integration"
-          destination_branch: "feature/test-purpose-cicd"
-          github_token:  ${{ secrets.REPO_SECRET }}
-  #          pr_assignee: "jc01rho"
-          pr_label: "automerge"
-      - name: pull-request
-        uses: repo-sync/pull-request@v2
-        id: open-pr-sec
-        with:
-          source_branch: "feature/opgm-ap-integration"
-          destination_branch: "feature-develop"
-          github_token:  ${{ secrets.REPO_SECRET }}
-  #          pr_assignee: "jc01rho"
-          pr_label: "automerge"
-
-
-  build_all:
-    name: build all
-    runs-on: ubuntu-20.04
-    steps:
-    - uses: actions/checkout@v3
-      with:
-        submodules: true
-    - uses: ./.github/workflows/setup
-      with:
-        save-cache: true
-    - name: Build openpilot with all flags
-      run: ${{ env.RUN }} "scons -j$(nproc) --extras "
-#     run: ${{ env.RUN }} "scons -j$(nproc) --extras  && release/check-dirty.sh"
-    - name: Cleanup scons cache
-      run: |
-          ${{ env.RUN }} "rm -rf /tmp/scons_cache/* && \
-                          scons -j$(nproc) --cache-populate"
-
-#use custom linter instead
-#  static_analysis:
-#    name: static analysis
-#    runs-on: ubuntu-20.04
-#    steps:
-#    - uses: actions/checkout@v3
-#      with:
-#        submodules: true
-#    - name: Build Docker image
-#      run: eval "$BUILD"
-#    - name: pre-commit
-#      run: ${{ env.RUN }} "pre-commit run --all"
 
   lint:
     # This workflow contains a single job called "build"
@@ -197,6 +139,66 @@ jobs:
       - name: Set outputs
         id: vars
         run: echo  "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+
+  auto-merge:
+    name: automerge
+    if: github.repository == 'jc01rho-openpilot-BoltEV2019-KoKr/boltpilot'
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - name: pull-request
+        uses: repo-sync/pull-request@v2
+        id: open-pr
+        with:
+          source_branch: "feature/opgm-ap-integration"
+          destination_branch: "feature/test-purpose-cicd"
+          github_token:  ${{ secrets.REPO_SECRET }}
+  #          pr_assignee: "jc01rho"
+          pr_label: "automerge"
+      - name: pull-request
+        uses: repo-sync/pull-request@v2
+        id: open-pr-sec
+        with:
+          source_branch: "feature/opgm-ap-integration"
+          destination_branch: "feature-develop"
+          github_token:  ${{ secrets.REPO_SECRET }}
+  #          pr_assignee: "jc01rho"
+          pr_label: "automerge"
+
+
+  build_all:
+    name: build all
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+    - uses: ./.github/workflows/setup
+      with:
+        save-cache: true
+    - name: Build openpilot with all flags
+      run: ${{ env.RUN }} "scons -j$(nproc) --extras "
+#     run: ${{ env.RUN }} "scons -j$(nproc) --extras  && release/check-dirty.sh"
+    - name: Cleanup scons cache
+      run: |
+          ${{ env.RUN }} "rm -rf /tmp/scons_cache/* && \
+                          scons -j$(nproc) --cache-populate"
+
+#use custom linter instead
+#  static_analysis:
+#    name: static analysis
+#    runs-on: ubuntu-20.04
+#    steps:
+#    - uses: actions/checkout@v3
+#      with:
+#        submodules: true
+#    - name: Build Docker image
+#      run: eval "$BUILD"
+#    - name: pre-commit
+#      run: ${{ env.RUN }} "pre-commit run --all"
+
 
 #      - name: Cache apt binaries
 #        uses: actions/cache@v3
@@ -308,10 +310,11 @@ jobs:
     - uses: actions/checkout@v3
       with:
         submodules: true
-    - uses: ./.github/workflows/setup
+    - uses: ./.github/workflows/setup-with-retry
     - name: Build openpilot
       run: ${{ env.RUN }} "scons -j$(nproc)"
     - name: Run valgrind
+      timeout-minutes: 1
       run: |
         ${{ env.RUN }} "python selfdrive/test/test_valgrind_replay.py"
     - name: Print logs
