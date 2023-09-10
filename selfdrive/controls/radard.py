@@ -13,7 +13,7 @@ from openpilot.system.swaglog import cloudlog
 
 from openpilot.common.kalman.simple_kalman import KF1D
 
-from openpilot.common.params import Params
+
 from selfdrive.controls.lib.lane_planner import TRAJECTORY_SIZE
 import numpy as np
 

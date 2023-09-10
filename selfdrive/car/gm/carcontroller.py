@@ -10,7 +10,10 @@ from openpilot.selfdrive.car.gm.values import DBC, CanBus, CarControllerParams, 
 import math
 import cereal.messaging as messaging
 import numpy as np
-
+## Boltpiot things
+from collections import deque
+from openpilot.common.params import Params
+##
 VisualAlert = car.CarControl.HUDControl.VisualAlert
 NetworkLocation = car.CarParams.NetworkLocation
 LongCtrlState = car.CarControl.Actuators.LongControlState
@@ -221,6 +224,7 @@ class CarController:
       else:
         if self.frame % 4 == 0:
           idx = (self.frame // 4) % 4
+          stopping = actuators.longControlState == LongCtrlState.stopping
 
           at_full_stop = CC.longActive and CS.out.standstill
           near_stop = CC.longActive and (CS.out.vEgo < self.params.NEAR_STOP_BRAKE_PHASE)
