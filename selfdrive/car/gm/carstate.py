@@ -10,6 +10,8 @@ from openpilot.selfdrive.car.gm.values import DBC, AccState, CanBus, STEER_THRES
 
 from openpilot.common.realtime import DT_CTRL
 
+from openpilot.common.params import Params
+
 TransmissionType = car.CarParams.TransmissionType
 NetworkLocation = car.CarParams.NetworkLocation
 GearShifter = car.CarState.GearShifter
