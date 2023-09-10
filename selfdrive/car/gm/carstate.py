@@ -9,6 +9,7 @@ from openpilot.selfdrive.car.interfaces import CarStateBase
 from openpilot.selfdrive.car.gm.values import DBC, AccState, CanBus, STEER_THRESHOLD, GMFlags, CC_ONLY_CAR, CAMERA_ACC_CAR, CruiseButtons
 
 from openpilot.common.realtime import DT_CTRL
+from openpilot.common.params import Params
 
 from openpilot.common.params import Params
 
