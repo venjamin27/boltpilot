@@ -675,7 +675,7 @@ class CruiseHelper:
       if self.frame % 40 == 0:
         self.naviSpeedRecoveryProcessCounter += 1
       speed_diff = v_cruise_kph - self.naviSpeedPrev
-      self.naviSpeed  = ceil(self.naviSpeedPrev +  speed_diff * (self.naviSpeedRecoveryProcessCounter/15.0))
+      self.naviSpeed  = int(self.naviSpeedPrev +  speed_diff * (self.naviSpeedRecoveryProcessCounter/15.0))
 
       if self.naviSpeedRecoveryProcessCounter > 15 :
         self.naviSpeedRecoveryProcessOngoing = False
