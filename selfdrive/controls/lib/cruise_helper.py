@@ -81,6 +81,9 @@ class CruiseHelper:
     self.frame = 0
     self.longActiveUserReady = 0
     self.naviSpeed = 255
+    self.naviSpeedPrev = self.naviSpeed
+    self.naviSpeedRecoveryProcessOngoing = False
+    self.naviSpeedRecoveryProcessCounter = 0
     self.roadSpeed = 255
     self.curveSpeed = 255
     self.turnSpeed_prev = 300
@@ -662,7 +665,24 @@ class CruiseHelper:
     self.update_params(self.frame)
 
     self.naviSpeed, self.roadSpeed = self.update_speed_nda(CS, controls)
-    
+
+    if self.naviSpeed > 0 :
+      self.naviSpeedPrev = self.naviSpeed
+      self.naviSpeedRecoveryProcessOngoing = True
+
+    if self.naviSpeedRecoveryProcessOngoing and self.naviSpeed == 0:
+      if frame % 100 == 0:
+        self.naviSpeedRecoveryProcessCounter += 1
+      speed_diff = self.v_cruise_kph_apply - self.naviSpeedPrev
+      self.naviSpeed  = round(self.naviSpeedPrev +  speed_diff * (self.naviSpeedRecoveryProcessCounter/40.0))
+
+      if self.naviSpeedRecoveryProcessCounter > 40 :
+        self.naviSpeedRecoveryProcessOngoing = False
+        self.naviSpeedRecoveryProcessCounter = 0
+        self.naviSpeedPrev = 0
+
+
+
     self.curveSpeed = 255
     self.apilot_driving_mode(CS, controls)
     if self.autoCurveSpeedCtrlUse > 0:
