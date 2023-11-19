@@ -664,19 +664,20 @@ class CruiseHelper:
     self.frame = controls.sm.frame
     self.update_params(self.frame)
 
+
     self.naviSpeed, self.roadSpeed = self.update_speed_nda(CS, controls)
 
     if self.naviSpeed > 0 :
       self.naviSpeedPrev = self.naviSpeed
       self.naviSpeedRecoveryProcessOngoing = True
 
-    if self.naviSpeedRecoveryProcessOngoing and self.naviSpeed == 0:
-      if self.frame % 50 == 0:
+    elif self.naviSpeedRecoveryProcessOngoing and self.naviSpeed <= 0:
+      if self.frame % 40 == 0:
         self.naviSpeedRecoveryProcessCounter += 1
-      speed_diff = self.v_cruise_kph_apply - self.naviSpeedPrev
-      self.naviSpeed  = round(self.naviSpeedPrev +  speed_diff * (self.naviSpeedRecoveryProcessCounter/10.0))
+      speed_diff = self.v_cruise_kph - self.naviSpeedPrev
+      self.naviSpeed  = ceil(self.naviSpeedPrev +  speed_diff * (self.naviSpeedRecoveryProcessCounter/15.0))
 
-      if self.naviSpeedRecoveryProcessCounter > 10 :
+      if self.naviSpeedRecoveryProcessCounter > 15 :
         self.naviSpeedRecoveryProcessOngoing = False
         self.naviSpeedRecoveryProcessCounter = 0
         self.naviSpeedPrev = 0
